@@ -1,0 +1,318 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Data;
+using NYear.ODA;
+
+namespace NYear.ODA.DevTool
+{
+    public class CodeGenerator
+    {
+        private DBAccess _DBA = null;
+        public CodeGenerator(DBAccess DBA)
+        {
+            _DBA = DBA;
+        }
+
+        public string Pascal(string InputString)
+        {
+            string result = InputString;
+            if (result.IndexOf('_') > 0)
+            {
+                char[] arr = result.ToCharArray();
+                if (char.IsLower(arr[0]))
+                    arr[0] = char.ToUpper(arr[0]);
+                for (int i = 1; i < arr.Length; i++)
+                {
+                    if (arr[i] == '_' && i + 1 < arr.Length)
+                    {
+                        i++;
+                        if (char.IsLower(arr[i]))
+                            arr[i] = char.ToUpper(arr[i]);
+
+                    }
+                    else
+                    {
+                        if (char.IsUpper(arr[i]))
+                            arr[i] = char.ToLower(arr[i]);
+                    }
+                }
+                result = new string(arr).Replace("_", "");
+            }
+            else
+            {
+                char[] arr = result.ToCharArray();
+                bool hasLower = false;
+                bool hasUpper = false;
+                for (int i = 0; i < arr.Length; i++)
+                {
+                    if (char.IsLower(arr[i]))
+                    {
+                        hasLower = true;
+                        break;
+                    }
+                }
+                for (int i = 0; i < arr.Length; i++)
+                {
+                    if (char.IsUpper(arr[i]))
+                    {
+                        hasUpper = true;
+                        break;
+                    }
+                }
+                if (!hasLower)
+                {
+                    for (int i = 1; i < arr.Length; i++)
+                    {
+                        arr[i] = char.ToLower(arr[i]);
+                    }
+                    result = new string(arr);
+                }
+                if (!hasUpper)
+                {
+                    arr[0] = char.ToUpper(arr[0]);
+                    result = new string(arr);
+                }
+            }
+            return result;
+        }
+
+        public string CsharpTypeDefaultValue(string CsharpType)
+        {
+            string rtl = "";
+            switch (CsharpType)
+            {
+                case "byte[]":
+                    rtl = "new byte[]{}";
+                    break;
+                case "int":
+                case "decimal":
+                    rtl = "-1";
+                    break;
+                case "System.DateTime":
+                case "DateTime":
+                    rtl = "Convert.ToDateTime(\"1900-01-01\")";
+                    break;
+                case "string":
+                    rtl = "\"\"";
+                    break;
+            }
+            return rtl;
+        }
+
+        public string[] Generate_Code(params string[] TablesAndViews)
+        {
+            System.Text.StringBuilder strbldr = new System.Text.StringBuilder();
+            System.Text.StringBuilder ModelCode = new System.Text.StringBuilder();
+
+            strbldr.AppendLine( "using System;");
+            strbldr.AppendLine( "using System.Data;");
+            strbldr.AppendLine( "using System.Collections.Generic;");
+            strbldr.AppendLine( "using System.Reflection;");
+            strbldr.AppendLine( "using NYear.ODA;");
+            strbldr.AppendLine("using NYear.ODA.Model;");
+            strbldr.AppendLine();
+            strbldr.AppendLine("namespace NYear.ODA.Cmd");
+            strbldr.AppendLine("{");
+
+            ModelCode.AppendLine("using System;");
+            ModelCode.AppendLine();
+            ModelCode.AppendLine("namespace NYear.ODA.Model");
+            ModelCode.AppendLine("{");
+
+            DataTable pdt_tables = _DBA.GetTableColumns();
+            DataTable pdt_views = _DBA.GetViewColumns();
+
+            for (int i = 0; i < TablesAndViews.Length; i++)
+            {
+                string TablePascalName = TablesAndViews[i];
+                System.Text.StringBuilder strCmd = new System.Text.StringBuilder();
+                System.Text.StringBuilder strModel = new System.Text.StringBuilder();
+                System.Text.StringBuilder GetColumnList = new StringBuilder();
+                GetColumnList.AppendLine("      public override List<ODAColumns> GetColumnList() ");
+                GetColumnList.AppendLine("      { ");
+                GetColumnList.Append("          return new List<ODAColumns>() { ");
+
+                DataRow[] drs = pdt_tables.Select("TABLE_NAME ='" + TablesAndViews[i] + "'");
+                if (drs.Length < 1)
+                {
+                    drs = pdt_views.Select("TABLE_NAME ='" + TablesAndViews[i] + "'");
+                    strCmd.AppendLine("     public override bool Insert(params ODA.ODAColumns[] Cols) { throw new ODAException(\"Not suport Insert CmdName \" + CmdName);}");
+                    strCmd.AppendLine("     public override bool Update(params ODAColumns[] Cols) {  throw new ODAException(\"Not Suport Update CmdName \" + CmdName);}");
+                    strCmd.AppendLine("     public override bool Delete() {  throw new ODAException(\"Not Suport Delete CmdName \" + CmdName);}");
+                }
+
+                for (int j = 0; j < drs.Length; j++)
+                {
+                    string ColumnName = drs[j]["COLUMN_NAME"].ToString().Trim();
+                    string ColumnPascalName = "Col" + this.Pascal(ColumnName);
+                    string ColumnCSharpDatatype = "string";
+
+                    if (drs[j]["ODA_DATATYPE"].ToString().Trim() == ODAdbType.OBinary.ToString())
+                        ColumnCSharpDatatype = "byte[]";
+                    else if (drs[j]["ODA_DATATYPE"].ToString().Trim() == "OCursor")
+                        ColumnCSharpDatatype = "object";
+                    else if (drs[j]["ODA_DATATYPE"].ToString().Trim() == ODAdbType.ODatetime.ToString())
+                        ColumnCSharpDatatype = "DateTime?";
+                    else if (drs[j]["ODA_DATATYPE"].ToString().Trim() == ODAdbType.ODecimal.ToString())
+                        ColumnCSharpDatatype = "decimal?";
+                    else if (drs[j]["ODA_DATATYPE"].ToString().Trim() == ODAdbType.OInt.ToString())
+                        ColumnCSharpDatatype = "int?";
+                    else if (drs[j]["ODA_DATATYPE"].ToString().Trim() == ODAdbType.OChar.ToString())
+                        ColumnCSharpDatatype = "string";
+                    else if (drs[j]["ODA_DATATYPE"].ToString().Trim() == ODAdbType.OVarchar.ToString())
+                        ColumnCSharpDatatype = "string";
+
+                    strModel.AppendLine("   public " + ColumnCSharpDatatype + " " + ColumnName + " {get; set;}");
+                    strCmd.AppendLine("     public ODAColumns " + ColumnPascalName + "{ get { return new ODAColumns(this, \"" + ColumnName + "\", ODAdbType." + drs[j]["ODA_DATATYPE"].ToString().Trim() + ", " + drs[j]["LENGTH"].ToString().Trim() + "," + (drs[j]["NOT_NULL"].ToString().Trim()=="Y"? "true":"false") +" ); } }");
+                    GetColumnList.Append(ColumnPascalName + ",");
+                }
+
+                strCmd.AppendLine("     public override string CmdName { get { return \"" + TablesAndViews[i].ToUpper() + "\"; }}");
+                strCmd.AppendLine( GetColumnList.Remove(GetColumnList.Length -1,1).ToString() + "};");
+                strCmd.AppendLine("         }");
+
+                ModelCode.AppendLine("public partial class " + TablePascalName);
+                ModelCode.AppendLine("{");
+                ModelCode.Append(strModel);
+                ModelCode.AppendLine("} ");
+    
+                ////Cmd的代碼
+                strbldr.Append("internal partial class ");
+                strbldr.Append("Cmd" + Pascal(TablePascalName));
+                strbldr.AppendLine(":ORMCmd<" + TablePascalName + ">");
+                strbldr.AppendLine("{"); 
+                strbldr.Append(strCmd);
+                strbldr.AppendLine("}");
+            }
+
+            strbldr.AppendLine("}");
+            ModelCode.AppendLine("}");
+            return new string[] { strbldr.ToString(), ModelCode.ToString() };
+        }
+
+        public string GenerateORMBase(string DBConnectString)
+        {
+            StringBuilder OrmBaseStr = new StringBuilder();
+            string DBAstr = " " + _DBA.GetType().FullName + "(@\"" + DBConnectString + "\")";
+            OrmBaseStr.AppendLine("using System;");
+            OrmBaseStr.AppendLine("using System.Data;");
+            OrmBaseStr.AppendLine("using System.Collections.Generic;");
+            OrmBaseStr.AppendLine("using System.Reflection;");
+            OrmBaseStr.AppendLine("using NYear.ODA;");
+            OrmBaseStr.AppendLine("namespace NYear.ODA.Cmd");
+            OrmBaseStr.AppendLine("{");
+            OrmBaseStr.AppendLine(" public abstract class ORMCmd<T> : ODACmd where T : class ");
+            OrmBaseStr.AppendLine(" { ");
+            OrmBaseStr.AppendLine(" public override string ParamsMark { get { return  DBA.ParamsMark; } }");
+            OrmBaseStr.AppendLine(" protected override IDBAccess DBA  { get { return new  " + DBAstr + "; }}");
+            OrmBaseStr.AppendLine(" public virtual long GetSequence() ");
+            OrmBaseStr.AppendLine(" { ");
+            OrmBaseStr.AppendLine("return DBA.GetSequenceNextVal(this.Tran == null ? null : this.Tran.TranID, this.CmdName + \"_SEQ\");");
+            OrmBaseStr.AppendLine("}");
+            OrmBaseStr.AppendLine("  public abstract List<ODAColumns> GetColumnList();");
+            OrmBaseStr.AppendLine("  public List<ODAColumns> BindColumnValues(T Model)");
+            OrmBaseStr.AppendLine(" {");
+            OrmBaseStr.AppendLine("     PropertyInfo[] Pis = Model.GetType().GetProperties();");
+            OrmBaseStr.AppendLine("    List<ODAColumns> Cs = GetColumnList();");
+            OrmBaseStr.AppendLine("    List<ODAColumns> CList = new List<ODAColumns>();");
+            OrmBaseStr.AppendLine("    foreach (PropertyInfo Pi in Pis)");
+            OrmBaseStr.AppendLine("  {");
+            OrmBaseStr.AppendLine("        object V = Pi.GetValue(Model, null);");
+            OrmBaseStr.AppendLine("       if (V != DBNull.Value && V != null)");
+            OrmBaseStr.AppendLine("            foreach (ODAColumns C in Cs)");
+            OrmBaseStr.AppendLine("             if (C.ColumnName == Pi.Name)");
+            OrmBaseStr.AppendLine("               {");
+            OrmBaseStr.AppendLine("                   C.SetCondition(CmdConditionSymbol.EQUAL, V);");
+            OrmBaseStr.AppendLine("                    CList.Add(C);");
+            OrmBaseStr.AppendLine("               }");
+            OrmBaseStr.AppendLine("  }");
+            OrmBaseStr.AppendLine("     return CList;");
+            OrmBaseStr.AppendLine("  }");
+            OrmBaseStr.AppendLine("public List<T> SelectM(params ODAColumns[] Cols)");
+            OrmBaseStr.AppendLine("{ ");
+            OrmBaseStr.AppendLine("return base.Select<T>(Cols);");
+            OrmBaseStr.AppendLine(" }");
+            OrmBaseStr.AppendLine("public List<T> SelectM(int StartIndex, int MaxRecord, out int TotalRecord, params ODAColumns[] Cols)");
+            OrmBaseStr.AppendLine("{ ");
+            OrmBaseStr.AppendLine(" return base.Select<T>(StartIndex, MaxRecord, out  TotalRecord, Cols);");
+            OrmBaseStr.AppendLine(" }");
+            OrmBaseStr.AppendLine("public bool Insert(T Model)");
+            OrmBaseStr.AppendLine("{ ");
+            OrmBaseStr.AppendLine(" return Insert(BindColumnValues(Model).ToArray());");
+            OrmBaseStr.AppendLine(" }");
+            OrmBaseStr.AppendLine("public bool Update(T Model)");
+            OrmBaseStr.AppendLine("{ ");
+            OrmBaseStr.AppendLine("return Update(BindColumnValues(Model).ToArray());");
+            OrmBaseStr.AppendLine(" }");
+            OrmBaseStr.AppendLine("public new ORMCmd<T> Distinct");
+            OrmBaseStr.AppendLine("{ ");
+            OrmBaseStr.AppendLine("get{_Distinct = true;return this;}");
+            OrmBaseStr.AppendLine(" }");
+            OrmBaseStr.AppendLine("public new ORMCmd<T> ListCmd(params ODACmd[] Cmds)");
+            OrmBaseStr.AppendLine("{ ");
+            OrmBaseStr.AppendLine("return (ORMCmd<T>)base.ListCmd(Cmds);");
+            OrmBaseStr.AppendLine(" }");
+            OrmBaseStr.AppendLine("public new ORMCmd<T> LeftJoin(ODACmd JoinCmd, params ODAColumns[] ONCols)");
+            OrmBaseStr.AppendLine("{ ");
+            OrmBaseStr.AppendLine("return (ORMCmd<T>)base.LeftJoin(JoinCmd, ONCols);");
+            OrmBaseStr.AppendLine(" }");
+            OrmBaseStr.AppendLine("public new ORMCmd<T> InnerJoin(ODACmd JoinCmd, params ODAColumns[] ONCols)");
+            OrmBaseStr.AppendLine("{ ");
+            OrmBaseStr.AppendLine("return (ORMCmd<T>)base.InnerJoin(JoinCmd, ONCols);");
+            OrmBaseStr.AppendLine(" }");
+            OrmBaseStr.AppendLine("public new ORMCmd<T> StartWithConnectBy(string StartWithExpress, string ConnectByParent, string PriorChild, string ConnectColumn, string ConnectStr, int MaxLevel)");
+            OrmBaseStr.AppendLine("{ ");
+            OrmBaseStr.AppendLine("return (ORMCmd<T>)base.StartWithConnectBy(StartWithExpress, ConnectByParent, PriorChild, ConnectColumn, ConnectStr, MaxLevel);");
+            OrmBaseStr.AppendLine(" }");
+            OrmBaseStr.AppendLine("public new ORMCmd<T> OrderbyAsc(params ODAColumns[] ColumnNames)");
+            OrmBaseStr.AppendLine("{ ");
+            OrmBaseStr.AppendLine("return (ORMCmd<T>)base.OrderbyAsc(ColumnNames);");
+            OrmBaseStr.AppendLine(" }");
+            OrmBaseStr.AppendLine("public new ORMCmd<T> OrderbyDesc(params ODAColumns[] ColumnNames)");
+            OrmBaseStr.AppendLine("{ ");
+            OrmBaseStr.AppendLine("return (ORMCmd<T>)base.OrderbyDesc(ColumnNames);");
+            OrmBaseStr.AppendLine(" }");
+            OrmBaseStr.AppendLine("public new ORMCmd<T> Groupby(params ODAColumns[] ColumnNames)");
+            OrmBaseStr.AppendLine("{ ");
+            OrmBaseStr.AppendLine("return (ORMCmd<T>)base.Groupby(ColumnNames);");
+            OrmBaseStr.AppendLine(" }");
+            OrmBaseStr.AppendLine("public new ORMCmd<T> Having(params ODAColumns[] Params)");
+            OrmBaseStr.AppendLine("{ ");
+            OrmBaseStr.AppendLine("return (ORMCmd<T>)base.Having(Params);");
+            OrmBaseStr.AppendLine(" }");
+            OrmBaseStr.AppendLine(" public new ORMCmd<T> Where(params ODAColumns[] Cols)");
+            OrmBaseStr.AppendLine("{ ");
+            OrmBaseStr.AppendLine("return (ORMCmd<T>)base.Where(Cols);");
+            OrmBaseStr.AppendLine(" }");
+            OrmBaseStr.AppendLine("public new ORMCmd<T> Or(params ODAColumns[] Cols)");
+            OrmBaseStr.AppendLine("{ ");
+            OrmBaseStr.AppendLine("return (ORMCmd<T>)base.Or(Cols);");
+            OrmBaseStr.AppendLine(" }");
+            OrmBaseStr.AppendLine("public new ODAParameter[] GetCountSql(out string CountSql, ODAColumns Col)");
+            OrmBaseStr.AppendLine("{");
+            OrmBaseStr.AppendLine("return base.GetCountSql(out CountSql, Col);");
+            OrmBaseStr.AppendLine(" }");
+            OrmBaseStr.AppendLine(" public new ODAParameter[] GetSelectSql(out string SelectSql, params ODAColumns[] Cols)");
+            OrmBaseStr.AppendLine("{");
+            OrmBaseStr.AppendLine("    return base.GetSelectSql(out SelectSql, Cols);");
+            OrmBaseStr.AppendLine(" }");
+            OrmBaseStr.AppendLine(" public new ODAParameter[] GetUpdateSql(out string Sql, params ODAColumns[] Cols)");
+            OrmBaseStr.AppendLine("{");
+            OrmBaseStr.AppendLine("    return base.GetUpdateSql(out Sql, Cols);");
+            OrmBaseStr.AppendLine(" }");
+            OrmBaseStr.AppendLine(" public new ODAParameter[] GetInsertSql(out string Sql, params ODAColumns[] Cols)");
+            OrmBaseStr.AppendLine("{");
+            OrmBaseStr.AppendLine("    return base.GetInsertSql(out Sql, Cols);");
+            OrmBaseStr.AppendLine(" }");
+            OrmBaseStr.AppendLine(" public new ODAParameter[] GetDeleteSql(out string Sql, params ODAColumns[] Cols)");
+            OrmBaseStr.AppendLine(" {");
+            OrmBaseStr.AppendLine("    return base.GetDeleteSql(out Sql, Cols);");
+            OrmBaseStr.AppendLine("  }");
+            OrmBaseStr.AppendLine("}");
+            OrmBaseStr.AppendLine("}");
+
+            return OrmBaseStr.ToString();
+        }
+    }
+}
