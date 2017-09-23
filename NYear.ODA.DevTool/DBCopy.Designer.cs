@@ -38,18 +38,18 @@
             this.ckbxTarDB = new System.Windows.Forms.CheckedListBox();
             this.tpgMsg = new System.Windows.Forms.TabPage();
             this.panel1 = new System.Windows.Forms.Panel();
-            this.lblExecuteRlt = new System.Windows.Forms.Label();
+            this.pnlTranStatus = new System.Windows.Forms.Panel();
+            this.lblTransData = new System.Windows.Forms.Label();
+            this.lblTransTable = new System.Windows.Forms.Label();
+            this.pgbData = new System.Windows.Forms.ProgressBar();
+            this.pgbTable = new System.Windows.Forms.ProgressBar();
+            this.lblExecuteRlt = new System.Windows.Forms.TextBox();
             this.cbxCreateTable = new System.Windows.Forms.CheckBox();
             this.cbxTransData = new System.Windows.Forms.CheckBox();
             this.tbx_connectstring = new System.Windows.Forms.TextBox();
             this.cbbx_database = new System.Windows.Forms.ComboBox();
             this.lbl_database = new System.Windows.Forms.Label();
             this.lbl_connect_string = new System.Windows.Forms.Label();
-            this.pgbTable = new System.Windows.Forms.ProgressBar();
-            this.pnlTranStatus = new System.Windows.Forms.Panel();
-            this.pgbData = new System.Windows.Forms.ProgressBar();
-            this.lblTransTable = new System.Windows.Forms.Label();
-            this.lblTransData = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -148,7 +148,7 @@
             this.tpgGrid.Location = new System.Drawing.Point(4, 22);
             this.tpgGrid.Name = "tpgGrid";
             this.tpgGrid.Padding = new System.Windows.Forms.Padding(3);
-            this.tpgGrid.Size = new System.Drawing.Size(547, 275);
+            this.tpgGrid.Size = new System.Drawing.Size(592, 275);
             this.tpgGrid.TabIndex = 0;
             this.tpgGrid.Text = "Current";
             this.tpgGrid.UseVisualStyleBackColor = true;
@@ -160,7 +160,7 @@
             this.ckbxTarDB.Location = new System.Drawing.Point(3, 3);
             this.ckbxTarDB.MultiColumn = true;
             this.ckbxTarDB.Name = "ckbxTarDB";
-            this.ckbxTarDB.Size = new System.Drawing.Size(541, 269);
+            this.ckbxTarDB.Size = new System.Drawing.Size(586, 269);
             this.ckbxTarDB.TabIndex = 16;
             // 
             // tpgMsg
@@ -186,15 +186,65 @@
             this.panel1.Size = new System.Drawing.Size(589, 250);
             this.panel1.TabIndex = 4;
             // 
+            // pnlTranStatus
+            // 
+            this.pnlTranStatus.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.pnlTranStatus.Controls.Add(this.lblTransData);
+            this.pnlTranStatus.Controls.Add(this.lblTransTable);
+            this.pnlTranStatus.Controls.Add(this.pgbData);
+            this.pnlTranStatus.Controls.Add(this.pgbTable);
+            this.pnlTranStatus.Location = new System.Drawing.Point(0, 3);
+            this.pnlTranStatus.Name = "pnlTranStatus";
+            this.pnlTranStatus.Size = new System.Drawing.Size(583, 169);
+            this.pnlTranStatus.TabIndex = 4;
+            this.pnlTranStatus.Visible = false;
+            // 
+            // lblTransData
+            // 
+            this.lblTransData.AutoSize = true;
+            this.lblTransData.Location = new System.Drawing.Point(4, 72);
+            this.lblTransData.Name = "lblTransData";
+            this.lblTransData.Size = new System.Drawing.Size(59, 12);
+            this.lblTransData.TabIndex = 6;
+            this.lblTransData.Text = "TransData";
+            // 
+            // lblTransTable
+            // 
+            this.lblTransTable.AutoSize = true;
+            this.lblTransTable.Location = new System.Drawing.Point(4, 20);
+            this.lblTransTable.Name = "lblTransTable";
+            this.lblTransTable.Size = new System.Drawing.Size(65, 12);
+            this.lblTransTable.TabIndex = 5;
+            this.lblTransTable.Text = "TransTable";
+            // 
+            // pgbData
+            // 
+            this.pgbData.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.pgbData.Location = new System.Drawing.Point(0, 87);
+            this.pgbData.Name = "pgbData";
+            this.pgbData.Size = new System.Drawing.Size(580, 23);
+            this.pgbData.TabIndex = 4;
+            // 
+            // pgbTable
+            // 
+            this.pgbTable.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.pgbTable.Location = new System.Drawing.Point(0, 38);
+            this.pgbTable.Name = "pgbTable";
+            this.pgbTable.Size = new System.Drawing.Size(580, 23);
+            this.pgbTable.TabIndex = 3;
+            // 
             // lblExecuteRlt
             // 
+            this.lblExecuteRlt.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.lblExecuteRlt.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.lblExecuteRlt.ForeColor = System.Drawing.Color.Red;
             this.lblExecuteRlt.Location = new System.Drawing.Point(0, 0);
+            this.lblExecuteRlt.Multiline = true;
             this.lblExecuteRlt.Name = "lblExecuteRlt";
             this.lblExecuteRlt.Size = new System.Drawing.Size(589, 250);
-            this.lblExecuteRlt.TabIndex = 2;
-            this.lblExecuteRlt.Text = "Message";
+            this.lblExecuteRlt.TabIndex = 1;
             // 
             // cbxCreateTable
             // 
@@ -256,56 +306,6 @@
             this.lbl_connect_string.TabIndex = 31;
             this.lbl_connect_string.Text = "Connect String";
             // 
-            // pgbTable
-            // 
-            this.pgbTable.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.pgbTable.Location = new System.Drawing.Point(0, 38);
-            this.pgbTable.Name = "pgbTable";
-            this.pgbTable.Size = new System.Drawing.Size(586, 23);
-            this.pgbTable.TabIndex = 3;
-            // 
-            // pnlTranStatus
-            // 
-            this.pnlTranStatus.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.pnlTranStatus.Controls.Add(this.lblTransData);
-            this.pnlTranStatus.Controls.Add(this.lblTransTable);
-            this.pnlTranStatus.Controls.Add(this.pgbData);
-            this.pnlTranStatus.Controls.Add(this.pgbTable);
-            this.pnlTranStatus.Location = new System.Drawing.Point(0, 1);
-            this.pnlTranStatus.Name = "pnlTranStatus";
-            this.pnlTranStatus.Size = new System.Drawing.Size(589, 156);
-            this.pnlTranStatus.TabIndex = 4;
-            this.pnlTranStatus.Visible = false;
-            // 
-            // pgbData
-            // 
-            this.pgbData.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.pgbData.Location = new System.Drawing.Point(0, 87);
-            this.pgbData.Name = "pgbData";
-            this.pgbData.Size = new System.Drawing.Size(586, 23);
-            this.pgbData.TabIndex = 4;
-            // 
-            // lblTransTable
-            // 
-            this.lblTransTable.AutoSize = true;
-            this.lblTransTable.Location = new System.Drawing.Point(4, 20);
-            this.lblTransTable.Name = "lblTransTable";
-            this.lblTransTable.Size = new System.Drawing.Size(65, 12);
-            this.lblTransTable.TabIndex = 5;
-            this.lblTransTable.Text = "TransTable";
-            // 
-            // lblTransData
-            // 
-            this.lblTransData.AutoSize = true;
-            this.lblTransData.Location = new System.Drawing.Point(4, 72);
-            this.lblTransData.Name = "lblTransData";
-            this.lblTransData.Size = new System.Drawing.Size(59, 12);
-            this.lblTransData.TabIndex = 6;
-            this.lblTransData.Text = "TransData";
-            // 
             // DBCopy
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -325,6 +325,7 @@
             this.tpgGrid.ResumeLayout(false);
             this.tpgMsg.ResumeLayout(false);
             this.panel1.ResumeLayout(false);
+            this.panel1.PerformLayout();
             this.pnlTranStatus.ResumeLayout(false);
             this.pnlTranStatus.PerformLayout();
             this.ResumeLayout(false);
@@ -346,7 +347,6 @@
         private System.Windows.Forms.TabPage tpgGrid;
         private System.Windows.Forms.TabPage tpgMsg;
         private System.Windows.Forms.Panel panel1;
-        private System.Windows.Forms.Label lblExecuteRlt;
         private System.Windows.Forms.CheckedListBox ckbxTarDB;
         private System.Windows.Forms.GroupBox Target;
         private System.Windows.Forms.Label label1;
@@ -355,5 +355,6 @@
         private System.Windows.Forms.Label lblTransTable;
         private System.Windows.Forms.ProgressBar pgbData;
         private System.Windows.Forms.ProgressBar pgbTable;
+        private System.Windows.Forms.TextBox lblExecuteRlt;
     }
 }

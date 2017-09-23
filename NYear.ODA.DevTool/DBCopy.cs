@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Windows.Forms;
 
@@ -340,6 +341,7 @@ namespace NYear.ODA.DevTool
 
         void bgw_DoWork(object sender, DoWorkEventArgs e)
         {
+            StringBuilder sbrlt = new StringBuilder();
             TransferParams prm = e.Argument as TransferParams;
             BackgroundWorker bgw = sender as BackgroundWorker;
             for (int i = 0; i < prm.TranTable.Count; i++)
@@ -364,7 +366,7 @@ namespace NYear.ODA.DevTool
                         ColumnInfo[j].NotNull = drs[j]["NOT_NULL"].ToString() == "Y";
                     }
 
-                    string[] Pkeys =  prm.SourceDB.GetPrimarykey(prm.TranTable[i]);
+                    string[] Pkeys = prm.SourceDB.GetPrimarykey(prm.TranTable[i]);
                     DatabaseColumnInfo[] pInfo = null;
                     if (Pkeys != null && Pkeys.Length > 0)
                     {
@@ -375,12 +377,17 @@ namespace NYear.ODA.DevTool
                         }
                     }
 
-                    CreateTable(prm.TargetDB, prm.TranTable[i], ColumnInfo, pInfo);
+                    string tlt = CreateTable(prm.TargetDB, prm.TranTable[i], ColumnInfo, pInfo);
+                    if (!string.IsNullOrWhiteSpace(tlt))
+                    {
+                        sbrlt.AppendLine(tlt);
+                        continue;
+                    }
                 }
 
                 ReportStatus RST = new ReportStatus()
                 {
-                    Percent = (i +1) * 100 / prm.TranTable.Count,
+                    Percent = (i + 1) * 100 / prm.TranTable.Count,
                     TransObject = "Table [" + prm.TranTable[i] + "] Created",
                     TransType = "Table"
                 };
@@ -397,8 +404,10 @@ namespace NYear.ODA.DevTool
                     string paramMark = prm.TargetDB.ParamsMark;
                     for (int c = 0; c < drs.Length; c++)
                     {
-                        col += drs[c]["COLUMN_NAME"].ToString() + ",";
-                        iprms += paramMark + drs[c]["COLUMN_NAME"].ToString() + ",";
+                        DatabaseColumnInfo ColumnInfo = prm.TargetDB.ODAColumnToOrigin(drs[c]["COLUMN_NAME"].ToString(), drs[c]["ODA_DATATYPE"].ToString().Trim(), decimal.Parse(drs[c]["LENGTH"].ToString().Trim()));
+
+                        col += ColumnInfo.Name + ",";
+                        iprms += paramMark + "P_" + this.MD5_16(drs[c]["COLUMN_NAME"].ToString()) + ",";
                     }
 
                     insertSQL += "(" + col.TrimEnd(',') + ") VALUES (" + iprms.TrimEnd(',') + ")";
@@ -415,11 +424,11 @@ namespace NYear.ODA.DevTool
                         };
                         bgw.ReportProgress(RS.Percent, RSData0);
 
-                        DataTable DT_total = CurrentDatabase.DataSource.Select( "SELECT COUNT(*) FROM " + prm.TranTable[i], null);
+                        DataTable DT_total = CurrentDatabase.DataSource.Select("SELECT COUNT(*) FROM " + prm.TranTable[i], null);
                         int.TryParse(DT_total.Rows[0][0].ToString(), out total);
-                        DataTable Source = CurrentDatabase.DataSource.Select( "SELECT * FROM " + prm.TranTable[i], null, startIndx, maxR);
+                        DataTable Source = CurrentDatabase.DataSource.Select("SELECT * FROM " + prm.TranTable[i], null, startIndx, maxR);
 
-                       TarDB.BeginTransaction( );
+                        TarDB.BeginTransaction();
                         try
                         {
                             for (int k = 0; k < Source.Rows.Count; k++)
@@ -430,7 +439,7 @@ namespace NYear.ODA.DevTool
                                     Oprms[c] = new ODAParameter();
                                     Oprms[c].DBDataType = (ODAdbType)Enum.Parse(typeof(ODAdbType), drs[c]["ODA_DATATYPE"].ToString());
                                     Oprms[c].Direction = ParameterDirection.Input;
-                                    Oprms[c].ParamsName = paramMark + drs[c]["COLUMN_NAME"].ToString();
+                                    Oprms[c].ParamsName = paramMark + "P_" + this.MD5_16(drs[c]["COLUMN_NAME"].ToString());
                                     Oprms[c].Size = int.Parse(drs[c]["LENGTH"].ToString().Trim());
                                     if (Source.Rows[k][drs[c]["COLUMN_NAME"].ToString()] == System.DBNull.Value)
                                     {
@@ -477,15 +486,20 @@ namespace NYear.ODA.DevTool
                             }
                             prm.TargetDB.Commit();
                         }
-                        catch(Exception EX)
+                        catch (Exception ex)
                         {
                             prm.TargetDB.RollBack();
+                            sbrlt.AppendLine("Tranfer data Error:" + ex.Message);
                         }
                         startIndx = startIndx + maxR;
                     }
                     while (startIndx + maxR < total);
                 }
             }
+
+            e.Result = sbrlt.ToString();
+
+ 
         }
 
         void bgw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
@@ -493,13 +507,16 @@ namespace NYear.ODA.DevTool
             if (!this.InvokeRequired)
             {
                 this.pnlTranStatus.Visible = false;
+                this.lblExecuteRlt.Text = e.Result.ToString();
             }
             else
             {
                 this.BeginInvoke(new Action(() =>
                 {
                     this.pnlTranStatus.Visible = false;
+                    this.lblExecuteRlt.Text = e.Result.ToString();
                 }), null);
+
             }
         }
 
@@ -534,7 +551,7 @@ namespace NYear.ODA.DevTool
             }
         }
 
-        private bool CreateTable(DBAccess TargetDB, string TableName, DatabaseColumnInfo[] ColumnInfo, DatabaseColumnInfo[]  Pkeys )
+        private string CreateTable(DBAccess TargetDB, string TableName, DatabaseColumnInfo[] ColumnInfo, DatabaseColumnInfo[]  Pkeys )
         {
             try
             {
@@ -543,9 +560,9 @@ namespace NYear.ODA.DevTool
             }
             catch { }
 
+            StringBuilder creatSQL = new StringBuilder();
             try
             {
-                StringBuilder creatSQL = new StringBuilder();
                 creatSQL.AppendLine("CREATE TABLE " + TableName);
                 creatSQL.AppendLine("(");
 
@@ -579,8 +596,17 @@ namespace NYear.ODA.DevTool
             }
             catch(Exception ex)
             {
+                creatSQL.Insert(0, "Create Table Error: " + ex.Message);
+                return creatSQL.ToString();
             }
-            return true;
+            return "" ;
+        }
+
+        private string MD5_16(string Str)
+        {
+            MD5CryptoServiceProvider md5 = new MD5CryptoServiceProvider();
+            string t2 = BitConverter.ToString(md5.ComputeHash(System.Text.Encoding.UTF8.GetBytes(Str)), 4, 8);
+            return  t2.Replace("-", "");
         }
     }
      

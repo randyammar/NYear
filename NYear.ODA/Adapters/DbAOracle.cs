@@ -165,7 +165,7 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
             DatabaseColumnInfo ColInof = new DatabaseColumnInfo();
             ColInof.Name = "\"" + Name +"\"";
             ColInof.NoLength = false;
-            ColInof.Length = Length;
+            ColInof.Length = Length > 2000 ? 2000 : Length < 0 ? 2000 : Length;
 
             if (ColumnType.Trim() == ODAdbType.OBinary.ToString())
             {
@@ -215,7 +215,7 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
 
         public override DataTable GetTableColumns()
         {
-            string sql_tabcol = " SELECT TC.TABLE_NAME,TC.COLUMN_NAME,CASE TC.NULLABLE WHEN 'N' THEN 'Y' ELSE 'N' END   NOTNULL,"
+            string sql_tabcol = " SELECT TC.TABLE_NAME,TC.COLUMN_NAME,CASE TC.NULLABLE WHEN 'N' THEN 'Y' ELSE 'N' END   NOTNULL,TC.COLUMN_ID COL_SEQ,"
             + " DECODE(TC.DATA_TYPE,'CHAR','OChar','VARCHAR','OVarchar','VARCHAR2','OVarchar','NVARCHAR2','OVarchar','MLSLABEL','OVarchar',"
             + " 'UROWID','OVarchar','URITYPE','OVarchar','CHARACTER','OVarchar','CLOB','OVarchar','INTEGER','OInt','INT','OInt',"
             + " 'SMALLINT','OInt','DATE','ODatetime','LONG','ODecimal','DECIMAL','ODecimal','NUMERIC','ODecimal','REAL','ODecimal',"
@@ -226,7 +226,7 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
             + " WHERE TB.TABLE_NAME = TC.TABLE_NAME "
             + " AND TC.TABLE_NAME = TCC.table_name(+) "
             + " AND TC.COLUMN_NAME = TCC.column_name(+) "
-            + " ORDER BY TC.TABLE_NAME,TC.COLUMN_NAME ";
+            + " ORDER BY TC.TABLE_NAME,TC.COLUMN_ID ";
             DataTable Dt = Select(sql_tabcol, null);
             Dt.TableName = "TABLE_COLUMN";
             return Dt;

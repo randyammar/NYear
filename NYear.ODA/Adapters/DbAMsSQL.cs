@@ -72,7 +72,7 @@ namespace NYear.ODA.Adapter
         }
         public override DataTable GetTableColumns()
         {
-            string sql_tabcol = "SELECT DISTINCT SOBJ.NAME AS TABLE_NAME, SCOL.NAME AS COLUMN_NAME , "
+            string sql_tabcol = "SELECT DISTINCT SOBJ.NAME AS TABLE_NAME, SCOL.NAME AS COLUMN_NAME , SCOL.COLID AS COL_SEQ,"
             + " CASE SYT.NAME  WHEN 'sysname'  THEN 'OVarchar' WHEN 'sql_varint'  THEN 'OVarchar'    WHEN 'varchar' THEN 'OVarchar' WHEN 'char'  THEN 'OChar' "
             + " WHEN 'nchar'  THEN 'OChar' WHEN 'ntext'  THEN 'OVarchar'  WHEN 'nvarchar'  THEN 'OVarchar'  WHEN 'text'  THEN 'OVarchar' WHEN 'varchar'  THEN 'OVarchar' "
             + " WHEN 'bigint'  THEN 'ODecimal'  WHEN 'decimal'  THEN 'ODecimal'   WHEN 'float'  THEN 'ODecimal'   WHEN 'money'  THEN 'ODecimal' "
@@ -94,7 +94,7 @@ namespace NYear.ODA.Adapter
             + " and ext.major_id =OBJECT_ID (UPPER(SOBJ.NAME)) "
             + " and ext.minor_id = SCOL.colid "
             + " WHERE  SOBJ.XTYPE  = 'U '"
-            + " ORDER BY  TABLE_NAME , COLUMN_NAME  ";
+            + " ORDER BY  TABLE_NAME , SCOL.COLID  ";
             DataTable Dt = this.Select(sql_tabcol, null);
             Dt.TableName = "TABLE_COLUMN";
             return Dt;
@@ -277,7 +277,7 @@ DISTINCT
             DatabaseColumnInfo ColInof = new DatabaseColumnInfo();
             ColInof.Name = "[" + Name + "]";
             ColInof.NoLength = false;
-            ColInof.Length = Length;
+            ColInof.Length = Length > 8000 ? 8000 : Length < 0 ? 8000 : Length;
 
             if (ColumnType.Trim() == ODAdbType.OBinary.ToString())
             {

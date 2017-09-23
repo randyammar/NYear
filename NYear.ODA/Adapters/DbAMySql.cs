@@ -74,7 +74,7 @@ namespace NYear.ODA.Adapter
 
         public override DataTable GetTableColumns()
         {
-            string sql_tabcol = "SELECT C.TABLE_NAME,C.COLUMN_NAME, "
+            string sql_tabcol = "SELECT C.TABLE_NAME,C.COLUMN_NAME, C.ORDINAL_POSITION COL_SEQ, "
             + " CASE C.DATA_TYPE WHEN 'char' THEN 'OChar' WHEN 'varchar' THEN 'OVarchar' WHEN 'tinytext' THEN 'OVarchar' "
             + " WHEN 'text' THEN 'OVarchar' WHEN 'mediumtext' THEN 'OVarchar' WHEN 'longtext' THEN 'OVarchar' WHEN 'enum' THEN 'OChar' "
             + " WHEN 'set' THEN 'OVarchar' WHEN 'geometry' THEN 'OVarchar' WHEN 'point' THEN 'OVarchar' WHEN 'linestring' THEN 'OVarchar' "
@@ -91,7 +91,7 @@ namespace NYear.ODA.Adapter
             + " FROM INFORMATION_SCHEMA.COLUMNS C "
             + " WHERE C.TABLE_NAME NOT IN (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS V WHERE V.TABLE_SCHEMA  = DATABASE() AND  C.TABLE_SCHEMA =DATABASE()) "
             + " AND C.TABLE_SCHEMA =DATABASE() "
-            + " ORDER BY C.TABLE_NAME,C.COLUMN_NAME ";
+            + " ORDER BY C.TABLE_NAME, C.ORDINAL_POSITION ";
             DataTable Dt = Select(sql_tabcol, null);
             Dt.TableName = "TABLE_COLUMN";
             return Dt;
@@ -142,7 +142,7 @@ namespace NYear.ODA.Adapter
             DatabaseColumnInfo ColInof = new DatabaseColumnInfo();
             ColInof.Name = Name;
             ColInof.NoLength = false;
-            ColInof.Length = Length;
+            ColInof.Length = Length > 2000 ? 2000 : Length < 0 ? 2000 : Length;
 
             if (ColumnType.Trim() == ODAdbType.OBinary.ToString())
             {

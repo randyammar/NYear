@@ -67,8 +67,8 @@ namespace NYear.ODA.DevTool
                             + " Connect String: Provider=Microsoft.Jet.OLEDB.4.0;Data Source=\\directory\\demo.mdb;User Id=admin;Password=;  ";
                         break;
                     case "Oracle":
-                        cbbxConnectstring.Text = "password=;user id=;data source=;";
-                        this.lblExecuteRlt.Text = "password=123;user id=xxxx;data source=192.168.1.101:1521/XE";
+                        cbbxConnectstring.Text = "password=123;user id=xxxx;data source=127.0.0.1:1501/orca;";
+                        this.lblExecuteRlt.Text = "password=123;user id=xxxx;data source=127.0.0.1:1501/orca";
                         break;
                     case "Sybase":
                         cbbxConnectstring.Text = "Data Source='myASEserver'; Port=5000; Database='myDBname'; UID='username'; PWD='password'; ";

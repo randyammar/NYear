@@ -73,7 +73,7 @@ namespace NYear.ODA.Adapter
         }
         public override DataTable GetTableColumns()
         {
-            string sql = @"SELECT C.NAME AS COLUMN_NAME,T.NAME  TABLE_NAME,
+            string sql = @"SELECTT.NAME  TABLE_NAME,C.NAME AS COLUMN_NAME,C.COLNO COL_SEQ,
 CASE C.COLTYPE WHEN 'CHAR' THEN 'OChar' WHEN 'VARCHAR' THEN 'OVarchar'
 WHEN 'TIMESTMP' THEN 'ODatetime' WHEN 'DECIMAL' THEN 'ODecimal' WHEN 'INTEGER' THEN 'OInt'
 WHEN 'BLOB' THEN 'OBinary' ELSE  C.COLTYPE END ODA_DATATYPE,
@@ -127,7 +127,7 @@ AND UNIQUERULE = 'P'";
             DatabaseColumnInfo ColInof = new DatabaseColumnInfo();
             ColInof.Name = "\"" +Name +"\"";
             ColInof.NoLength = false;
-            ColInof.Length = Length;
+            ColInof.Length = Length > 2000 ? 2000 : Length < 0 ? 2000 : Length;
 
             if (ColumnType.Trim() == ODAdbType.OBinary.ToString())
             {
