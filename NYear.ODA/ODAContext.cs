@@ -53,6 +53,7 @@ namespace NYear.ODA
         public virtual U GetCmd<U>(string Alias = null) where U : ODACmd
         {
             U cmd = Activator.CreateInstance<U>();
+            cmd.ParamsMark = ODAContext.DBParamsMark;
             cmd.Counting = Count;
             cmd.Selecting = Select;
             cmd.SelectPaging = Select;
@@ -70,6 +71,7 @@ namespace NYear.ODA
 
         /// <summary>
         /// 当前数据库类型的变量标志
+        /// 　待解决：分库时如果不是同一数据库时，DBParamsMark是不同的
         /// </summary>
         public static string DBParamsMark
         {
@@ -565,39 +567,7 @@ namespace NYear.ODA
             DataTable d = EA.DBA.Select(EA.SQL, EA.SqlParams);
             return int.Parse(d.Rows[0]["TOTAL_RECORD"].ToString());
         }
-        ///// <summary>
-        ///// 执行 select count groupby 查询并返回值
-        ///// </summary>
-        ///// <param name="Cmd"></param>
-        ///// <param name="Cols"></param>
-        ///// <returns></returns>
-        //public virtual int GroupbyCount(IDBScriptGenerator Cmd, ODAColumns[] Cols)
-        //{
-        //    SetSelectSplitTable(Cmd);
-        //    IDBAccess DBA = DatabaseRouting(SQLType.Select, Cmd);
-        //    ExecuteEventArgs EA = new ExecuteEventArgs() { DBA = DBA };
-        //    string sql;
-        //    if (DBA is DbASybase)
-        //    {
-        //        EA.SqlParams = Cmd.GetSelectSql(out sql, Cols);
-        //        EA.SQL = sql;
-        //        if (this.ExecutingSql != null)
-        //            ExecutingSql(this, EA);
-        //        DataTable d = EA.DBA.Select(EA.SQL, EA.SqlParams);
-        //        if (d != null)
-        //            return d.Rows.Count;
-        //        return 0;
-        //    }
-        //    else
-        //    {
-        //        EA.SqlParams = Cmd.GetGroupbyCountSql(out sql, Cols);
-        //        EA.SQL = sql;
-        //        if (this.ExecutingSql != null)
-        //            ExecutingSql(this, EA);
-        //        DataTable d = EA.DBA.Select(EA.SQL, EA.SqlParams);
-        //        return int.Parse(d.Rows[0]["TOTAL_RECORD"].ToString());
-        //    }
-        //}
+        
         /// <summary>
         /// 执行查询
         /// </summary>

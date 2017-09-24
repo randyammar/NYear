@@ -243,12 +243,12 @@ namespace NYear.ODA
             {
                 if (this.DBA == null || string.IsNullOrWhiteSpace(this.SQL))
                     return string.Empty;
-                return this.GetDebugSql(this.SQL, this.DBA.ParamsMark, this.SqlParams);
+                return this.GetDebugSql(this.SQL, this.SqlParams);
             }
         }
 
 
-        private string GetDebugSql(string Sql, string ParamsMark, params ODAParameter[] prms)
+        private string GetDebugSql(string Sql, params ODAParameter[] prms)
         {
             string debugSql = Sql;
             if (prms != null)
@@ -257,8 +257,6 @@ namespace NYear.ODA
                 {
                     string ParamsValue = p.ParamsValue.ToString();
                     string ParamsName = p.ParamsName;
-                    if (!p.ParamsName.StartsWith(ParamsMark))
-                        ParamsName = ParamsMark + p.ParamsName;
                     switch (p.DBDataType)
                     {
                         case ODAdbType.OInt:

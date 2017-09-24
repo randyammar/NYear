@@ -441,6 +441,8 @@ namespace NYear.ODA
             if (string.IsNullOrWhiteSpace(_Alias))
                 _Alias = "T";
 
+
+
             List<ODAParameter> ParamList = new List<ODAParameter>();
             string SelSql = _Distinct ? "SELECT DISTINCT " : "SELECT ";
 
