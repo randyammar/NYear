@@ -11,8 +11,6 @@ namespace NYear.ODA.Adapter
             : base(ConnectionString)
         {
         }
-        public override string ParamsMark { get { return "@"; } }
-
         public override DbAType DBAType { get { return DbAType.DB2; } }
 
         private DB2Connection _DBConn = null;
@@ -29,8 +27,6 @@ namespace NYear.ODA.Adapter
         {
             _DBConn = null;
         }
-
-
         protected override DbDataAdapter GetDataAdapter(IDbCommand SelectCmd)
         {
             return new DB2DataAdapter((DB2Command)SelectCmd);
@@ -189,9 +185,11 @@ AND UNIQUERULE = 'P'";
                 CloseCommand(Cmd);
             }
         }
-        protected override void SetCmdParameters(ref IDbCommand Cmd, params ODAParameter[] ParamList)
+        protected override void SetCmdParameters(ref IDbCommand Cmd, string SQL, params ODAParameter[] ParamList)
         {
+            Cmd.CommandText = SQL;
             if (ParamList != null)
+            {
                 foreach (ODAParameter pr in ParamList)
                 {
                     DB2Parameter param = new DB2Parameter();
@@ -205,7 +203,7 @@ AND UNIQUERULE = 'P'";
                     {
                         case ODAdbType.ODatetime:
                             param.DB2Type = DB2Type.Date;
-                           if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
+                            if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
                             {
                                 param.Value = System.DBNull.Value;
                             }
@@ -224,7 +222,7 @@ AND UNIQUERULE = 'P'";
                         case ODAdbType.ODecimal:
                             param.DB2Type = DB2Type.Decimal;
 
-                           if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
+                            if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
                             {
                                 param.Value = System.DBNull.Value;
                             }
@@ -242,7 +240,7 @@ AND UNIQUERULE = 'P'";
                             break;
                         case ODAdbType.OBinary:
                             param.DB2Type = DB2Type.Blob;
-                           if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
+                            if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
                             {
                                 param.Value = System.DBNull.Value;
                             }
@@ -257,7 +255,7 @@ AND UNIQUERULE = 'P'";
                             break;
                         case ODAdbType.OInt:
                             param.DB2Type = DB2Type.Integer;
-                           if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
+                            if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
                             {
                                 param.Value = System.DBNull.Value;
                             }
@@ -276,7 +274,7 @@ AND UNIQUERULE = 'P'";
                         case ODAdbType.OChar:
                             param.DB2Type = DB2Type.Char;
                             param.DbType = DbType.StringFixedLength;
-                           if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
+                            if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
                             {
                                 param.Value = System.DBNull.Value;
                             }
@@ -295,7 +293,7 @@ AND UNIQUERULE = 'P'";
                         case ODAdbType.OVarchar:
                             param.DB2Type = DB2Type.VarChar;
                             param.DbType = DbType.String;
-                           if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
+                            if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
                             {
                                 param.Value = System.DBNull.Value;
                             }
@@ -319,6 +317,7 @@ AND UNIQUERULE = 'P'";
                     }
                     ((DB2ParameterCollection)Cmd.Parameters).Add(param);
                 }
+            }
         }
     }
 }

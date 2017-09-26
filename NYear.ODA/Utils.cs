@@ -112,6 +112,8 @@ namespace NYear.ODA
     [DataContract]
     public class ODAParameter
     {
+        public static char ODAParamsMark { get { return '@'; } }
+
         [DataMember(IsRequired = true)]
         public string ParamsName { get; set; }
         [DataMember(IsRequired = true)]

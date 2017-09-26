@@ -7,6 +7,7 @@ namespace NYear.ODA.Adapter
 {
     public class DbAOdbcInformix : DBAccess
     {
+        private static char ParamsMark { get { return '?'; } }
         public DbAOdbcInformix(string ConnectionString)
             : base(ConnectionString)
         {
@@ -67,8 +68,6 @@ namespace NYear.ODA.Adapter
             }
             return str;
         }
-
-        public override string ParamsMark { get { return "?"; } }
         public override DbAType DBAType { get { return DbAType.OdbcInformix; } }
 
         public override DataTable GetTableColumns()
@@ -176,11 +175,15 @@ namespace NYear.ODA.Adapter
             }
         }
 
-        protected override void SetCmdParameters(ref IDbCommand Cmd, params ODAParameter[] ParamList)
+        protected override void SetCmdParameters(ref IDbCommand Cmd,string SQL, params ODAParameter[] ParamList)
         {
+            string dbSql = SQL;
             if (ParamList != null)
+            {
                 foreach (ODAParameter pr in ParamList)
                 {
+                    dbSql = dbSql.Replace(pr.ParamsName, pr.ParamsName.Replace(ODAParameter.ODAParamsMark, DbAOdbcInformix.ParamsMark));
+
                     OdbcParameter param = new OdbcParameter();
                     param.ParameterName = pr.ParamsName;
                     if (pr.Size < 0)
@@ -192,7 +195,7 @@ namespace NYear.ODA.Adapter
                     {
                         case ODAdbType.ODatetime:
                             param.OdbcType = OdbcType.DateTime;
-                           if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
+                            if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
                             {
                                 param.Value = System.DBNull.Value;
                             }
@@ -210,7 +213,7 @@ namespace NYear.ODA.Adapter
                             break;
                         case ODAdbType.ODecimal:
                             param.OdbcType = OdbcType.Decimal;
-                           if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
+                            if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
                             {
                                 param.Value = System.DBNull.Value;
                             }
@@ -228,7 +231,7 @@ namespace NYear.ODA.Adapter
                             break;
                         case ODAdbType.OBinary:
                             param.OdbcType = OdbcType.Binary;
-                           if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
+                            if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
                             {
                                 param.Value = System.DBNull.Value;
                             }
@@ -243,7 +246,7 @@ namespace NYear.ODA.Adapter
                             break;
                         case ODAdbType.OInt:
                             param.OdbcType = OdbcType.Int;
-                           if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
+                            if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
                             {
                                 param.Value = System.DBNull.Value;
                             }
@@ -261,7 +264,7 @@ namespace NYear.ODA.Adapter
                             break;
                         case ODAdbType.OChar:
                             param.OdbcType = OdbcType.Char;
-                           if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
+                            if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
                             {
                                 param.Value = System.DBNull.Value;
                             }
@@ -279,7 +282,7 @@ namespace NYear.ODA.Adapter
                             break;
                         case ODAdbType.OVarchar:
                             param.OdbcType = OdbcType.VarChar;
-                           if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
+                            if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
                             {
                                 param.Value = System.DBNull.Value;
                             }
@@ -302,6 +305,9 @@ namespace NYear.ODA.Adapter
                     }
                     ((OdbcParameterCollection)Cmd.Parameters).Add(param);
                 }
+            }
+
+            Cmd.CommandText = dbSql;
         }
     }
 }

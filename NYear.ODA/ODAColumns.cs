@@ -265,28 +265,6 @@ namespace NYear.ODA
             }
         }
         #endregion
-
-        //public virtual bool Validate()
-        //{
-        //    string ErrMsg;
-        //    return Validate(out ErrMsg);
-        //}
-        //public virtual bool Validate(out string ErrMsg)
-        //{
-        //    ErrMsg = null;
-        //    if (_DBDataType == ODAdbType.OChar || _DBDataType == ODAdbType.OVarchar)
-        //    {
-        //        _CompareValue = _CompareValue == null ? null : _CompareValue.ToString().Trim();
-        //        if (_CompareValue != null)
-        //            if (_Cmd.DBCharSet.GetBytes(_CompareValue.ToString().Trim()).Length > _Size)
-        //            {
-        //                ErrMsg = string.IsNullOrEmpty(_ColumnComment) ? _ColumnName : _ColumnComment;
-        //                ErrMsg += " To Long";
-        //                return false;
-        //            }
-        //    }
-        //    return true;
-        //}
         public virtual ODAParameter[] GetSelectColumn(out string SubSql)
         {
             string SColumn = GetColumnName();
@@ -300,7 +278,6 @@ namespace NYear.ODA
         {
             if (_CompareValue is ODAFunction)
             {
-                ((ODAFunction)_CompareValue).ParentCmd.ParamsMark = this.ParentCmd.ParamsMark;
                 ODAParameter[] ps = ((ODAFunction)_CompareValue).GetInsertSubstring(out SubSql, out SubSqlParams);
                 SubSql = _ColumnName;
                 return ps;
@@ -308,11 +285,11 @@ namespace NYear.ODA
             else
             {
                 ODAParameter P = new ODAParameter();
-                string PName = _Cmd.ParamsMark + _ColumnName + "_V" + _Cmd.Alias;
+                string PName = ODAParameter.ODAParamsMark + _ColumnName + "_V" + _Cmd.Alias;
                 if (PName.Length > 27)///变量太长
                 {
                     AliasCount++;
-                    PName = _Cmd.ParamsMark + "P" + AliasCount.ToString() + _Cmd.Alias;
+                    PName = ODAParameter.ODAParamsMark + "P" + AliasCount.ToString() + _Cmd.Alias;
                 }
                 P.ParamsName = PName;
                 P.ParamsValue = _CompareValue == null ? System.DBNull.Value : _CompareValue;
@@ -368,11 +345,11 @@ namespace NYear.ODA
             else
             {
                 ODAParameter P = new ODAParameter();
-                string PName = _Cmd.ParamsMark + _ColumnName + "_V" + _Cmd.Alias;
+                string PName = ODAParameter.ODAParamsMark + _ColumnName + "_V" + _Cmd.Alias;
                 if (PName.Length > 27)///变量太长
                 {
                     AliasCount++;
-                    PName = _Cmd.ParamsMark + "P" + AliasCount.ToString() + "_V" + _Cmd.Alias;
+                    PName = ODAParameter.ODAParamsMark + "P" + AliasCount.ToString() + "_V" + _Cmd.Alias;
                 }
                 P.ParamsName = PName;
                 P.ParamsValue = _CompareValue == null ? System.DBNull.Value : _CompareValue;
@@ -442,11 +419,11 @@ namespace NYear.ODA
             else
             {
                 ODAParameter param = new ODAParameter();
-                string PName = _Cmd.ParamsMark + _ColumnName + "_" + ConIndex + _Cmd.Alias;
+                string PName = ODAParameter.ODAParamsMark + _ColumnName + "_" + ConIndex + _Cmd.Alias;
                 if (PName.Length > 27)///变量太长
                 {
                     AliasCount++;
-                    PName = _Cmd.ParamsMark + "P" + AliasCount.ToString() + ConIndex + _Cmd.Alias;
+                    PName = ODAParameter.ODAParamsMark + "P" + AliasCount.ToString() + ConIndex + _Cmd.Alias;
                 }
 
                 param.ParamsName = PName;
@@ -472,7 +449,7 @@ namespace NYear.ODA
                             for (int k = 0; k < ValueList.Length; k++)
                             {
                                 ODAParameter paramSub = new ODAParameter();
-                                paramSub.ParamsName = _Cmd.ParamsMark + _ColumnName + "_" + ConIndex + "_W" + k.ToString() + _Cmd.Alias;
+                                paramSub.ParamsName = ODAParameter.ODAParamsMark + _ColumnName + "_" + ConIndex + "_W" + k.ToString() + _Cmd.Alias;
                                 paramSub.ParamsValue = ValueList[k];
                                 paramSub.DBDataType = _DBDataType;
                                 paramSub.Direction = _PDirection;
@@ -503,7 +480,7 @@ namespace NYear.ODA
                             for (int k = 0; k < ValueList.Length; k++)
                             {
                                 ODAParameter paramSub = new ODAParameter();
-                                paramSub.ParamsName = _Cmd.ParamsMark + _ColumnName + "_" + ConIndex + "_W" + k.ToString() + _Cmd.Alias;
+                                paramSub.ParamsName = ODAParameter.ODAParamsMark + _ColumnName + "_" + ConIndex + "_W" + k.ToString() + _Cmd.Alias;
                                 paramSub.ParamsValue = ValueList[k];
                                 paramSub.DBDataType = _DBDataType;
                                 paramSub.Direction = _PDirection;

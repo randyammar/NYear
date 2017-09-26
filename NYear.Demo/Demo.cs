@@ -107,9 +107,7 @@ namespace NYear.Demo
                 btn.Text = md.MethodName;
                 btn.Click += Btn_Click;
                 btn.Tag = md;
-
                 ToolTip ti = new ToolTip();
-
                 ti.AutoPopDelay = 5000;
                 ti.InitialDelay = 1000;
                 ti.ReshowDelay = 500;
@@ -130,7 +128,17 @@ namespace NYear.Demo
             }
             catch (Exception ex)
             {
+                rtbxSql.AppendText(GetInnerException(ex).Message);
+                rtbxSql.AppendText("\r\n");
+                rtbxSql.AppendText("\r\n");
             }
+        }
+
+        private Exception GetInnerException(Exception ex)
+        {
+            if (ex.InnerException == null)
+                return ex;
+            return GetInnerException(ex.InnerException);
         }
     }
 }

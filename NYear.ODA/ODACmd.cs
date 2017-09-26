@@ -8,6 +8,14 @@ namespace NYear.ODA
 {
     public class ODACmd : IDBScriptGenerator
     {
+        /// <summary>
+        /// 数据库变量标识
+        /// </summary>
+        public static char ParamsMark
+        {
+            get { return '@'; }
+        }
+
         internal int SubCmdCout = 0;
         private string _Alias = "";
         private string _StartWithExpress = null;
@@ -69,14 +77,6 @@ namespace NYear.ODA
             set { _Alias = value; }
         }
         /// <summary>
-        /// 数据库变量标识
-        /// </summary>
-        public virtual string ParamsMark
-        {
-            get;
-            set;
-        }
-        /// <summary>
         /// 确定输入项长度
         /// </summary>
         public virtual System.Text.Encoding DBCharSet
@@ -129,7 +129,7 @@ namespace NYear.ODA
                 Updating = this.Updating,
                 Inserting = this.Inserting,
                 Deleting = this.Deleting,
-                ExecutingProcedure = this.ExecutingProcedure
+                ExecutingProcedure = this.ExecutingProcedure,
             };
         }
         /// <summary>
@@ -396,38 +396,31 @@ namespace NYear.ODA
 
             List<ODAParameter> ParamList = new List<ODAParameter>();
             string SelSql = "";
-            if (_Groupby.Count > 0 || _Having.Count > 0) ///有group by 语句的使用子查询
+            SelSql = _Distinct ? "SELECT COUNT(DISTINCT " : "SELECT COUNT(";
+            if (System.Object.ReferenceEquals( Col ,null))
             {
-                throw new ODAException(10004, "NOT suport including GROUPBY or HAVING subsql, using GroupbyCount METHOD instead");
+                SelSql += "*";
             }
-            else ////没有group by 语句 直接count
+            else
             {
-                SelSql = _Distinct ? "SELECT COUNT(DISTINCT " : "SELECT COUNT(";
-                if (System.Object.ReferenceEquals(Col, null))
-                {
-                    SelSql += "*";
-                }
-                else
-                {
-                    string SubSelectSql = "";
-                    ODAParameter[] SubSelectPrms = GetSelectColumns(",", out SubSelectSql, Col);
-                    SelSql += SubSelectSql;
-                    if (SubSelectPrms != null && SubSelectPrms.Length > 0)
-                        ParamList.AddRange(SubSelectPrms);
-                }
-                SelSql += ") AS TOTAL_RECORD";
-                string FromSubString = "";
-                ParamList.AddRange(GetFromSubString(out FromSubString));
-                SelSql += FromSubString;
+                string SubSelectSql = "";
+                ODAParameter[] SubSelectPrms = GetSelectColumns(",", out SubSelectSql, Col);
+                SelSql += SubSelectSql;
+                if (SubSelectPrms != null && SubSelectPrms.Length > 0)
+                    ParamList.AddRange(SubSelectPrms);
+            }
+            SelSql += ") AS TOTAL_RECORD";
+            string FromSubString = "";
+            ParamList.AddRange(GetFromSubString(out FromSubString));
+            SelSql += FromSubString;
 
-                string WhereSql = "";
-                ParamList.AddRange(GetWhereSubSql(_WhereList, " AND ", out WhereSql));
-                string OrSql = "";
-                ParamList.AddRange(GetWhereSubSql(_OrList, " OR ", out OrSql));
-                SelSql += String.IsNullOrEmpty(WhereSql) ? String.IsNullOrEmpty(OrSql) ? "" : " WHERE " + OrSql : String.IsNullOrEmpty(OrSql) ? " WHERE " + WhereSql : " WHERE " + WhereSql + " OR " + OrSql;
-                CountSql = SelSql;
-                return ParamList.ToArray();
-            }
+            string WhereSql = "";
+            ParamList.AddRange(GetWhereSubSql(_WhereList, " AND ", out WhereSql));
+            string OrSql = "";
+            ParamList.AddRange(GetWhereSubSql(_OrList, " OR ", out OrSql));
+            SelSql += String.IsNullOrEmpty(WhereSql) ? String.IsNullOrEmpty(OrSql) ? "" : " WHERE " + OrSql : String.IsNullOrEmpty(OrSql) ? " WHERE " + WhereSql : " WHERE " + WhereSql + " OR " + OrSql;
+            CountSql = SelSql;
+            return ParamList.ToArray();
         }
 
         /// <summary>
@@ -440,8 +433,6 @@ namespace NYear.ODA
         {
             if (string.IsNullOrWhiteSpace(_Alias))
                 _Alias = "T";
-
-
 
             List<ODAParameter> ParamList = new List<ODAParameter>();
             string SelSql = _Distinct ? "SELECT DISTINCT " : "SELECT ";
@@ -550,7 +541,6 @@ namespace NYear.ODA
             ParamList.AddRange(GetWhereSubSql(_OrList, " OR ", out OrSql));
             SubSql = String.IsNullOrEmpty(WhereSql) ? String.IsNullOrEmpty(OrSql) ? "" : " WHERE " + OrSql : String.IsNullOrEmpty(OrSql) ? " WHERE " + WhereSql : " WHERE " + WhereSql + " OR " + OrSql;
 
-
             Sql = "UPDATE " + this.DBObjectMap + " SET " + Column.Remove(Column.Length - 1, 1) + SubSql;
             return ParamList.ToArray();
         }
@@ -628,7 +618,7 @@ namespace NYear.ODA
         /// <returns></returns>
         public virtual DataTable Select(int StartIndex, int MaxRecord, out int TotalRecord, params ODAColumns[] Cols)
         {
-            if (_Groupby.Count > 0 && Cols.Length > 0 || _Distinct)
+            if ( (_Groupby.Count > 0 || _Having.Count > 0) ||(Cols.Length > 0 && _Distinct))
             {
                 TotalRecord = this.ToView(Cols).Count();
             }
@@ -777,12 +767,11 @@ namespace NYear.ODA
 
         #region  Interface IDBScriptGenerator
 
-        //string IDBScriptGenerator.Alias
+        //string IDBScriptGenerator.ParamsMark
         //{
-        //    get { return this.Alias; }
-        //    set { this.Alias = value; }
+        //    get { return this.ParamsMark; }
+        //    set { this.ParamsMark = value; }
         //}
-        //string IDBScriptGenerator.CmdName { get { return this.CmdName; } }
 
         ODACmd IDBScriptGenerator.BaseCmd { get { return this.BaseCmd; } }
         /// <summary>
@@ -799,11 +788,6 @@ namespace NYear.ODA
         List<SqlJoinScript> IDBScriptGenerator.JoinCmd { get { return this.JoinCmd; } }
         List<ODACmd> IDBScriptGenerator.ListJoinCmd { get { return this.ListJoinCmd; } }
         List<ODAColumns> IDBScriptGenerator.WhereColumns { get { return this.WhereColumns; } }
-        string IDBScriptGenerator.ParamsMark
-        {
-            get { return this.ParamsMark; }
-            set { this.ParamsMark = value; }
-        }
         ODAParameter[] IDBScriptGenerator.GetCountSql(out string CountSql, ODAColumns Col)
         {
             return this.GetCountSql(out CountSql, Col);

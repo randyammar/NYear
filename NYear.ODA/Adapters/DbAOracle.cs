@@ -8,6 +8,8 @@ namespace NYear.ODA.Adapter
 {
     public class DbAOracle : DBAccess
     {
+
+        private static char ParamsMark { get { return ':'; } }
         public DbAOracle(string ConnectionString)
             : base(ConnectionString)
         {
@@ -39,8 +41,7 @@ namespace NYear.ODA.Adapter
             try
             {
                 Cmd.CommandType = CommandType.StoredProcedure;
-                Cmd.CommandText = SQL;
-                SetCmdParameters(ref Cmd, ParamList);
+                SetCmdParameters(ref Cmd, SQL, ParamList);
                 Cmd.ExecuteNonQuery();
                 foreach (OracleParameter opc in Cmd.Parameters)
                 {
@@ -155,9 +156,6 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
             }
             return null;
         }
-
-        public override string ParamsMark { get { return ":"; } }
-
         public override DbAType DBAType { get { return DbAType.Oracle; } }
 
         public override DatabaseColumnInfo ODAColumnToOrigin(string Name, string ColumnType, decimal Length)
@@ -319,11 +317,14 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
                 CloseCommand(Cmd);
             }
         }
-        protected override void SetCmdParameters(ref IDbCommand Cmd, params ODAParameter[] ParamList)
+        protected override void SetCmdParameters(ref IDbCommand Cmd,string SQL, params ODAParameter[] ParamList)
         {
+            string dbSql = SQL;
             if (ParamList != null)
+            {
                 foreach (ODAParameter pr in ParamList)
                 {
+                    dbSql = dbSql.Replace(pr.ParamsName, pr.ParamsName.Replace(ODAParameter.ODAParamsMark, DbAOracle.ParamsMark));
                     OracleParameter param = new OracleParameter();
                     param.ParameterName = pr.ParamsName;
                     if (pr.Size < 0)
@@ -336,7 +337,7 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
                         case ODAdbType.ODatetime:
                             // param.OracleType = OracleType.DateTime;
                             param.OracleDbType = OracleDbType.Date;
-                           if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
+                            if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
                             {
                                 param.Value = System.DBNull.Value;
                             }
@@ -355,7 +356,7 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
                         case ODAdbType.ODecimal:
                             //param.OracleType = OracleType.Number;
                             param.OracleDbType = OracleDbType.Decimal;
-                           if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
+                            if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
                             {
                                 param.Value = System.DBNull.Value;
                             }
@@ -374,7 +375,7 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
                         case ODAdbType.OBinary:
                             //param.OracleType = OracleType.Blob;
                             param.OracleDbType = OracleDbType.Blob;
-                           if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
+                            if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
                             {
                                 param.Value = System.DBNull.Value;
                             }
@@ -390,7 +391,7 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
                         case ODAdbType.OInt:
                             //  param.OracleType = OracleType.Int32;
                             param.OracleDbType = OracleDbType.Int32;
-                           if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
+                            if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
                             {
                                 param.Value = System.DBNull.Value;
                             }
@@ -409,7 +410,7 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
                         case ODAdbType.OChar:
                             // param.OracleType = OracleType.Char;
                             param.OracleDbType = OracleDbType.Char;
-                           if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
+                            if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
                             {
                                 param.Value = System.DBNull.Value;
                             }
@@ -428,7 +429,7 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
                         case ODAdbType.OVarchar:
                             // param.OracleType = OracleType.VarChar;
                             param.OracleDbType = OracleDbType.Varchar2;
-                           if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
+                            if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
                             {
                                 param.Value = System.DBNull.Value;
                             }
@@ -467,6 +468,8 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
                     }
                     ((OracleParameterCollection)Cmd.Parameters).Add(param);
                 }
+            }
+            Cmd.CommandText = dbSql;
         }
     }
 }

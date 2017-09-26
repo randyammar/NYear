@@ -53,7 +53,6 @@ namespace NYear.ODA
         public virtual U GetCmd<U>(string Alias = null) where U : ODACmd
         {
             U cmd = Activator.CreateInstance<U>();
-            cmd.ParamsMark = ODAContext.DBParamsMark;
             cmd.Counting = Count;
             cmd.Selecting = Select;
             cmd.SelectPaging = Select;
@@ -67,25 +66,6 @@ namespace NYear.ODA
         }
 
         #region 数据库连接管理
-        private static string _DBParamsMark = null;
-
-        /// <summary>
-        /// 当前数据库类型的变量标志
-        /// 　待解决：分库时如果不是同一数据库时，DBParamsMark是不同的
-        /// </summary>
-        public static string DBParamsMark
-        {
-            get
-            {
-                if (string.IsNullOrWhiteSpace(_DBParamsMark))
-                {
-                    IDBAccess DBA = NewDBConnect(GolbalDataBaseGroup.DBtype, GolbalDataBaseGroup.MasterDataBase);
-                    _DBParamsMark = DBA.ParamsMark;
-                }
-                return _DBParamsMark;
-            }
-        }
-
         /// <summary>
         /// 公共数据库集群
         /// </summary>
@@ -362,7 +342,6 @@ namespace NYear.ODA
                 }
                 DBA = NewDBConnect(DBGroup.DBtype, DBConn);
             }
-            Cmd.ParamsMark = DBA.ParamsMark;
             return DBA;
         }
 

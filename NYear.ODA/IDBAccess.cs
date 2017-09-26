@@ -8,7 +8,6 @@ namespace NYear.ODA
     [ServiceContract]
     public interface IDBAccess
     {
-        string ParamsMark { get; }
         DbAType DBAType { get; }
         string ConnString { get; }
         IDbTransaction Transaction { get; set; }

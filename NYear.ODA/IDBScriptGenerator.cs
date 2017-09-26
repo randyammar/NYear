@@ -20,7 +20,6 @@ namespace NYear.ODA
         List<SqlJoinScript> JoinCmd { get; }
         List<ODACmd> ListJoinCmd { get; }
         List<ODAColumns> WhereColumns { get; }
-        string ParamsMark { get; set; }
         ODAParameter[] GetCountSql(out string CountSql, ODAColumns Col);
         ODAParameter[] GetDeleteSql(out string Sql);
         ODAParameter[] GetInsertSql(out string Sql, params ODAColumns[] Cols);

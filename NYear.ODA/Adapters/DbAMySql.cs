@@ -47,7 +47,6 @@ namespace NYear.ODA.Adapter
                 CloseCommand(Cmd);
             }
         }
-        public override string ParamsMark { get { return "@"; } }
         public override DbAType DBAType { get { return DbAType.MySql; } }
         public override string[] GetUserTables()
         {
@@ -199,9 +198,11 @@ namespace NYear.ODA.Adapter
                 CloseCommand(Cmd);
             }
         }
-        protected override void SetCmdParameters(ref IDbCommand Cmd, params ODAParameter[] ParamList)
+        protected override void SetCmdParameters(ref IDbCommand Cmd,string SQL, params ODAParameter[] ParamList)
         {
+            Cmd.CommandText = SQL;
             if (ParamList != null)
+            {
                 foreach (ODAParameter pr in ParamList)
                 {
                     MySqlParameter param = new MySqlParameter();
@@ -215,7 +216,7 @@ namespace NYear.ODA.Adapter
                     {
                         case ODAdbType.ODatetime:
                             param.MySqlDbType = MySqlDbType.DateTime;
-                           if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
+                            if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
                             {
                                 param.Value = System.DBNull.Value;
                             }
@@ -233,7 +234,7 @@ namespace NYear.ODA.Adapter
                             break;
                         case ODAdbType.ODecimal:
                             param.MySqlDbType = MySqlDbType.Decimal;
-                           if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
+                            if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
                             {
                                 param.Value = System.DBNull.Value;
                             }
@@ -251,7 +252,7 @@ namespace NYear.ODA.Adapter
                             break;
                         case ODAdbType.OBinary:
                             param.MySqlDbType = MySqlDbType.Blob;
-                           if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
+                            if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
                             {
                                 param.Value = System.DBNull.Value;
                             }
@@ -266,7 +267,7 @@ namespace NYear.ODA.Adapter
                             break;
                         case ODAdbType.OInt:
                             param.MySqlDbType = MySqlDbType.Int32;
-                           if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
+                            if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
                             {
                                 param.Value = System.DBNull.Value;
                             }
@@ -284,7 +285,7 @@ namespace NYear.ODA.Adapter
                             break;
                         case ODAdbType.OChar:
                             param.MySqlDbType = MySqlDbType.VarChar;
-                           if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
+                            if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
                             {
                                 param.Value = System.DBNull.Value;
                             }
@@ -302,7 +303,7 @@ namespace NYear.ODA.Adapter
                             break;
                         case ODAdbType.OVarchar:
                             param.MySqlDbType = MySqlDbType.VarChar;
-                           if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
+                            if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
                             {
                                 param.Value = System.DBNull.Value;
                             }
@@ -325,6 +326,7 @@ namespace NYear.ODA.Adapter
                     }
                     ((MySqlParameterCollection)Cmd.Parameters).Add(param);
                 }
+            }
         }
     }
 }

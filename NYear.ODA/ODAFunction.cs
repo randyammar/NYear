@@ -81,7 +81,7 @@ namespace NYear.ODA
                             else
                             {
                                 ODAParameter paramSub = new ODAParameter();
-                                paramSub.ParamsName = _Cmd.ParamsMark + "FA" + "_" + AliasCount.ToString() + k.ToString() + _Cmd.Alias;
+                                paramSub.ParamsName = ODAParameter.ODAParamsMark + "FA" + "_" + AliasCount.ToString() + k.ToString() + _Cmd.Alias;
                                 paramSub.ParamsValue = _FunArgs[k];
                                 paramSub.Direction = System.Data.ParameterDirection.Input;
                                 paramSub.Size = 2000;
@@ -117,7 +117,7 @@ namespace NYear.ODA
                             else
                             {
                                 ODAParameter paramSub = new ODAParameter();
-                                paramSub.ParamsName = _Cmd.ParamsMark + "CSW" + "_" + AliasCount.ToString() + k.ToString();
+                                paramSub.ParamsName = ODAParameter.ODAParamsMark + "CSW" + "_" + AliasCount.ToString() + k.ToString();
                                 paramSub.ParamsValue = wt.Key;
                                 paramSub.Direction = System.Data.ParameterDirection.Input;
                                 paramSub.Size = 2000;
@@ -138,7 +138,7 @@ namespace NYear.ODA
                             else
                             {
                                 ODAParameter paramSub = new ODAParameter();
-                                paramSub.ParamsName = _Cmd.ParamsMark + "CST" + "_" + AliasCount.ToString() + k.ToString();
+                                paramSub.ParamsName = ODAParameter.ODAParamsMark + "CST" + "_" + AliasCount.ToString() + k.ToString();
                                 paramSub.ParamsValue = wt.Value;
                                 paramSub.Direction = System.Data.ParameterDirection.Input;
                                 paramSub.Size = 2000;
@@ -160,7 +160,7 @@ namespace NYear.ODA
                         else
                         {
                             ODAParameter paramSub = new ODAParameter();
-                            paramSub.ParamsName = _Cmd.ParamsMark + "CSV" + "_" + AliasCount.ToString() + k.ToString();
+                            paramSub.ParamsName = ODAParameter.ODAParamsMark + "CSV" + "_" + AliasCount.ToString() + k.ToString();
                             paramSub.ParamsValue = _CaseElseVal;
                             paramSub.Direction = System.Data.ParameterDirection.Input;
                             paramSub.Size = 2000;
@@ -197,7 +197,7 @@ namespace NYear.ODA
                             else
                             {
                                 ODAParameter paramSub = new ODAParameter();
-                                paramSub.ParamsName = _Cmd.ParamsMark + "CST" + "_" + AliasCount.ToString() + k.ToString();
+                                paramSub.ParamsName = ODAParameter.ODAParamsMark + "CST" + "_" + AliasCount.ToString() + k.ToString();
                                 paramSub.ParamsValue = wt.Value;
                                 paramSub.Direction = System.Data.ParameterDirection.Input;
                                 paramSub.Size = 2000;
@@ -222,7 +222,7 @@ namespace NYear.ODA
                         else
                         {
                             ODAParameter paramSub = new ODAParameter();
-                            paramSub.ParamsName = _Cmd.ParamsMark + "CSE" + "_" + AliasCount.ToString() + k.ToString();
+                            paramSub.ParamsName = ODAParameter.ODAParamsMark + "CSE" + "_" + AliasCount.ToString() + k.ToString();
                             paramSub.ParamsValue = _CaseElseVal;
                             paramSub.Direction = System.Data.ParameterDirection.Input;
                             paramSub.Size = 2000;
@@ -434,7 +434,6 @@ namespace NYear.ODA
             {
                 List<ODAParameter> prms = new List<ODAParameter>();
                 string Colsql = "";
-                _SubCmd.ParamsMark = _Cmd.ParamsMark;
                ODAParameter[] prms1 = ((IDBScriptGenerator)_SubCmd).GetSelectSql(out Colsql, _FunColumnList.ToArray());
                 SubSql = colSql.Replace(colName, this._FuncName + " ( " + Colsql + ")");
                 if (prms1 != null && prms1.Length > 0)

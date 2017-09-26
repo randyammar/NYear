@@ -48,7 +48,6 @@ namespace NYear.ODA.Adapter
                 CloseCommand(Cmd);
             }
         }
-        public override string ParamsMark { get { return "@"; } }
         public override DbAType DBAType { get { return DbAType.MsSQL; } }
         public override string[] GetUserTables()
         {
@@ -355,9 +354,11 @@ DISTINCT
             }
         }
 
-        protected override void SetCmdParameters(ref  IDbCommand Cmd, params ODAParameter[] ParamList)
+        protected override void SetCmdParameters(ref  IDbCommand Cmd,string SQL, params ODAParameter[] ParamList)
         {
+            Cmd.CommandText = SQL;
             if (ParamList != null)
+            {
                 foreach (ODAParameter pr in ParamList)
                 {
                     SqlParameter param = new SqlParameter();
@@ -371,7 +372,7 @@ DISTINCT
                     {
                         case ODAdbType.ODatetime:
                             param.SqlDbType = SqlDbType.DateTime;
-                           if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
+                            if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
                             {
                                 param.Value = System.DBNull.Value;
                             }
@@ -389,7 +390,7 @@ DISTINCT
                             break;
                         case ODAdbType.ODecimal:
                             param.SqlDbType = SqlDbType.Decimal;
-                           if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
+                            if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
                             {
                                 param.Value = System.DBNull.Value;
                             }
@@ -420,13 +421,13 @@ DISTINCT
                                 }
                                 else
                                 {
-                                    throw new ODAException(201,"Params :" + pr.ParamsName + " Type must be byte[]");
+                                    throw new ODAException(201, "Params :" + pr.ParamsName + " Type must be byte[]");
                                 }
                             }
                             break;
                         case ODAdbType.OInt:
                             param.SqlDbType = SqlDbType.Int;
-                           if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
+                            if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
                             {
                                 param.Value = System.DBNull.Value;
                             }
@@ -444,7 +445,7 @@ DISTINCT
                             break;
                         case ODAdbType.OChar:
                             param.SqlDbType = SqlDbType.Char;
-                           if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
+                            if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
                             {
                                 param.Value = System.DBNull.Value;
                             }
@@ -462,7 +463,7 @@ DISTINCT
                             break;
                         case ODAdbType.OVarchar:
                             param.SqlDbType = SqlDbType.VarChar;
-                           if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
+                            if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
                             {
                                 param.Value = System.DBNull.Value;
                             }
@@ -485,6 +486,7 @@ DISTINCT
                     }
                     ((SqlParameterCollection)Cmd.Parameters).Add(param);
                 }
+            }
         }
     }
 }

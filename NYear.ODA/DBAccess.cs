@@ -110,7 +110,6 @@ namespace NYear.ODA
         public virtual IDbTransaction Transaction { get; set; }
         public abstract string[] GetUserTables();
         public abstract string[] GetUserViews();
-        public abstract string ParamsMark { get; }
         public abstract DbAType DBAType { get; }
 
         public virtual string[] GetUserProcedure()
@@ -394,7 +393,7 @@ namespace NYear.ODA
             }
         }
 
-        protected abstract void SetCmdParameters(ref IDbCommand Cmd, params ODAParameter[] ParamList);
+        protected abstract void SetCmdParameters(ref IDbCommand Cmd,string SQL, params ODAParameter[] ParamList);
 
         public List<T> Select<T>(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord, out int TotalRecord) where T : class
         {
@@ -405,9 +404,8 @@ namespace NYear.ODA
             IDbCommand Cmd = OpenCommand();
             try
             {
-                Cmd.CommandText = SQL;
                 Cmd.CommandType = CommandType.Text;
-                SetCmdParameters(ref Cmd, ParamList);
+                SetCmdParameters(ref Cmd, SQL, ParamList);
                 IDataReader Dr = Cmd.ExecuteReader();
                 TotalRecord = 0;
                 DataTable dt = new DataTable("RECORDSET");
@@ -462,75 +460,13 @@ namespace NYear.ODA
                 CloseCommand(Cmd);
             }
         }
-
-        //public virtual DataTable Select(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord)
-        //{
-        //    IDbCommand Cmd = OpenCommand();
-        //    try
-        //    {
-        //        Cmd.CommandText = SQL;
-        //        Cmd.CommandType = CommandType.Text;
-        //        SetCmdParameters(ref Cmd, ParamList);
-        //        IDataReader Dr = Cmd.ExecuteReader();
-        //        DataTable dt = new DataTable("RECORDSET");
-        //        DataTable dt1 = null;
-        //        if (Dr.FieldCount > 0)
-        //        {
-        //            dt1 = Dr.GetSchemaTable();
-
-        //            for (int num = 0; num < Dr.FieldCount; num++)
-        //            {
-        //                DataColumn column = new DataColumn();
-        //                if (dt.Columns.Contains(Dr.GetName(num)))
-        //                    column.ColumnName = Dr.GetName(num) + num.ToString();
-        //                else
-        //                    column.ColumnName = Dr.GetName(num);
-        //                column.DataType = Dr.GetFieldType(num);
-        //                dt.Columns.Add(column);
-        //            }
-        //            while (StartIndex > 0)
-        //            {
-        //                if (!Dr.Read())
-        //                    return dt;
-        //                StartIndex--;
-        //            }
-
-        //            int ReadRecord = MaxRecord;
-        //            while (ReadRecord > 0 || MaxRecord == -1)
-        //            {
-        //                if (Dr.Read())
-        //                {
-        //                    DataRow row = dt.NewRow();
-        //                    for (int num = 0; num < Dr.FieldCount; num++)
-        //                    {
-        //                        row[num] = Dr[num];
-        //                    }
-        //                    dt.Rows.Add(row);
-        //                    ReadRecord--;
-        //                }
-        //                else
-        //                    break;
-        //            }
-        //        }
-        //        Dr.Close();
-        //        Dr.Dispose();
-        //        return dt;
-        //    }
-        //    finally
-        //    {
-        //        CloseCommand(Cmd);
-        //    }
-        //}
-
-
         public virtual DataTable Select(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord)
         {
             IDbCommand Cmd = OpenCommand();
             try
             {
-                Cmd.CommandText = SQL;
                 Cmd.CommandType = CommandType.Text;
-                SetCmdParameters(ref Cmd, ParamList);
+                SetCmdParameters(ref Cmd, SQL, ParamList);
                 IDataReader Dr = Cmd.ExecuteReader();
                 DataTable dt = new DataTable("RECORDSET");
                 if (Dr.FieldCount > 0)
@@ -594,9 +530,8 @@ namespace NYear.ODA
             IDbCommand Cmd = OpenCommand();
             try
             {
-                Cmd.CommandText = SQL;
                 Cmd.CommandType = CommandType.Text;
-                SetCmdParameters(ref Cmd, ParamList);
+                SetCmdParameters(ref Cmd, SQL, ParamList);
                 DbDataAdapter Da = GetDataAdapter(Cmd);
                 DataTable dt = new DataTable();
                 Da.Fill(dt);
@@ -688,9 +623,8 @@ namespace NYear.ODA
             IDbCommand Cmd = OpenCommand();
             try
             {
-                Cmd.CommandText = SQL;
                 Cmd.CommandType = CommandType.Text;
-                SetCmdParameters(ref Cmd, ParamList);
+                SetCmdParameters(ref Cmd, SQL, ParamList);
                 return Cmd.ExecuteNonQuery();
             }
             finally
@@ -725,8 +659,7 @@ namespace NYear.ODA
             try
             {
                 Cmd.CommandType = CommandType.StoredProcedure;
-                Cmd.CommandText = SQL;
-                SetCmdParameters(ref Cmd, ParamList);
+                SetCmdParameters(ref Cmd, SQL, ParamList);
                 datareader = Cmd.ExecuteReader();
 
                 int rtlcount = 0;
