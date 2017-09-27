@@ -7,11 +7,15 @@ namespace NYear.ODA.Adapter
 {
     public class DbAOdbcInformix : DBAccess
     {
-        private static char ParamsMark { get { return '?'; } }
+        private static char DBParamsMark { get { return '?'; } }
         public DbAOdbcInformix(string ConnectionString)
             : base(ConnectionString)
         {
 
+        }
+        public override char ParamsMark
+        {
+            get { return DbAOdbcInformix.DBParamsMark; }
         }
 
         private OdbcConnection _DBConn = null;
@@ -182,7 +186,7 @@ namespace NYear.ODA.Adapter
             {
                 foreach (ODAParameter pr in ParamList)
                 {
-                    dbSql = dbSql.Replace(pr.ParamsName, pr.ParamsName.Replace(ODAParameter.ODAParamsMark, DbAOdbcInformix.ParamsMark));
+                    dbSql = dbSql.Replace(pr.ParamsName, pr.ParamsName.Replace(ODAParameter.ODAParamsMark, DbAOdbcInformix.DBParamsMark));
 
                     OdbcParameter param = new OdbcParameter();
                     param.ParameterName = pr.ParamsName;

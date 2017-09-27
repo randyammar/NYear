@@ -7,13 +7,16 @@ namespace NYear.ODA.Adapter
 {
     public class DbASybase : DBAccess
     {
-        private static char ParamsMark { get { return ':'; } }
+        private static char DBParamsMark { get { return ':'; } }
 
         public DbASybase(string ConnectionString)
             : base(ConnectionString)
         {
         }
-
+        public override char ParamsMark
+        {
+            get { return DbASybase.DBParamsMark; }
+        }
         private AseConnection _DBConn = null;
         protected override IDbConnection GetConnection()
         {
@@ -189,7 +192,7 @@ namespace NYear.ODA.Adapter
             {
                 foreach (ODAParameter pr in ParamList)
                 {
-                    dbSql = dbSql.Replace(pr.ParamsName, pr.ParamsName.Replace(ODAParameter.ODAParamsMark, DbASybase.ParamsMark));
+                    dbSql = dbSql.Replace(pr.ParamsName, pr.ParamsName.Replace(ODAParameter.ODAParamsMark, DbASybase.DBParamsMark));
                     AseParameter param = new AseParameter();
                     param.ParameterName = pr.ParamsName;
                     if (pr.Size < 0)

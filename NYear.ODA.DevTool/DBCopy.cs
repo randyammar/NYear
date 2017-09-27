@@ -276,7 +276,7 @@ namespace NYear.ODA.DevTool
                     string insertSQL = "INSERT INTO " + prm.TranTable[i];
                     string col = "";
                     string iprms = "";
-                    string paramMark = prm.TargetDB.ParamsMark;
+                    char paramMark = prm.TargetDB.ParamsMark;
                     for (int c = 0; c < drs.Length; c++)
                     {
                         DatabaseColumnInfo ColumnInfo = prm.TargetDB.ODAColumnToOrigin(drs[c]["COLUMN_NAME"].ToString(), drs[c]["ODA_DATATYPE"].ToString().Trim(), decimal.Parse(drs[c]["LENGTH"].ToString().Trim()));

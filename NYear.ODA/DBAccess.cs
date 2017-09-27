@@ -112,6 +112,8 @@ namespace NYear.ODA
         public abstract string[] GetUserViews();
         public abstract DbAType DBAType { get; }
 
+        public virtual char ParamsMark { get { return ODAParameter.ODAParamsMark; } }
+
         public virtual string[] GetUserProcedure()
         {
             throw new NotSupportedException("DBMS not support Procedure");

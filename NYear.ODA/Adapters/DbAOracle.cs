@@ -8,14 +8,16 @@ namespace NYear.ODA.Adapter
 {
     public class DbAOracle : DBAccess
     {
-
-        private static char ParamsMark { get { return ':'; } }
+        private static char DBParamsMark { get { return ':'; } }
         public DbAOracle(string ConnectionString)
             : base(ConnectionString)
         {
 
         }
-
+        public override char ParamsMark
+        {
+            get { return DbAOracle.DBParamsMark; }
+        }
         private OracleConnection _DBConn = null;
         protected override IDbConnection GetConnection()
         {
@@ -324,7 +326,7 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
             {
                 foreach (ODAParameter pr in ParamList)
                 {
-                    dbSql = dbSql.Replace(pr.ParamsName, pr.ParamsName.Replace(ODAParameter.ODAParamsMark, DbAOracle.ParamsMark));
+                    dbSql = dbSql.Replace(pr.ParamsName, pr.ParamsName.Replace(ODAParameter.ODAParamsMark, DbAOracle.DBParamsMark));
                     OracleParameter param = new OracleParameter();
                     param.ParameterName = pr.ParamsName;
                     if (pr.Size < 0)

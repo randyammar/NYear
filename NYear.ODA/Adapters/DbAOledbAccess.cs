@@ -8,7 +8,7 @@ namespace NYear.ODA.Adapter
 {
     public class DbAOledbAccess : DBAccess
     {
-        private static char ParamsMark { get { return ':'; } }
+        private static char DBParamsMark { get { return ':'; } }
 
         [Description("Access建立时自动添加了系统表。但Access默认是不显示的，要想看到这些表，得手动设置一下：选择菜单“工具”－“选项”－“视图”，在“系统对象”前面打勾，就能看到如下七个表了： "
             + " MSysAccessObjects、MSysAccessXML、MSysAces、MSysImexColumns、MSysObjects、MSysQueries、MSysRelationShips "
@@ -21,6 +21,11 @@ namespace NYear.ODA.Adapter
         public DbAOledbAccess(string ConnectionString)
             : base(ConnectionString)
         {
+        }
+
+        public override char ParamsMark
+        {
+            get { return DbAOledbAccess.DBParamsMark; }
         }
 
         private OleDbConnection _DBConn = null;
@@ -93,7 +98,7 @@ namespace NYear.ODA.Adapter
             {
                 foreach (ODAParameter pr in ParamList)
                 {
-                    dbSql = dbSql.Replace(pr.ParamsName, pr.ParamsName.Replace(ODAParameter.ODAParamsMark, DbAOledbAccess.ParamsMark));
+                    dbSql = dbSql.Replace(pr.ParamsName, pr.ParamsName.Replace(ODAParameter.ODAParamsMark, DbAOledbAccess.DBParamsMark));
                     OleDbParameter param = new OleDbParameter();
                     param.ParameterName = pr.ParamsName;
                     if (pr.Size < 0)
