@@ -618,13 +618,33 @@ namespace NYear.ODA
         /// <returns></returns>
         public virtual DataTable Select(int StartIndex, int MaxRecord, out int TotalRecord, params ODAColumns[] Cols)
         {
-            if ( (_Groupby.Count > 0 || _Having.Count > 0) ||(Cols.Length > 0 && _Distinct))
+            if ((_Groupby.Count > 0 || _Having.Count > 0) || (Cols.Length > 0 && _Distinct))
             {
-                TotalRecord = this.ToView(Cols).Count();
+                if (_Orderby.Count > 0)
+                {
+                    SqlOrderbyScript[] orderbys = this._Orderby.ToArray();
+                    this._Orderby.Clear();
+                    TotalRecord = this.ToView(Cols).Count();
+                    this._Orderby.AddRange(orderbys);
+                }
+                else
+                {
+                    TotalRecord = this.ToView(Cols).Count();
+                }
             }
             else
             {
-                TotalRecord = this.Count();
+                if (_Orderby.Count > 0)
+                {
+                    SqlOrderbyScript[] orderbys = this._Orderby.ToArray();
+                    this._Orderby.Clear();
+                    TotalRecord = this.Count();
+                    this._Orderby.AddRange(orderbys);
+                }
+                else
+                {
+                    TotalRecord = this.Count();
+                }
             }
 
             if (string.IsNullOrEmpty(_StartWithExpress) || string.IsNullOrEmpty(_ConnectByParent) || string.IsNullOrEmpty(_PriorChild))

@@ -315,27 +315,28 @@ DISTINCT
 
         public override DataTable Select(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord)
         {
-            //int sidx = SQL.IndexOf("SELECT ", 0, StringComparison.InvariantCultureIgnoreCase);
-            //SQL = SQL.Remove(sidx, "SELECT ".Length);
-            //int distinct = SQL.IndexOf(" DISTINCT ", 0, StringComparison.InvariantCultureIgnoreCase);
+            int sidx = SQL.IndexOf("SELECT ", 0, StringComparison.InvariantCultureIgnoreCase);
+            SQL = SQL.Remove(sidx, "SELECT ".Length);
+            int distinct = SQL.IndexOf(" DISTINCT ", 0, StringComparison.InvariantCultureIgnoreCase);
 
-            //if (distinct < 0 ||  distinct > "SELECT * FROM ".Length)
-            //{
-            //    SQL = SQL.Insert(sidx, "SELECT  TOP " + (StartIndex + MaxRecord).ToString() + " row_number() over(order by getdate()) AS R_ID_1, ");
-            //}
-            //else
-            //{
-            //    SQL = "SELECT TOP " + (StartIndex + MaxRecord).ToString() + " ROW_NUMBER() OVER(ORDER BY GETDATE()) AS R_ID_1,DISTINCT_TMP.* FROM ( SELECT  " + SQL + ") DISTINCT_TMP";
-            //}
-            //return Select("SELECT a_b_1.* FROM ( " + SQL + " ) as a_b_1 WHERE a_b_1.R_ID_1 > " + StartIndex.ToString(), ParamList);
-
-
-            string BlockStr = "select* from (select row_number() over(order by getdate()) as r_id_1,t_1.* from ( ";
-            BlockStr += SQL;
-            BlockStr += ") t_1 ) t_t_1 where t_t_1.r_id_1 > " + StartIndex.ToString() + " and t_t_1.r_id_1  <= " + (StartIndex + MaxRecord).ToString();
-            DataTable dt = Select(BlockStr, ParamList);
-            dt.Columns.Remove("r_id_1");
+            if (distinct < 0 || distinct > "SELECT * FROM ".Length)
+            {
+                SQL = SQL.Insert(sidx, "SELECT  TOP " + (StartIndex + MaxRecord).ToString() + " row_number() over(order by getdate()) AS R_ID_1, ");
+            }
+            else
+            {
+                SQL = "SELECT TOP " + (StartIndex + MaxRecord).ToString() + " ROW_NUMBER() OVER(ORDER BY GETDATE()) AS R_ID_1,DISTINCT_TMP.* FROM ( SELECT  " + SQL + ") DISTINCT_TMP";
+            }
+            DataTable dt = Select("SELECT a_b_1.* FROM ( " + SQL + " ) as a_b_1 WHERE a_b_1.R_ID_1 > " + StartIndex.ToString(), ParamList);
+            dt.Columns.Remove("R_ID_1");
             return dt;
+
+            //string BlockStr = "select* from (select row_number() over(order by getdate()) as r_id_1,t_1.* from ( ";
+            //BlockStr += SQL;
+            //BlockStr += ") t_1 ) t_t_1 where t_t_1.r_id_1 > " + StartIndex.ToString() + " and t_t_1.r_id_1  <= " + (StartIndex + MaxRecord).ToString();
+            //DataTable dt = Select(BlockStr, ParamList);
+            //dt.Columns.Remove("r_id_1");
+            //return dt;
         }
 
         public override object GetExpressResult(string ExpressionString)
