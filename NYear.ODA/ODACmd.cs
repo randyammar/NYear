@@ -16,6 +16,7 @@ namespace NYear.ODA
             get { return '@'; }
         }
 
+        #region ODA指令寄存器
         internal int SubCmdCout = 0;
         private string _Alias = "";
         private string _StartWithExpress = null;
@@ -40,8 +41,9 @@ namespace NYear.ODA
         protected List<SqlJoinScript> JoinCmd { get { return _JoinCmd; } }
         protected virtual ODACmd BaseCmd { get { return null; } }
 
-        #region 基础信息
+        #endregion
 
+        #region 基础信息
         /// <summary>
         /// 命令名称
         /// </summary>
@@ -143,7 +145,7 @@ namespace NYear.ODA
             for (int i = 0; i < Cmds.Length; i++)
             {
                 if (Cmds[i] == this)
-                    throw new ODAException(10021, "ListCmd 对象不能是本身");
+                    throw new ODAException(10000, "ListCmd 对象不能是本身");
                 if (string.IsNullOrWhiteSpace(Cmds[i].Alias))
                     Cmds[i].Alias = "LT" + (Tcount + i).ToString();
                 _ListCmd.Add(Cmds[i]);
@@ -159,7 +161,7 @@ namespace NYear.ODA
         public virtual ODACmd LeftJoin(ODACmd JoinCmd, params ODAColumns[] ONCols)
         {
             if (JoinCmd == this)
-                throw new ODAException(10021, "LeftJoin 对象不能是本身");
+                throw new ODAException(10001, "LeftJoin 对象不能是本身");
 
             int Tcount = _ListCmd.Count + _JoinCmd.Count;
             if (string.IsNullOrWhiteSpace(JoinCmd.Alias))
@@ -177,7 +179,7 @@ namespace NYear.ODA
         public virtual ODACmd InnerJoin(ODACmd JoinCmd, params ODAColumns[] ONCols)
         {
             if (JoinCmd == this)
-                throw new ODAException(10021, "LeftJoin 对象不能是本身");
+                throw new ODAException(10002, "LeftJoin 对象不能是本身");
 
             int Tcount = _ListCmd.Count + _JoinCmd.Count;
             if (string.IsNullOrWhiteSpace(JoinCmd.Alias))
@@ -200,9 +202,9 @@ namespace NYear.ODA
         public virtual ODACmd StartWithConnectBy(string StartWithExpress, string ConnectByParent, string PriorChild, string ConnectColumn, string ConnectStr, int MaxLevel)
         {
             if (MaxLevel > 32)
-                throw new ODAException(10001, "MaxLevel should be smaller than  32");
+                throw new ODAException(10003, "MaxLevel should be smaller than  32");
             if (string.IsNullOrEmpty(ConnectByParent) || string.IsNullOrEmpty(PriorChild) || string.IsNullOrEmpty(StartWithExpress))
-                throw new ODAException(10002, "StartWithExpress and ConnectByParent and PriorChild Can't be Empty");
+                throw new ODAException(10004, "StartWithExpress and ConnectByParent and PriorChild Can't be Empty");
             _StartWithExpress = StartWithExpress;
             _ConnectColumn = ConnectColumn;
             _ConnectByParent = ConnectByParent;
@@ -248,7 +250,7 @@ namespace NYear.ODA
         public virtual ODACmd Or(params ODAColumns[] Cols)
         {
             if (_WhereList.Count == 0)
-                throw new ODAException(10003, "Where Condition is null,Add Where first");
+                throw new ODAException(10005, "Where Condition is null,Add Where first");
             _OrList.AddRange(Cols);
             return this;
         }
@@ -391,6 +393,9 @@ namespace NYear.ODA
         /// <returns></returns>
         protected virtual ODAParameter[] GetCountSql(out string CountSql, ODAColumns Col)
         {
+            if (_Groupby.Count > 0 || _Having.Count > 0)
+                throw new ODAException(10006, "Do not count the [Group by] cmd,You should probably use [ ToView(Columns).Count()] instead.");
+
             if (string.IsNullOrWhiteSpace(_Alias))
                 _Alias = "T";
 
@@ -583,7 +588,7 @@ namespace NYear.ODA
         public virtual int Count(ODAColumns Col = null)
         {
             if (Counting == null)
-                throw new ODAException(10006, "ODACmd Count 没有执行程序");
+                throw new ODAException(10007, "ODACmd Count 没有执行程序");
             return Counting(this, Col);
 
         }
@@ -740,9 +745,9 @@ namespace NYear.ODA
         public virtual bool Insert(ODACmd SelectCmd, params ODAColumns[] Cols)
         {
             if (InsertScript == null)
-                throw new ODAException(10014, "ODACmd Insert 没有执行程序");
+                throw new ODAException(10015, "ODACmd Insert 没有执行程序");
             if (Cols == null || Cols.Length == 0)
-                throw new ODAException(10014, "ScriptInsert 没有执行程序");
+                throw new ODAException(10016, "ScriptInsert 没有执行程序");
             return InsertScript(this, SelectCmd, Cols);
         }
 
@@ -754,7 +759,7 @@ namespace NYear.ODA
         public virtual DataSet Procedure(params ODAColumns[] Cols)
         {
             if (ExecutingProcedure == null)
-                throw new ODAException(10015, "ODACmd Procedure 没有执行程序");
+                throw new ODAException(10017, "ODACmd Procedure 没有执行程序");
             return ExecutingProcedure(this, Cols);
         }
 
@@ -780,7 +785,7 @@ namespace NYear.ODA
             if (!string.IsNullOrWhiteSpace(sbr.ToString()))
             {
                 sbr.Insert(0, "修改数据错误，");
-                throw new ODAException(10016, sbr.ToString());
+                throw new ODAException(10018, sbr.ToString());
             }
         }
         #endregion

@@ -110,9 +110,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IDBAccess.cs" />
-    <Compile Include="IDBScriptGenerator.cs" />
-    <Compile Include="IODAFunction.cs" />
+    <Compile Include="Interface\IDBAccess.cs" />
+    <Compile Include="Interface\IDBScriptGenerator.cs" />
+    <Compile Include="Interface\IODAFunction.cs" />
     <Compile Include="ODAContext.cs" />
     <Compile Include="ODAFunction.cs" />
     <Compile Include="ODACmdView.cs" />

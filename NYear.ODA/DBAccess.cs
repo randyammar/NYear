@@ -338,7 +338,7 @@ namespace NYear.ODA
             }
             else
             {
-                throw new ODAException(101,"There isn't any Transaction to Commit");
+                throw new ODAException(90000, "There isn't any Transaction to Commit");
             }
 
         }
@@ -355,7 +355,7 @@ namespace NYear.ODA
             }
             else
             {
-                throw new ODAException(102,"There isn't any Transaction to RollBack");
+                throw new ODAException(90001, "There isn't any Transaction to RollBack");
             }
         }
 
@@ -565,11 +565,11 @@ namespace NYear.ODA
                 if (Model.Columns.Contains(ConnectColumn))
                     Model.Columns[ConnectColumn].DataType = typeof(string);
                 else
-                    throw new ODAException(103,"DataModel not contain Column:" + ConnectColumn);
+                    throw new ODAException(90002, "DataModel not contain Column:" + ConnectColumn);
             }
 
             if (!Model.Columns.Contains(ConnectBy) || !Model.Columns.Contains(Prior))
-                throw new ODAException(104,"DataModel not contain ConnectBy or Prior Column");
+                throw new ODAException(90003, "DataModel not contain ConnectBy or Prior Column");
 
             DataTable dtRtl = this.Recursion(Model, StartWithExpress, ConnectBy, Prior, ConnectColumn, ConnectChar, "", 0, MaxLevel);
             return dtRtl;

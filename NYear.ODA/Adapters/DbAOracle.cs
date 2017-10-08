@@ -388,6 +388,10 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
                                 {
                                     param.Size = ((byte[])pr.ParamsValue).Length;
                                 }
+                                else
+                                {
+                                    throw new ODAException(16001, "Params :" + pr.ParamsName + " Type must be byte[]");
+                                }
                             }
                             break;
                         case ODAdbType.OInt:

@@ -263,6 +263,10 @@ namespace NYear.ODA.Adapter
                                 {
                                     param.Size = ((byte[])pr.ParamsValue).Length;
                                 }
+                                else
+                                {
+                                    throw new ODAException(13001, "Params :" + pr.ParamsName + " Type must be byte[]");
+                                }
                             }
                             break;
                         case ODAdbType.OInt:

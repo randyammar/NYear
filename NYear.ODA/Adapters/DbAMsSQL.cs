@@ -422,7 +422,7 @@ DISTINCT
                                 }
                                 else
                                 {
-                                    throw new ODAException(201, "Params :" + pr.ParamsName + " Type must be byte[]");
+                                    throw new ODAException(12001, "Params :" + pr.ParamsName + " Type must be byte[]");
                                 }
                             }
                             break;
