@@ -11,7 +11,7 @@ namespace NYear.Demo
 {
     public class SelectDemo
     {
-        
+
 
         [Demo(Demo = FuncType.Select, MethodName = "SelectM", MethodDescript = "SelectM")]
         public static object SelectM()
@@ -55,7 +55,7 @@ namespace NYear.Demo
         {
             ODAContext ctx = new ODAContext();
             CmdPrmRole pr = ctx.GetCmd<CmdPrmRole>();
-            var rlt= pr.Where(pr.ColRoleName == "Administrator")
+            var rlt = pr.Where(pr.ColRoleName == "Administrator")
                 .Select(pr.ColDescript.Upper, pr.ColIsSupperAdmin.Ascii, pr.Function.CreateFunc("myFunction", ODAdbType.OVarchar, pr.ColRoleName, pr.ColDescript, "param0", 1));
 
             return rlt;
@@ -69,11 +69,11 @@ namespace NYear.Demo
             CmdPrmRoleAuthorize ra = ctx.GetCmd<CmdPrmRoleAuthorize>();
             ra.Where(ra.ColIsForbidden == "Y", pr.ColRoleName == ra.ColRoleName);
 
-          var rlt =  pr.Where(
-                pr.ColRoleName == "Administrator",
-                pr.Function.Exists(ra, ra.Function.VisualColumn("1", ODAdbType.OInt))
-                )
-                .Select(pr.ColDescript, pr.ColIsSupperAdmin.Ascii);
+            var rlt = pr.Where(
+                  pr.ColRoleName == "Administrator",
+                  pr.Function.Exists(ra, ra.Function.VisualColumn("1", ODAdbType.OInt))
+                  )
+                  .Select(pr.ColDescript, pr.ColIsSupperAdmin.Ascii);
 
             return rlt;
         }
@@ -85,13 +85,37 @@ namespace NYear.Demo
             CmdPrmRoleAuthorize ra = ctx.GetCmd<CmdPrmRoleAuthorize>();
             ra.Where(ra.ColIsForbidden == "Y", pr.ColRoleName == ra.ColRoleName);
 
-         var rlt= pr.Where(
-                pr.ColRoleName == "Administrator",
-                pr.ColRoleName.In(ra, ra.Function.VisualColumn("1", ODAdbType.OInt))
-                )
-                .Select(pr.ColDescript, pr.ColIsSupperAdmin.Ascii);
+            var rlt = pr.Where(
+                   pr.ColRoleName == "Administrator",
+                   pr.ColRoleName.In(ra, ra.Function.VisualColumn("1", ODAdbType.OInt))
+                   )
+                   .Select(pr.ColDescript, pr.ColIsSupperAdmin.Ascii);
 
             return rlt;
+        }
+        [Demo(Demo = FuncType.Select, MethodName = "Distinct", MethodDescript = "Distinct")]
+        public static void Distinct()
+        {
+            ODAContext ctx = new ODAContext();
+            CmdPrmRole pr = ctx.GetCmd<CmdPrmRole>();
+            CmdPrmRoleAuthorize pra = ctx.GetCmd<CmdPrmRoleAuthorize>();
+
+            StringBuilder sb = new StringBuilder();
+            ctx.CurrentExecutingSql += (src, args) =>
+            {
+                sb.Append(args.DebugSQL);
+            };
+            try
+            {
+                List<PRM_ROLE> rlt = pr
+                    .InnerJoin(pra, pr.ColRoleName == pra.ColRoleName)
+                    .Where(pra.ColIsForbidden == "Y", pra.ColResourceName == "resource")
+                    .Distinct.Select<PRM_ROLE>(pr.ColRoleName, pr.ColIsSupperAdmin, pr.ColDescript);
+               
+            }
+            catch { }
+
+            string sql = sb.ToString();
         }
     }
 }

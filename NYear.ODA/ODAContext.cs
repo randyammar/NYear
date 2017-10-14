@@ -502,10 +502,12 @@ namespace NYear.ODA
 
         public static event ExecuteSqlEventHandler ExecutingSql;
 
+        public event ExecuteSqlEventHandler CurrentExecutingSql;
+
         private void FireExecutingSqlEvent(ExecuteEventArgs args)
         {
-            if (ExecutingSql != null)
-                ExecutingSql(this, args);
+            ExecutingSql?.Invoke(this, args);
+            CurrentExecutingSql?.Invoke(this, args);
         }
 
         protected virtual void SetSelectSplitTable(IDBScriptGenerator Cmd)
@@ -546,7 +548,7 @@ namespace NYear.ODA
             DataTable d = EA.DBA.Select(EA.SQL, EA.SqlParams);
             return int.Parse(d.Rows[0]["TOTAL_RECORD"].ToString());
         }
-        
+
         /// <summary>
         /// 执行查询
         /// </summary>
@@ -555,22 +557,15 @@ namespace NYear.ODA
         /// <returns></returns>
         protected virtual DataTable Select(IDBScriptGenerator Cmd, params ODAColumns[] Cols)
         {
-            try
-            {
-                SetSelectSplitTable(Cmd);
-                IDBAccess DBA = DatabaseRouting(SQLType.Select, Cmd);
-                ExecuteEventArgs EA = new ExecuteEventArgs() { DBA = DBA };
-                string sql;
-                EA.SqlParams = Cmd.GetSelectSql(out sql, Cols);
-                EA.SQL = sql;
-                this.FireExecutingSqlEvent(EA);
-                DataTable d = EA.DBA.Select(EA.SQL, EA.SqlParams);
-                return d;
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+            SetSelectSplitTable(Cmd);
+            IDBAccess DBA = DatabaseRouting(SQLType.Select, Cmd);
+            ExecuteEventArgs EA = new ExecuteEventArgs() { DBA = DBA };
+            string sql;
+            EA.SqlParams = Cmd.GetSelectSql(out sql, Cols);
+            EA.SQL = sql;
+            this.FireExecutingSqlEvent(EA);
+            DataTable d = EA.DBA.Select(EA.SQL, EA.SqlParams);
+            return d;
         }
         /// <summary>
         /// 查询分页
