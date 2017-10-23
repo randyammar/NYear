@@ -100,7 +100,7 @@ namespace NYear.ODA.Adapter
                 {
                     dbSql = dbSql.Replace(pr.ParamsName, pr.ParamsName.Replace(ODAParameter.ODAParamsMark, DbAOledbAccess.DBParamsMark));
                     OleDbParameter param = new OleDbParameter();
-                    param.ParameterName = pr.ParamsName;
+                    param.ParameterName = pr.ParamsName.Replace(ODAParameter.ODAParamsMark, DbAOledbAccess.DBParamsMark);
                     if (pr.Size < 0)
                         param.Size = 1;
                     else

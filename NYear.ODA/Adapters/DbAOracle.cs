@@ -328,7 +328,7 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
                 {
                     dbSql = dbSql.Replace(pr.ParamsName, pr.ParamsName.Replace(ODAParameter.ODAParamsMark, DbAOracle.DBParamsMark));
                     OracleParameter param = new OracleParameter();
-                    param.ParameterName = pr.ParamsName;
+                    param.ParameterName = pr.ParamsName.Replace(ODAParameter.ODAParamsMark, DbAOracle.DBParamsMark);
                     if (pr.Size < 0)
                         param.Size = 1;
                     else

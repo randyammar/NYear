@@ -316,9 +316,8 @@ DISTINCT
         public override DataTable Select(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord)
         {
             int sidx = SQL.IndexOf("SELECT ", 0, StringComparison.InvariantCultureIgnoreCase);
-            SQL = SQL.Remove(sidx, "SELECT ".Length);
             int distinct = SQL.IndexOf(" DISTINCT ", 0, StringComparison.InvariantCultureIgnoreCase);
-
+            SQL = SQL.Remove(sidx, "SELECT ".Length);
             if (distinct < 0 || distinct > "SELECT * FROM ".Length)
             {
                 SQL = SQL.Insert(sidx, "SELECT  TOP " + (StartIndex + MaxRecord).ToString() + " row_number() over(order by getdate()) AS R_ID_1, ");

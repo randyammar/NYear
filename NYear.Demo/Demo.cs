@@ -40,6 +40,16 @@ namespace NYear.Demo
                 GroupID = "SQLite",
                 Tables = null,
             };
+            //ODAContext.GolbalDataBaseGroup = new DataBaseGroup()
+            //{
+            //    MasterDataBase = @"server=10.16.67.19;database=MES_DEV;uid=mes_app;pwd=1Q2w3e4r;",
+            //    DBtype = ODA.DbAType.MsSQL,
+            //    SlaveDataBase = null,
+            //    GroupID = "SQLserver",
+            //    Tables = null,
+            //};
+
+
             ODAContext.ExecutingSql += ODAContext_ExecutingSql;
         }
         private void InitFuncType()
@@ -122,15 +132,19 @@ namespace NYear.Demo
             try
             {
                 var md = (DemoMethodInfo)((Button)sender).Tag;
-                object rtl = md.DemoMethod.Invoke(null, null);
+                object sql = "";
+                dynamic rtl = md.DemoMethod.Invoke(null, null);
                 if (md.DemoFunc == FuncType.Select)
-                    dgvData.DataSource = rtl;
+                {
+                    dgvData.DataSource = rtl.data;
+                    rtbxSql.Text = rtl.sql;
+                    return;
+                }
+                rtbxSql.Text = sql.ToString();
             }
             catch (Exception ex)
             {
-                rtbxSql.AppendText(GetInnerException(ex).Message);
-                rtbxSql.AppendText("\r\n");
-                rtbxSql.AppendText("\r\n");
+                rtbxSql.Text = GetInnerException(ex).Message; 
             }
         }
 

@@ -43,13 +43,13 @@
             this.lblTransTable = new System.Windows.Forms.Label();
             this.pgbData = new System.Windows.Forms.ProgressBar();
             this.pgbTable = new System.Windows.Forms.ProgressBar();
-            this.lblExecuteRlt = new System.Windows.Forms.TextBox();
             this.cbxCreateTable = new System.Windows.Forms.CheckBox();
             this.cbxTransData = new System.Windows.Forms.CheckBox();
             this.tbx_connectstring = new System.Windows.Forms.TextBox();
             this.cbbx_database = new System.Windows.Forms.ComboBox();
             this.lbl_database = new System.Windows.Forms.Label();
             this.lbl_connect_string = new System.Windows.Forms.Label();
+            this.lblExecuteRlt = new System.Windows.Forms.RichTextBox();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -236,16 +236,6 @@
             this.pgbTable.Size = new System.Drawing.Size(580, 23);
             this.pgbTable.TabIndex = 3;
             // 
-            // lblExecuteRlt
-            // 
-            this.lblExecuteRlt.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.lblExecuteRlt.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.lblExecuteRlt.Location = new System.Drawing.Point(0, 0);
-            this.lblExecuteRlt.Multiline = true;
-            this.lblExecuteRlt.Name = "lblExecuteRlt";
-            this.lblExecuteRlt.Size = new System.Drawing.Size(589, 250);
-            this.lblExecuteRlt.TabIndex = 1;
-            // 
             // cbxCreateTable
             // 
             this.cbxCreateTable.Location = new System.Drawing.Point(103, 15);
@@ -306,6 +296,16 @@
             this.lbl_connect_string.TabIndex = 31;
             this.lbl_connect_string.Text = "Connect String";
             // 
+            // lblExecuteRlt
+            // 
+            this.lblExecuteRlt.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.lblExecuteRlt.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.lblExecuteRlt.Location = new System.Drawing.Point(0, 0);
+            this.lblExecuteRlt.Name = "lblExecuteRlt";
+            this.lblExecuteRlt.Size = new System.Drawing.Size(589, 250);
+            this.lblExecuteRlt.TabIndex = 5;
+            this.lblExecuteRlt.Text = "";
+            // 
             // DBCopy
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -325,7 +325,6 @@
             this.tpgGrid.ResumeLayout(false);
             this.tpgMsg.ResumeLayout(false);
             this.panel1.ResumeLayout(false);
-            this.panel1.PerformLayout();
             this.pnlTranStatus.ResumeLayout(false);
             this.pnlTranStatus.PerformLayout();
             this.ResumeLayout(false);
@@ -355,6 +354,6 @@
         private System.Windows.Forms.Label lblTransTable;
         private System.Windows.Forms.ProgressBar pgbData;
         private System.Windows.Forms.ProgressBar pgbTable;
-        private System.Windows.Forms.TextBox lblExecuteRlt;
+        private System.Windows.Forms.RichTextBox lblExecuteRlt;
     }
 }

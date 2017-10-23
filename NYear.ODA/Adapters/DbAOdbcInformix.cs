@@ -189,7 +189,7 @@ namespace NYear.ODA.Adapter
                     dbSql = dbSql.Replace(pr.ParamsName, pr.ParamsName.Replace(ODAParameter.ODAParamsMark, DbAOdbcInformix.DBParamsMark));
 
                     OdbcParameter param = new OdbcParameter();
-                    param.ParameterName = pr.ParamsName;
+                    param.ParameterName = pr.ParamsName.Replace(ODAParameter.ODAParamsMark, DbAOdbcInformix.DBParamsMark);
                     if (pr.Size < 0)
                         param.Size = 1;
                     else
