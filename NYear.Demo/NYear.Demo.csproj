@@ -45,8 +45,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Class1.cs" />
-    <Compile Include="ErrorException.cs" />
     <Compile Include="SelectDemo.cs" />
     <Compile Include="Demo.cs">
       <SubType>Form</SubType>
