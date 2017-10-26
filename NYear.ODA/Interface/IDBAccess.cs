@@ -48,6 +48,8 @@ namespace NYear.ODA
         DataTable Select(string SQL, ODAParameter[] ParamList);
         [OperationContract(Name = "SelectBlock")]
         DataTable Select(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord);
+        [OperationContract(Name = "SelectFirst")]
+        object[] SelectFirst(string SQL, ODAParameter[] ParamList);
         [OperationContract(Name = "SelectPaging")]
         DataTable Select(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord, out int TotalRecord);
         [OperationContract(Name = "SelectRecursion")]

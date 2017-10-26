@@ -317,7 +317,9 @@ DISTINCT
         {
             int sidx = SQL.IndexOf("SELECT ", 0, StringComparison.InvariantCultureIgnoreCase);
             int distinct = SQL.IndexOf(" DISTINCT ", 0, StringComparison.InvariantCultureIgnoreCase);
+
             SQL = SQL.Remove(sidx, "SELECT ".Length);
+
             if (distinct < 0 || distinct > "SELECT * FROM ".Length)
             {
                 SQL = SQL.Insert(sidx, "SELECT  TOP " + (StartIndex + MaxRecord).ToString() + " row_number() over(order by getdate()) AS R_ID_1, ");
@@ -354,7 +356,7 @@ DISTINCT
             }
         }
 
-        protected override void SetCmdParameters(ref  IDbCommand Cmd,string SQL, params ODAParameter[] ParamList)
+        protected override void SetCmdParameters(ref IDbCommand Cmd, string SQL, params ODAParameter[] ParamList)
         {
             Cmd.CommandText = SQL;
             if (ParamList != null)
@@ -384,7 +386,20 @@ DISTINCT
                                 }
                                 else
                                 {
-                                    param.Value = pr.ParamsValue;
+                                    if (pr.ParamsValue is DateTime)
+                                    {
+                                        param.Value = pr.ParamsValue;
+                                    }
+                                    else if (pr.ParamsValue is String)
+                                    {
+                                        DateTime dtValue = DateTime.MinValue;
+                                        DateTime.TryParse((string)pr.ParamsValue, out dtValue);
+                                        param.Value = dtValue;
+                                    }
+                                    else
+                                    {
+                                        param.Value = System.DBNull.Value;
+                                    }
                                 }
                             }
                             break;
@@ -402,7 +417,9 @@ DISTINCT
                                 }
                                 else
                                 {
-                                    param.Value = pr.ParamsValue;
+                                    decimal dval = 0;
+                                    decimal.TryParse(pr.ParamsValue.ToString(), out dval);
+                                    param.Value = dval;
                                 }
                             }
                             break;
@@ -421,7 +438,7 @@ DISTINCT
                                 }
                                 else
                                 {
-                                    throw new ODAException(12001, "Params :" + pr.ParamsName + " Type must be byte[]");
+                                    throw new ODAException(201, "Params :" + pr.ParamsName + " Type must be byte[]");
                                 }
                             }
                             break;
@@ -439,7 +456,9 @@ DISTINCT
                                 }
                                 else
                                 {
-                                    param.Value = pr.ParamsValue;
+                                    int dval = 0;
+                                    int.TryParse(pr.ParamsValue.ToString(), out dval);
+                                    param.Value = dval;
                                 }
                             }
                             break;

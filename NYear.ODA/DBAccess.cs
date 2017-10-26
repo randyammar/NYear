@@ -10,23 +10,44 @@ namespace NYear.ODA
     public abstract class DBAccess : IDBAccess //: MarshalByRefObject,
     {
         #region 数据类型转换
-        public static List<T> ConvertToList<T>(DataTable dt) where T : class
+
+
+        public static List<T> ConvertToList<T>(DataTable dt) //where T : class
         {
+            // Tuple<string, int, string> a = new Tuple<string, int, string>(null, 0, null);
+
             List<T> list = new List<T>();
-            T t = Activator.CreateInstance<T>();
-            PropertyInfo[] propertypes = t.GetType().GetProperties();
-            for (int i = 0; i < dt.Rows.Count; i++)
+            if (typeof(T).IsValueType || typeof(T) == typeof(string))
             {
-                t = Activator.CreateInstance<T>();
-                foreach (PropertyInfo pro in propertypes)
+                for (int i = 0; i < dt.Rows.Count; i++)
                 {
-                    if (pro.CanWrite && dt.Columns.Contains(pro.Name))
+                    if (dt.Rows[i][0] is T)
                     {
-                        object value = dt.Rows[i][pro.Name];
-                        pro.SetValue(t, DataConvert(value, pro.PropertyType), null);
+                        list.Add((T)dt.Rows[i][0]);
+                    }
+                    else
+                    {
+                        list.Add((T)System.Convert.ChangeType(dt.Rows[i][0], typeof(T), CultureInfo.InvariantCulture));
                     }
                 }
-                list.Add(t);
+            }
+            else
+            {
+                T t = Activator.CreateInstance<T>();
+                PropertyInfo[] propertypes = t.GetType().GetProperties();
+                for (int i = 0; i < dt.Rows.Count; i++)
+                {
+                    t = Activator.CreateInstance<T>();
+                    foreach (PropertyInfo pro in propertypes)
+                    {
+                        if (pro.CanWrite && dt.Columns.Contains(pro.Name))
+                        {
+                            object value = dt.Rows[i][pro.Name];
+                            pro.SetValue(t, DataConvert(value, pro.PropertyType), null);
+                        }
+                    }
+                    list.Add(t);
+                }
             }
             return list;
         }
@@ -97,8 +118,27 @@ namespace NYear.ODA
                 }
             }
         }
-        #endregion
+        public static T ChangeType<T>(int idx, object[] val) where T : IConvertible
+        {
+            if (val == null || val.Length <= idx || val[idx] == null || Convert.IsDBNull(val[idx]))
+                return default(T);
+            if (val[idx] is T)
+                return (T)val[idx];
+            try
+            {
+                return (T)Convert.ChangeType(val[idx], typeof(T));
+            }
+            catch
+            {
+                return default(T);
+            }
+        }
 
+        #endregion
+        public virtual char ParamsMark
+        {
+            get { return ODAParameter.ODAParamsMark; }
+        }
         private string _ConnStr = null;
         public string ConnString { get { return _ConnStr; } }
         public DBAccess(string ConnectionString)
@@ -111,8 +151,6 @@ namespace NYear.ODA
         public abstract string[] GetUserTables();
         public abstract string[] GetUserViews();
         public abstract DbAType DBAType { get; }
-
-        public virtual char ParamsMark { get { return ODAParameter.ODAParamsMark; } }
 
         public virtual string[] GetUserProcedure()
         {
@@ -234,11 +272,11 @@ namespace NYear.ODA
                             ln = ln <= 0 ? 2000 : ln > 2000 ? 2000 : ln;
                             dr_tmp["LENGTH"] = ln;
                             dr_tmp["DIRECTION"] = "";
-                            dr_tmp["NOT_NULL"] = ((bool)sch.Rows[j]["AllowDBNull"])?"N":"Y";
-                            dr_tmp["COL_SEQ"] = j ;
+                            dr_tmp["NOT_NULL"] = ((bool)sch.Rows[j]["AllowDBNull"]) ? "N" : "Y";
+                            dr_tmp["COL_SEQ"] = j;
 
                             string ColumnDataType = "ODA_DATATYPE";
-                            Type Columntype =(Type) sch.Rows[j]["DataType"];
+                            Type Columntype = (Type)sch.Rows[j]["DataType"];
                             if (Columntype == typeof(string))
                             {
                                 dr_tmp[ColumnDataType] = "OVarchar";
@@ -338,7 +376,7 @@ namespace NYear.ODA
             }
             else
             {
-                throw new ODAException(90000, "There isn't any Transaction to Commit");
+                throw new ODAException(101, "There isn't any Transaction to Commit");
             }
 
         }
@@ -355,7 +393,7 @@ namespace NYear.ODA
             }
             else
             {
-                throw new ODAException(90001, "There isn't any Transaction to RollBack");
+                throw new ODAException(102, "There isn't any Transaction to RollBack");
             }
         }
 
@@ -395,12 +433,7 @@ namespace NYear.ODA
             }
         }
 
-        protected abstract void SetCmdParameters(ref IDbCommand Cmd,string SQL, params ODAParameter[] ParamList);
-
-        public List<T> Select<T>(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord, out int TotalRecord) where T : class
-        {
-            return ConvertToList<T>(Select(SQL, ParamList, StartIndex, MaxRecord, out TotalRecord));
-        }
+        protected abstract void SetCmdParameters(ref IDbCommand Cmd, string SQL, params ODAParameter[] ParamList);
         public virtual DataTable Select(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord, out int TotalRecord)
         {
             IDbCommand Cmd = OpenCommand();
@@ -516,17 +549,6 @@ namespace NYear.ODA
                 CloseCommand(Cmd);
             }
         }
-
-        public List<T> Select<T>(string SQL, ODAParameter[] ParamList) where T : class
-        {
-            return ConvertToList<T>(Select(SQL, ParamList));
-        }
-
-        public List<T> Select<T>(string SQL, ODAParameter[] ParamList, string StartWithExpress, string ConnectBy, string Prior, string ConnectColumn, string ConnectChar, int MaxLevel) where T : class
-        {
-            return ConvertToList<T>(Select(SQL, ParamList, StartWithExpress, ConnectBy, Prior, ConnectColumn, ConnectChar, MaxLevel));
-        }
-
         public virtual DataTable Select(string SQL, ODAParameter[] ParamList)
         {
             IDbCommand Cmd = OpenCommand();
@@ -539,6 +561,32 @@ namespace NYear.ODA
                 Da.Fill(dt);
                 Da.Dispose();
                 return dt;
+            }
+            finally
+            {
+                CloseCommand(Cmd);
+            }
+        }
+
+        public object[] SelectFirst(string SQL, ODAParameter[] ParamList)
+        {
+            IDbCommand Cmd = OpenCommand();
+            try
+            {
+                Cmd.CommandType = CommandType.Text;
+                SetCmdParameters(ref Cmd, SQL, ParamList);
+                IDataReader Dr = Cmd.ExecuteReader();
+                object[] rtl = new object[Dr.FieldCount];
+                if (Dr.Read())
+                {
+                    for (int i = 0; i < rtl.Length; i++)
+                        rtl[i] = Dr[i];
+                    return rtl;
+                }
+                else
+                {
+                    return null;
+                }
             }
             finally
             {
@@ -565,14 +613,28 @@ namespace NYear.ODA
                 if (Model.Columns.Contains(ConnectColumn))
                     Model.Columns[ConnectColumn].DataType = typeof(string);
                 else
-                    throw new ODAException(90002, "DataModel not contain Column:" + ConnectColumn);
+                    throw new ODAException(103, "DataModel not contain Column:" + ConnectColumn);
             }
 
             if (!Model.Columns.Contains(ConnectBy) || !Model.Columns.Contains(Prior))
-                throw new ODAException(90003, "DataModel not contain ConnectBy or Prior Column");
+                throw new ODAException(104, "DataModel not contain ConnectBy or Prior Column");
 
             DataTable dtRtl = this.Recursion(Model, StartWithExpress, ConnectBy, Prior, ConnectColumn, ConnectChar, "", 0, MaxLevel);
             return dtRtl;
+        }
+
+        public List<T> Select<T>(string SQL, ODAParameter[] ParamList) where T : class
+        {
+            return ConvertToList<T>(Select(SQL, ParamList));
+        }
+
+        public List<T> Select<T>(string SQL, ODAParameter[] ParamList, string StartWithExpress, string ConnectBy, string Prior, string ConnectColumn, string ConnectChar, int MaxLevel) where T : class
+        {
+            return ConvertToList<T>(Select(SQL, ParamList, StartWithExpress, ConnectBy, Prior, ConnectColumn, ConnectChar, MaxLevel));
+        }
+        public List<T> Select<T>(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord, out int TotalRecord) where T : class
+        {
+            return ConvertToList<T>(Select(SQL, ParamList, StartIndex, MaxRecord, out TotalRecord));
         }
 
         /// <summary>

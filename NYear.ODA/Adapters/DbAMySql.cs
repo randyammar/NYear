@@ -198,7 +198,7 @@ namespace NYear.ODA.Adapter
                 CloseCommand(Cmd);
             }
         }
-        protected override void SetCmdParameters(ref IDbCommand Cmd,string SQL, params ODAParameter[] ParamList)
+        protected override void SetCmdParameters(ref IDbCommand Cmd, string SQL, params ODAParameter[] ParamList)
         {
             Cmd.CommandText = SQL;
             if (ParamList != null)
@@ -228,7 +228,20 @@ namespace NYear.ODA.Adapter
                                 }
                                 else
                                 {
-                                    param.Value = pr.ParamsValue;
+                                    if (pr.ParamsValue is DateTime)
+                                    {
+                                        param.Value = pr.ParamsValue;
+                                    }
+                                    else if (pr.ParamsValue is String)
+                                    {
+                                        DateTime dtValue = DateTime.MinValue;
+                                        DateTime.TryParse((string)pr.ParamsValue, out dtValue);
+                                        param.Value = dtValue;
+                                    }
+                                    else
+                                    {
+                                        param.Value = System.DBNull.Value;
+                                    }
                                 }
                             }
                             break;
@@ -240,13 +253,19 @@ namespace NYear.ODA.Adapter
                             }
                             else
                             {
-                                if (pr.ParamsValue.ToString().Trim() == "")
+                                if (pr.ParamsValue is decimal)
+                                {
+                                    param.Value = pr.ParamsValue;
+                                }
+                                else if (pr.ParamsValue.ToString().Trim() == "")
                                 {
                                     param.Value = System.DBNull.Value;
                                 }
                                 else
                                 {
-                                    param.Value = pr.ParamsValue;
+                                    decimal dval = 0;
+                                    decimal.TryParse(pr.ParamsValue.ToString(), out dval);
+                                    param.Value = dval;
                                 }
                             }
                             break;
@@ -263,10 +282,6 @@ namespace NYear.ODA.Adapter
                                 {
                                     param.Size = ((byte[])pr.ParamsValue).Length;
                                 }
-                                else
-                                {
-                                    throw new ODAException(13001, "Params :" + pr.ParamsName + " Type must be byte[]");
-                                }
                             }
                             break;
                         case ODAdbType.OInt:
@@ -277,13 +292,19 @@ namespace NYear.ODA.Adapter
                             }
                             else
                             {
-                                if (pr.ParamsValue.ToString().Trim() == "")
+                                if (pr.ParamsValue is int)
+                                {
+                                    param.Value = pr.ParamsValue;
+                                }
+                                else if (pr.ParamsValue.ToString().Trim() == "")
                                 {
                                     param.Value = System.DBNull.Value;
                                 }
                                 else
                                 {
-                                    param.Value = pr.ParamsValue;
+                                    int dval = 0;
+                                    int.TryParse(pr.ParamsValue.ToString(), out dval);
+                                    param.Value = dval;
                                 }
                             }
                             break;

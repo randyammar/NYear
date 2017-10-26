@@ -57,11 +57,13 @@ namespace NYear.ODA
             cmd.Selecting = Select;
             cmd.SelectPaging = Select;
             cmd.SelectRecursion = Select;
+            cmd.SelectingFirst = SelectFirst;
             cmd.Updating = Update;
             cmd.Inserting = Insert;
             cmd.InsertScript = Insert;
             cmd.Deleting = Delete;
             cmd.ExecutingProcedure = ExecuteProcedure;
+
             return cmd;
         }
 
@@ -282,14 +284,14 @@ namespace NYear.ODA
                 string subObj = String.Join(",", DBObjects.ToArray());
                 throw new ODAException(30002, String.Format("更新操作违犯分库设定，对[{0}]执行[{1}]操作其间需要访问数据库对象[{2}]", Cmd.DBObjectMap, Enum.GetName(typeof(SQLType), SqlType), subObj));
             }
-           
+
             foreach (DataBaseGroup dbg in SystemDataBaseGroups)
             {
                 foreach (string o in DBObjects)
                 {
                     if (dbg.Tables != null && dbg.Tables.Contains(o))
                     {
-                       return dbg;
+                        return dbg;
                     }
                 }
             }
@@ -502,13 +504,12 @@ namespace NYear.ODA
 
         public static event ExecuteSqlEventHandler ExecutingSql;
 
-        public event ExecuteSqlEventHandler CurrentExecutingSql;
-
         private void FireExecutingSqlEvent(ExecuteEventArgs args)
         {
             ExecutingSql?.Invoke(this, args);
             CurrentExecutingSql?.Invoke(this, args);
         }
+        public event ExecuteSqlEventHandler CurrentExecutingSql;
 
         protected virtual void SetSelectSplitTable(IDBScriptGenerator Cmd)
         {
@@ -598,6 +599,19 @@ namespace NYear.ODA
             this.FireExecutingSqlEvent(EA);
             DataTable d = EA.DBA.Select(EA.SQL, EA.SqlParams, StartWithExpress, ConnectBy, Prior, ConnectColumn, ConnectChar, MaxLevel);
             return d;
+        }
+
+        protected virtual object[] SelectFirst(IDBScriptGenerator Cmd, params ODAColumns[] Cols)
+        {
+            SetSelectSplitTable(Cmd);
+            IDBAccess DBA = DatabaseRouting(SQLType.Select, Cmd);
+            ExecuteEventArgs EA = new ExecuteEventArgs() { DBA = DBA };
+            string sql;
+            EA.SqlParams = Cmd.GetSelectSql(out sql, Cols);
+            EA.SQL = sql;
+            this.FireExecutingSqlEvent(EA);
+            object[] o = EA.DBA.SelectFirst(EA.SQL, EA.SqlParams);
+            return o;
         }
         protected virtual bool Insert(IDBScriptGenerator Cmd, params ODAColumns[] Cols)
         {

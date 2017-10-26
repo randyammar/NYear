@@ -18,6 +18,7 @@ namespace NYear.ODA.Adapter
         {
             get { return DbAOracle.DBParamsMark; }
         }
+
         private OracleConnection _DBConn = null;
         protected override IDbConnection GetConnection()
         {
@@ -163,7 +164,7 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
         public override DatabaseColumnInfo ODAColumnToOrigin(string Name, string ColumnType, decimal Length)
         {
             DatabaseColumnInfo ColInof = new DatabaseColumnInfo();
-            ColInof.Name = "\"" + Name +"\"";
+            ColInof.Name = "\"" + Name + "\"";
             ColInof.NoLength = false;
             ColInof.Length = Length > 2000 ? 2000 : Length < 0 ? 2000 : Length;
 
@@ -220,7 +221,7 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
             + " 'UROWID','OVarchar','URITYPE','OVarchar','CHARACTER','OVarchar','CLOB','OVarchar','INTEGER','OInt','INT','OInt',"
             + " 'SMALLINT','OInt','DATE','ODatetime','LONG','ODecimal','DECIMAL','ODecimal','NUMERIC','ODecimal','REAL','ODecimal',"
             + " 'NUMBER','ODecimal','BLOB','OBinary','BFILE','OBinary','OVarchar') ODA_DATATYPE, "
-            + " DECODE(TC.DATA_TYPE,'BLOB',2000000000,'CLOB',2000000000, TC.DATA_LENGTH)  LENGTH,"  
+            + " DECODE(TC.DATA_TYPE,'BLOB',2000000000,'CLOB',2000000000, TC.DATA_LENGTH)  LENGTH,"
             + " TCC.COMMENTS DIRECTION "
             + " FROM USER_TABLES  TB,USER_TAB_COLUMNS TC ,USER_COL_COMMENTS  TCC"
             + " WHERE TB.TABLE_NAME = TC.TABLE_NAME "
@@ -319,7 +320,7 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
                 CloseCommand(Cmd);
             }
         }
-        protected override void SetCmdParameters(ref IDbCommand Cmd,string SQL, params ODAParameter[] ParamList)
+        protected override void SetCmdParameters(ref IDbCommand Cmd, string SQL, params ODAParameter[] ParamList)
         {
             string dbSql = SQL;
             if (ParamList != null)
@@ -351,7 +352,20 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
                                 }
                                 else
                                 {
-                                    param.Value = pr.ParamsValue;
+                                    if (pr.ParamsValue is DateTime )
+                                    {
+                                        param.Value = pr.ParamsValue;
+                                    }
+                                    else if (pr.ParamsValue is String)
+                                    {
+                                        DateTime dtValue = DateTime.MinValue;
+                                        DateTime.TryParse((string)pr.ParamsValue, out dtValue);
+                                        param.Value = dtValue;
+                                    }
+                                    else
+                                    {
+                                        param.Value = System.DBNull.Value;
+                                    }
                                 }
                             }
                             break;
@@ -364,13 +378,19 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
                             }
                             else
                             {
-                                if (pr.ParamsValue.ToString().Trim() == "")
+                                if (pr.ParamsValue is decimal)
+                                {
+                                    param.Value = pr.ParamsValue;
+                                }
+                                else if (pr.ParamsValue.ToString().Trim() == "")
                                 {
                                     param.Value = System.DBNull.Value;
                                 }
                                 else
                                 {
-                                    param.Value = pr.ParamsValue;
+                                    decimal dval = 0;
+                                    decimal.TryParse(pr.ParamsValue.ToString(), out dval);
+                                    param.Value = dval;
                                 }
                             }
                             break;
@@ -388,10 +408,6 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
                                 {
                                     param.Size = ((byte[])pr.ParamsValue).Length;
                                 }
-                                else
-                                {
-                                    throw new ODAException(16001, "Params :" + pr.ParamsName + " Type must be byte[]");
-                                }
                             }
                             break;
                         case ODAdbType.OInt:
@@ -403,13 +419,19 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
                             }
                             else
                             {
-                                if (pr.ParamsValue.ToString().Trim() == "")
+                                if (pr.ParamsValue is int)
+                                {
+                                    param.Value = pr.ParamsValue;
+                                }
+                                else if (pr.ParamsValue.ToString().Trim() == "")
                                 {
                                     param.Value = System.DBNull.Value;
                                 }
                                 else
                                 {
-                                    param.Value = pr.ParamsValue;
+                                    int dval = 0;
+                                    int.TryParse(pr.ParamsValue.ToString(), out dval);
+                                    param.Value = dval;
                                 }
                             }
                             break;

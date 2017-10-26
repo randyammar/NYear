@@ -1,27 +1,25 @@
-﻿using Sybase.Data.AseClient;
-using System;
+﻿using System;
 using System.Data;
+using System.Collections.Generic;
 using System.Data.Common;
+using System.Data.SQLite;
+using System.Globalization;
 
 namespace NYear.ODA.Adapter
 {
-    public class DbASybase : DBAccess
+    public class DbASQLite : DBAccess
     {
-        private static char DBParamsMark { get { return ':'; } }
-
-        public DbASybase(string ConnectionString)
+        public DbASQLite(string ConnectionString)
             : base(ConnectionString)
         {
+
         }
-        public override char ParamsMark
-        {
-            get { return DbASybase.DBParamsMark; }
-        }
-        private AseConnection _DBConn = null;
+
+        private SQLiteConnection _DBConn = null;
         protected override IDbConnection GetConnection()
         {
             if (_DBConn == null)
-                _DBConn = new AseConnection(ConnString);
+                _DBConn = new SQLiteConnection(ConnString);
             if (_DBConn.State == ConnectionState.Closed)
                 _DBConn.Open();
             _DBConn.Disposed += _DBConn_Disposed;
@@ -32,95 +30,56 @@ namespace NYear.ODA.Adapter
             _DBConn = null;
         }
 
+        public static void CreateDataBase(string FileName)
+        {
+            SQLiteConnection.CreateFile(FileName);
+        }
         protected override DbDataAdapter GetDataAdapter(IDbCommand SelectCmd)
         {
-            return new AseDataAdapter((AseCommand)SelectCmd);
+            return new SQLiteDataAdapter((SQLiteCommand)SelectCmd);
         }
-        public override DateTime GetDBDateTime()
-        {
-            IDbCommand Cmd = OpenCommand();
-            try
-            {
-                string sql = "SELECT getdate() as  DB_DATETIME ";
-                Cmd.CommandText = sql;
-                Cmd.CommandType = CommandType.Text;
-                return Convert.ToDateTime(Cmd.ExecuteScalar());
-            }
-            finally
-            {
-                CloseCommand(Cmd);
-            }
-        }
+
         public override string[] GetUserTables()
         {
-            DataTable dt_table = this.Select("SELECT T.name TABLE_NAME FROM sysobjects T WHERE  T.type='U' ORDER BY TABLE_NAME", null);
+            DataTable dt_table = Select("SELECT Name AS TABLE_NAME  FROM SQLITE_MASTER WHERE TYPE='table' ", null);
             string[] str = new string[dt_table.Rows.Count];
             for (int i = 0; i < str.Length; i++)
             {
-                str[i] = dt_table.Rows[i]["TABLE_NAME"].ToString();
+                str[i] = dt_table.Rows[i]["TABLE_NAME"].ToString().Trim().ToUpper();
             }
             return str;
         }
         public override string[] GetUserViews()
         {
-            DataTable dt_table = this.Select("SELECT V.name VIEW_NAME FROM sysobjects  V WHERE V.type ='V' AND V.name <>'sysquerymetrics' ORDER BY  VIEW_NAME", null);
+            DataTable dt_table = Select("SELECT Name AS VIEW_NAME  FROM SQLITE_MASTER WHERE TYPE='view' ", null);
             string[] str = new string[dt_table.Rows.Count];
             for (int i = 0; i < str.Length; i++)
             {
-                str[i] = dt_table.Rows[i]["VIEW_NAME"].ToString();
+                str[i] = dt_table.Rows[i]["VIEW_NAME"].ToString().Trim().ToUpper();
             }
             return str;
         }
-        public override DbAType DBAType { get { return DbAType.Sybase; } }
-
-        public override DataTable GetTableColumns()
-        {
-            string sql_tabcol = " SELECT SOBJ.name AS TABLE_NAME, SCOL.name AS COLUMN_NAME ,"
-            + " CASE STYPE.name  WHEN 'sysname'  THEN 'OVarchar' WHEN 'sql_varint'  THEN 'OVarchar'    WHEN 'varchar' THEN 'OVarchar' WHEN 'char'  THEN 'OChar' "
-            + " WHEN 'nchar'  THEN 'OChar' WHEN 'ntext'  THEN 'OVarchar'  WHEN 'nvarchar'  THEN 'OVarchar'  WHEN 'text'  THEN 'OVarchar' WHEN 'varchar'  THEN 'OVarchar' "
-            + " WHEN 'bigint'  THEN 'ODecimal'  WHEN 'decimal'  THEN 'ODecimal'   WHEN 'float'  THEN 'ODecimal'   WHEN 'money'  THEN 'ODecimal' "
-            + " WHEN 'numeric'  THEN 'ODecimal'    WHEN 'real'  THEN 'ODecimal'   WHEN 'smallmoney'  THEN 'ODecimal' "
-            + " WHEN 'int'  THEN 'OInt'  WHEN 'smallint'  THEN 'OInt'    WHEN 'bit'  THEN 'OInt'  "
-            + " WHEN 'datetime'  THEN 'ODatetime'  WHEN 'smalldatetime'  THEN 'ODatetime'  WHEN 'smalldatetime'  THEN 'ODatetime'  "
-            + " WHEN 'binary'  THEN 'OBinary'  WHEN 'image'  THEN 'OBinary'  WHEN 'timestamp'  THEN 'OBinary'    WHEN 'varbinary'  THEN 'OBinary' "
-            + " ELSE  STYPE.name  END AS ODA_DATATYPE ,"
-            + " SCOL.length AS LENGTH, 'INPUT' AS DIRECTION "
-            + " FROM sysobjects SOBJ,syscolumns SCOL,systypes STYPE "
-            + " WHERE  SOBJ.type  = 'U' "
-            + " AND SOBJ.id = SCOL.id"
-            + " AND STYPE.usertype = SCOL.usertype"
-            + " ORDER BY  TABLE_NAME , COLUMN_NAME ";
-            DataTable Dt = Select(sql_tabcol, null);
-            Dt.TableName = "TABLE_COLUMN";
-            return Dt;
-        }
-        public override DataTable GetViewColumns()
-        {
-            string sql_view = "SELECT SOBJ.name AS TABLE_NAME, SCOL.name AS COLUMN_NAME ,"
-            + " CASE STYPE.name  WHEN 'sysname'  THEN 'OVarchar' WHEN 'sql_varint'  THEN 'OVarchar'    WHEN 'varchar' THEN 'OVarchar' WHEN 'char'  THEN 'OChar' "
-            + " WHEN 'nchar'  THEN 'OChar' WHEN 'ntext'  THEN 'OVarchar'  WHEN 'nvarchar'  THEN 'OVarchar'  WHEN 'text'  THEN 'OVarchar' WHEN 'varchar'  THEN 'OVarchar' "
-            + " WHEN 'bigint'  THEN 'ODecimal'  WHEN 'decimal'  THEN 'ODecimal'   WHEN 'float'  THEN 'ODecimal'   WHEN 'money'  THEN 'ODecimal' "
-            + " WHEN 'numeric'  THEN 'ODecimal'    WHEN 'real'  THEN 'ODecimal'   WHEN 'smallmoney'  THEN 'ODecimal' "
-            + " WHEN 'int'  THEN 'OInt'  WHEN 'smallint'  THEN 'OInt'    WHEN 'bit'  THEN 'OInt'  "
-            + " WHEN 'datetime'  THEN 'ODatetime'  WHEN 'smalldatetime'  THEN 'ODatetime'  WHEN 'smalldatetime'  THEN 'ODatetime'  "
-            + " WHEN 'binary'  THEN 'OBinary'  WHEN 'image'  THEN 'OBinary'  WHEN 'timestamp'  THEN 'OBinary'    WHEN 'varbinary'  THEN 'OBinary' "
-            + " ELSE  STYPE.name  END AS ODA_DATATYPE ,"
-            + " SCOL.length AS LENGTH, 'INPUT' AS DIRECTION "
-            + " FROM sysobjects SOBJ,syscolumns SCOL,systypes STYPE "
-            + " WHERE  SOBJ.type  = 'V' "
-            + " AND SOBJ.name <>'sysquerymetrics'"
-            + " AND SOBJ.id = SCOL.id"
-            + " AND STYPE.usertype = SCOL.usertype"
-            + " ORDER BY  TABLE_NAME , COLUMN_NAME ";
-            DataTable Dt = Select(sql_view, null);
-            Dt.TableName = "VIEW_COLUMN";
-            return Dt;
-        }
-
         public override string[] GetPrimarykey(string TableName)
         {
-            return null;
+            SQLiteConnection conn = (SQLiteConnection)this.GetConnection();
+            List<string> list = new List<string>();
+            using (SQLiteCommand sQLiteCommand2 = new SQLiteCommand(string.Format(CultureInfo.InvariantCulture, "PRAGMA [main].table_info([{0}])", TableName), conn))
+            {
+                using (SQLiteDataReader sQLiteDataReader2 = sQLiteCommand2.ExecuteReader())
+                {
+                    while (sQLiteDataReader2.Read())
+                    {
+                        if (sQLiteDataReader2.GetInt32(5) == 1)
+                        {
+                            list.Add(sQLiteDataReader2.GetString(1));
+
+                        }
+                    }
+                }
+            }
+            return list.ToArray();
         }
+
         public override DatabaseColumnInfo ODAColumnToOrigin(string Name, string ColumnType, decimal Length)
         {
             DatabaseColumnInfo ColInof = new DatabaseColumnInfo();
@@ -130,7 +89,7 @@ namespace NYear.ODA.Adapter
 
             if (ColumnType.Trim() == ODAdbType.OBinary.ToString())
             {
-                ColInof.ColumnType = "IMAGE";
+                ColInof.ColumnType = "BLOB";
                 ColInof.NoLength = true;
             }
             else if (ColumnType.Trim() == ODAdbType.ODatetime.ToString())
@@ -154,20 +113,22 @@ namespace NYear.ODA.Adapter
             }
             else if (ColumnType.Trim() == ODAdbType.OVarchar.ToString())
             {
-                ColInof.ColumnType = "VARCHAR2";
+                ColInof.ColumnType = "VARCHAR";
             }
             else
             {
-                ColInof.ColumnType = "VARCHAR2";
+                ColInof.ColumnType = "VARCHAR";
             }
             return ColInof;
         }
 
-        //public override DataTable Select(string TransactionID, string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord)
-        //{
-        //    string BlockStr = SQL + " limit " + StartIndex.ToString() + "," + MaxRecord.ToString();
-        //    return Select(TransactionID, BlockStr, ParamList);
-        //}
+        public override DbAType DBAType { get { return DbAType.SQLite; } }
+
+        public override DataTable Select(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord)
+        {
+            string BlockStr = SQL + " limit " + MaxRecord.ToString() + " offset " + StartIndex.ToString();
+            return Select(BlockStr, ParamList);
+        }
 
         public override object GetExpressResult(string ExpressionString)
         {
@@ -184,17 +145,15 @@ namespace NYear.ODA.Adapter
                 CloseCommand(Cmd);
             }
         }
-
         protected override void SetCmdParameters(ref IDbCommand Cmd,string SQL, params ODAParameter[] ParamList)
         {
-            string dbSql = SQL;
+            Cmd.CommandText = SQL;
             if (ParamList != null)
             {
                 foreach (ODAParameter pr in ParamList)
                 {
-                    dbSql = dbSql.Replace(pr.ParamsName, pr.ParamsName.Replace(ODAParameter.ODAParamsMark, DbASybase.DBParamsMark));
-                    AseParameter param = new AseParameter();
-                    param.ParameterName = pr.ParamsName.Replace(ODAParameter.ODAParamsMark, DbASybase.DBParamsMark);
+                    SQLiteParameter param = new SQLiteParameter();
+                    param.ParameterName = pr.ParamsName;
                     if (pr.Size < 0)
                         param.Size = 1;
                     else
@@ -203,7 +162,7 @@ namespace NYear.ODA.Adapter
                     switch (pr.DBDataType)
                     {
                         case ODAdbType.ODatetime:
-                            param.AseDbType = AseDbType.DateTime;
+                            param.DbType = DbType.DateTime;
                             if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
                             {
                                 param.Value = System.DBNull.Value;
@@ -221,7 +180,7 @@ namespace NYear.ODA.Adapter
                             }
                             break;
                         case ODAdbType.ODecimal:
-                            param.AseDbType = AseDbType.Decimal;
+                            param.DbType = DbType.Decimal;
                             if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
                             {
                                 param.Value = System.DBNull.Value;
@@ -239,7 +198,7 @@ namespace NYear.ODA.Adapter
                             }
                             break;
                         case ODAdbType.OBinary:
-                            param.AseDbType = AseDbType.Image;
+                            param.DbType = DbType.Binary;
                             if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
                             {
                                 param.Value = System.DBNull.Value;
@@ -253,12 +212,12 @@ namespace NYear.ODA.Adapter
                                 }
                                 else
                                 {
-                                    throw new ODAException(18001, "Params :" + pr.ParamsName + " Type must be byte[]");
+                                    throw new ODAException(17001, "Params :" + pr.ParamsName + " Type must be byte[]");
                                 }
                             }
                             break;
                         case ODAdbType.OInt:
-                            param.AseDbType = AseDbType.Integer;
+                            param.DbType = DbType.Int32;
                             if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
                             {
                                 param.Value = System.DBNull.Value;
@@ -282,7 +241,7 @@ namespace NYear.ODA.Adapter
                             }
                             break;
                         case ODAdbType.OChar:
-                            param.AseDbType = AseDbType.UniChar;
+                            param.DbType = DbType.StringFixedLength;
                             if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
                             {
                                 param.Value = System.DBNull.Value;
@@ -300,7 +259,7 @@ namespace NYear.ODA.Adapter
                             }
                             break;
                         case ODAdbType.OVarchar:
-                            param.AseDbType = AseDbType.UniVarChar;
+                            param.DbType = DbType.String;
                             if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
                             {
                                 param.Value = System.DBNull.Value;
@@ -318,14 +277,14 @@ namespace NYear.ODA.Adapter
                             }
                             break;
                         default:
-                            param.AseDbType = AseDbType.VarChar;
+                            param.DbType = DbType.String;
                             param.Value = pr.ParamsValue;
                             break;
                     }
-                    ((AseParameterCollection)Cmd.Parameters).Add(param);
+                    ((SQLiteParameterCollection)Cmd.Parameters).Add(param);
                 }
             }
-            Cmd.CommandText = dbSql;
         }
     }
 }
+

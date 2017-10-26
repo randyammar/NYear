@@ -259,19 +259,25 @@ AND UNIQUERULE = 'P'";
                             break;
                         case ODAdbType.OInt:
                             param.DB2Type = DB2Type.Integer;
-                            if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
+                            if (pr.ParamsValue == null || Convert.IsDBNull(pr.ParamsValue))
                             {
                                 param.Value = System.DBNull.Value;
                             }
                             else
                             {
-                                if (pr.ParamsValue.ToString().Trim() == "")
+                                if (pr.ParamsValue is int)
+                                {
+                                    param.Value = pr.ParamsValue;
+                                }
+                                else if (pr.ParamsValue.ToString().Trim() == "")
                                 {
                                     param.Value = System.DBNull.Value;
                                 }
                                 else
                                 {
-                                    param.Value = pr.ParamsValue;
+                                    int dval = 0;
+                                    int.TryParse(pr.ParamsValue.ToString(), out dval);
+                                    param.Value = dval;
                                 }
                             }
                             break;

@@ -197,5 +197,29 @@ namespace NYear.Demo
                 data = rlt
             };
         }
+
+        [Demo(Demo = FuncType.Select, MethodName = "SelectFirst", MethodDescript = "Distinct")]
+        public static object SelectFirst()
+        {
+            ODAContext ctx = new ODAContext();
+            StringBuilder sb = new StringBuilder();
+            ctx.CurrentExecutingSql += (src, args) =>
+            {
+                sb.AppendLine(args.DebugSQL);
+            };
+            CmdPrmRole pr = ctx.GetCmd<CmdPrmRole>();
+            CmdPrmRoleAuthorize pra = ctx.GetCmd<CmdPrmRoleAuthorize>();
+            var rlt = pr
+                .InnerJoin(pra, pr.ColRoleName == pra.ColRoleName)
+                .Where(pra.ColIsForbidden == "Y", pra.ColResourceName == "resource")
+                .Distinct.SelectFirst<string,string,string>( pr.ColRoleName, pr.ColIsSupperAdmin, pr.ColDescript);
+            
+
+            return new
+            {
+                sql = sb.ToString(),
+                data = rlt
+            };
+        }
     }
 }
