@@ -7,6 +7,7 @@ using System.Globalization;
 
 namespace NYear.ODA.Adapter
 {
+
     public class DbASQLite : DBAccess
     {
         public DbASQLite(string ConnectionString)
@@ -145,7 +146,7 @@ namespace NYear.ODA.Adapter
                 CloseCommand(Cmd);
             }
         }
-        protected override void SetCmdParameters(ref IDbCommand Cmd,string SQL, params ODAParameter[] ParamList)
+        protected override void SetCmdParameters(ref IDbCommand Cmd, string SQL, params ODAParameter[] ParamList)
         {
             Cmd.CommandText = SQL;
             if (ParamList != null)
@@ -169,13 +170,17 @@ namespace NYear.ODA.Adapter
                             }
                             else
                             {
-                                if (pr.ParamsValue.ToString().Trim() == "")
+                                if (pr.ParamsValue is DateTime || pr.ParamsValue is DateTime?)
+                                {
+                                    param.Value = pr.ParamsValue;
+                                }
+                                else if (string.IsNullOrWhiteSpace(pr.ParamsValue.ToString().Trim()))
                                 {
                                     param.Value = System.DBNull.Value;
                                 }
                                 else
                                 {
-                                    param.Value = pr.ParamsValue;
+                                    param.Value = Convert.ToDateTime(pr.ParamsValue);
                                 }
                             }
                             break;
@@ -187,13 +192,17 @@ namespace NYear.ODA.Adapter
                             }
                             else
                             {
-                                if (pr.ParamsValue.ToString().Trim() == "")
+                                if (pr.ParamsValue is decimal || pr.ParamsValue is decimal?)
+                                {
+                                    param.Value = pr.ParamsValue;
+                                }
+                                else if (string.IsNullOrWhiteSpace(pr.ParamsValue.ToString().Trim()))
                                 {
                                     param.Value = System.DBNull.Value;
                                 }
                                 else
                                 {
-                                    param.Value = pr.ParamsValue;
+                                    param.Value = Convert.ToDecimal(pr.ParamsValue);
                                 }
                             }
                             break;
@@ -210,10 +219,6 @@ namespace NYear.ODA.Adapter
                                 {
                                     param.Size = ((byte[])pr.ParamsValue).Length;
                                 }
-                                else
-                                {
-                                    throw new ODAException(17001, "Params :" + pr.ParamsName + " Type must be byte[]");
-                                }
                             }
                             break;
                         case ODAdbType.OInt:
@@ -224,19 +229,17 @@ namespace NYear.ODA.Adapter
                             }
                             else
                             {
-                                if (pr.ParamsValue is int)
+                                if (pr.ParamsValue is int || pr.ParamsValue is int?)
                                 {
                                     param.Value = pr.ParamsValue;
                                 }
-                                else if (pr.ParamsValue.ToString().Trim() == "")
+                                else if (string.IsNullOrWhiteSpace(pr.ParamsValue.ToString().Trim()))
                                 {
                                     param.Value = System.DBNull.Value;
                                 }
                                 else
                                 {
-                                    int dval = 0;
-                                    int.TryParse(pr.ParamsValue.ToString(), out dval);
-                                    param.Value = dval;
+                                    param.Value = Convert.ToInt32(pr.ParamsValue);
                                 }
                             }
                             break;
