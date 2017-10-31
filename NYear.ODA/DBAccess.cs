@@ -581,10 +581,14 @@ namespace NYear.ODA
                 {
                     for (int i = 0; i < rtl.Length; i++)
                         rtl[i] = Dr[i];
+                    Dr.Close();
+                    Dr.Dispose();
                     return rtl;
                 }
                 else
                 {
+                    Dr.Close();
+                    Dr.Dispose();
                     return null;
                 }
             }
