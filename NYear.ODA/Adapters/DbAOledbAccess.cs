@@ -22,12 +22,10 @@ namespace NYear.ODA.Adapter
             : base(ConnectionString)
         {
         }
-
         public override char ParamsMark
         {
             get { return DbAOledbAccess.DBParamsMark; }
         }
-
         private OleDbConnection _DBConn = null;
         protected override IDbConnection GetConnection()
         {
@@ -91,7 +89,7 @@ namespace NYear.ODA.Adapter
             }
         }
 
-        protected override void SetCmdParameters(ref IDbCommand Cmd,string SQL, params ODAParameter[] ParamList)
+        protected override void SetCmdParameters(ref IDbCommand Cmd, string SQL, params ODAParameter[] ParamList)
         {
             string dbSql = SQL;
             if (ParamList != null)
@@ -100,7 +98,7 @@ namespace NYear.ODA.Adapter
                 {
                     dbSql = dbSql.Replace(pr.ParamsName, pr.ParamsName.Replace(ODAParameter.ODAParamsMark, DbAOledbAccess.DBParamsMark));
                     OleDbParameter param = new OleDbParameter();
-                    param.ParameterName = pr.ParamsName.Replace(ODAParameter.ODAParamsMark, DbAOledbAccess.DBParamsMark);
+                    param.ParameterName = pr.ParamsName;
                     if (pr.Size < 0)
                         param.Size = 1;
                     else
@@ -116,13 +114,17 @@ namespace NYear.ODA.Adapter
                             }
                             else
                             {
-                                if (pr.ParamsValue.ToString().Trim() == "")
+                                if (pr.ParamsValue is DateTime || pr.ParamsValue is DateTime?)
+                                {
+                                    param.Value = pr.ParamsValue;
+                                }
+                                else if (string.IsNullOrWhiteSpace(pr.ParamsValue.ToString().Trim()))
                                 {
                                     param.Value = System.DBNull.Value;
                                 }
                                 else
                                 {
-                                    param.Value = pr.ParamsValue;
+                                    param.Value = Convert.ToDateTime(pr.ParamsValue);
                                 }
                             }
                             break;
@@ -134,13 +136,17 @@ namespace NYear.ODA.Adapter
                             }
                             else
                             {
-                                if (pr.ParamsValue.ToString().Trim() == "")
+                                if (pr.ParamsValue is decimal || pr.ParamsValue is decimal?)
+                                {
+                                    param.Value = pr.ParamsValue;
+                                }
+                                else if (string.IsNullOrWhiteSpace(pr.ParamsValue.ToString().Trim()))
                                 {
                                     param.Value = System.DBNull.Value;
                                 }
                                 else
                                 {
-                                    param.Value = pr.ParamsValue;
+                                    param.Value = Convert.ToDecimal(pr.ParamsValue);
                                 }
                             }
                             break;
@@ -157,10 +163,6 @@ namespace NYear.ODA.Adapter
                                 {
                                     param.Size = ((byte[])pr.ParamsValue).Length;
                                 }
-                                else
-                                {
-                                    throw new ODAException(15001, "Params :" + pr.ParamsName + " Type must be byte[]");
-                                }
                             }
                             break;
                         case ODAdbType.OInt:
@@ -171,13 +173,17 @@ namespace NYear.ODA.Adapter
                             }
                             else
                             {
-                                if (pr.ParamsValue.ToString().Trim() == "")
+                                if (pr.ParamsValue is int || pr.ParamsValue is int?)
+                                {
+                                    param.Value = pr.ParamsValue;
+                                }
+                                else if (string.IsNullOrWhiteSpace(pr.ParamsValue.ToString().Trim()))
                                 {
                                     param.Value = System.DBNull.Value;
                                 }
                                 else
                                 {
-                                    param.Value = pr.ParamsValue;
+                                    param.Value = Convert.ToInt32(pr.ParamsValue);
                                 }
                             }
                             break;

@@ -352,19 +352,17 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
                                 }
                                 else
                                 {
-                                    if (pr.ParamsValue is DateTime )
+                                    if (pr.ParamsValue is DateTime || pr.ParamsValue is DateTime?)
                                     {
                                         param.Value = pr.ParamsValue;
                                     }
-                                    else if (pr.ParamsValue is String)
+                                    else if (string.IsNullOrWhiteSpace(pr.ParamsValue.ToString().Trim()))
                                     {
-                                        DateTime dtValue = DateTime.MinValue;
-                                        DateTime.TryParse((string)pr.ParamsValue, out dtValue);
-                                        param.Value = dtValue;
+                                        param.Value = System.DBNull.Value;
                                     }
                                     else
                                     {
-                                        param.Value = System.DBNull.Value;
+                                        param.Value = Convert.ToDateTime(pr.ParamsValue);
                                     }
                                 }
                             }
@@ -378,19 +376,17 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
                             }
                             else
                             {
-                                if (pr.ParamsValue is decimal)
+                                if (pr.ParamsValue is decimal || pr.ParamsValue is decimal?)
                                 {
                                     param.Value = pr.ParamsValue;
                                 }
-                                else if (pr.ParamsValue.ToString().Trim() == "")
+                                else if (string.IsNullOrWhiteSpace(pr.ParamsValue.ToString().Trim()))
                                 {
                                     param.Value = System.DBNull.Value;
                                 }
                                 else
                                 {
-                                    decimal dval = 0;
-                                    decimal.TryParse(pr.ParamsValue.ToString(), out dval);
-                                    param.Value = dval;
+                                    param.Value = Convert.ToDecimal(pr.ParamsValue);
                                 }
                             }
                             break;
@@ -419,19 +415,17 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
                             }
                             else
                             {
-                                if (pr.ParamsValue is int)
+                                if (pr.ParamsValue is int || pr.ParamsValue is int?)
                                 {
                                     param.Value = pr.ParamsValue;
                                 }
-                                else if (pr.ParamsValue.ToString().Trim() == "")
+                                else if (string.IsNullOrWhiteSpace(pr.ParamsValue.ToString().Trim()))
                                 {
                                     param.Value = System.DBNull.Value;
                                 }
                                 else
                                 {
-                                    int dval = 0;
-                                    int.TryParse(pr.ParamsValue.ToString(), out dval);
-                                    param.Value = dval;
+                                    param.Value = Convert.ToInt32(pr.ParamsValue);
                                 }
                             }
                             break;

@@ -110,25 +110,25 @@ AND UNIQUERULE = 'P'";
             DataTable Dt = this.Select(sql, null);
             if (Dt != null && Dt.Rows.Count > 0)
             {
-               return  Dt.Rows[0]["COLNAMES"].ToString().Split(new char[] { '+' }, StringSplitOptions.RemoveEmptyEntries );
+                return Dt.Rows[0]["COLNAMES"].ToString().Split(new char[] { '+' }, StringSplitOptions.RemoveEmptyEntries);
             }
             return null;
         }
 
-// sysibm.syscolumns a
-//INNER JOIN sysibm.systables d on a.tbname=d.name
-//LEFT JOIN sysibm.sysindexes n on n.tbname= d.name and SUBSTR(colnames,2)=a.name
+        // sysibm.syscolumns a
+        //INNER JOIN sysibm.systables d on a.tbname=d.name
+        //LEFT JOIN sysibm.sysindexes n on n.tbname= d.name and SUBSTR(colnames,2)=a.name
         public override DatabaseColumnInfo ODAColumnToOrigin(string Name, string ColumnType, decimal Length)
         {
             DatabaseColumnInfo ColInof = new DatabaseColumnInfo();
-            ColInof.Name = "\"" +Name +"\"";
+            ColInof.Name = "\"" + Name + "\"";
             ColInof.NoLength = false;
             ColInof.Length = Length > 2000 ? 2000 : Length < 0 ? 2000 : Length;
 
             if (ColumnType.Trim() == ODAdbType.OBinary.ToString())
             {
                 ColInof.ColumnType = "BLOB";
-                ColInof.NoLength = true; 
+                ColInof.NoLength = true;
             }
             else if (ColumnType.Trim() == ODAdbType.ODatetime.ToString())
             {
@@ -209,13 +209,17 @@ AND UNIQUERULE = 'P'";
                             }
                             else
                             {
-                                if (pr.ParamsValue.ToString().Trim() == "")
+                                if (pr.ParamsValue is DateTime || pr.ParamsValue is DateTime?)
+                                {
+                                    param.Value = pr.ParamsValue;
+                                }
+                                else if (string.IsNullOrWhiteSpace(pr.ParamsValue.ToString().Trim()))
                                 {
                                     param.Value = System.DBNull.Value;
                                 }
                                 else
                                 {
-                                    param.Value = pr.ParamsValue;
+                                    param.Value = Convert.ToDateTime(pr.ParamsValue);
                                 }
                             }
                             break;
@@ -228,13 +232,17 @@ AND UNIQUERULE = 'P'";
                             }
                             else
                             {
-                                if (pr.ParamsValue.ToString().Trim() == "")
+                                if (pr.ParamsValue is decimal || pr.ParamsValue is decimal?)
+                                {
+                                    param.Value = pr.ParamsValue;
+                                }
+                                else if (string.IsNullOrWhiteSpace(pr.ParamsValue.ToString().Trim()))
                                 {
                                     param.Value = System.DBNull.Value;
                                 }
                                 else
                                 {
-                                    param.Value = pr.ParamsValue;
+                                    param.Value = Convert.ToDecimal(pr.ParamsValue);
                                 }
                             }
                             break;
@@ -251,33 +259,27 @@ AND UNIQUERULE = 'P'";
                                 {
                                     param.Size = ((byte[])pr.ParamsValue).Length;
                                 }
-                                else
-                                {
-                                    throw new ODAException(11001, "Params :" + pr.ParamsName + " Type must be byte[]");
-                                }
                             }
                             break;
                         case ODAdbType.OInt:
                             param.DB2Type = DB2Type.Integer;
-                            if (pr.ParamsValue == null || Convert.IsDBNull(pr.ParamsValue))
+                            if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
                             {
                                 param.Value = System.DBNull.Value;
                             }
                             else
                             {
-                                if (pr.ParamsValue is int)
+                                if (pr.ParamsValue is int || pr.ParamsValue is int?)
                                 {
                                     param.Value = pr.ParamsValue;
                                 }
-                                else if (pr.ParamsValue.ToString().Trim() == "")
+                                else if (string.IsNullOrWhiteSpace(pr.ParamsValue.ToString().Trim()))
                                 {
                                     param.Value = System.DBNull.Value;
                                 }
                                 else
                                 {
-                                    int dval = 0;
-                                    int.TryParse(pr.ParamsValue.ToString(), out dval);
-                                    param.Value = dval;
+                                    param.Value = Convert.ToInt32(pr.ParamsValue);
                                 }
                             }
                             break;
