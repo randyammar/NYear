@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.IO;
+using System.Text;
 
 namespace NYear.ODA.Adapter
 {
@@ -183,6 +185,90 @@ namespace NYear.ODA.Adapter
             string BlockStr = SQL + " limit " + StartIndex.ToString() + "," + MaxRecord.ToString(); ///取出MaxRecord条记录
             return Select(BlockStr, ParamList);
         }
+        public override bool Import(string DbTable, ODAParameter[] prms, DataTable FormTable)
+        {
+            IDbCommand Cmd = OpenCommand();
+            int ImportCount = 0;
+            IDbTransaction tmpTran = null;
+            string tmpPath = Path.GetTempFileName();
+            try
+            {
+                string csv = DataTableToCsv(FormTable, prms.Length);
+                File.WriteAllText(tmpPath, csv);
+                var conn = (MySqlConnection)Cmd.Connection;
+                if (this.Transaction == null)
+                    tmpTran = conn.BeginTransaction();
+                MySqlBulkLoader bulk = new MySqlBulkLoader(conn)
+                {
+                    FieldTerminator = ",",
+                    FieldQuotationCharacter = '"',
+                    EscapeCharacter = '"',
+                    LineTerminator = "\r\n",
+                    FileName = tmpPath,
+                    NumberOfLinesToSkip = 0,
+                    TableName = DbTable,
+                };
+                for (int i = 0; i < prms.Length; i++)
+                    bulk.Columns.Add(prms[i].ParamsName);
+
+                try
+                {
+                    ImportCount = bulk.Load();
+                    if (tmpTran != null)
+                    {
+                        tmpTran.Commit();
+                        tmpTran.Dispose();
+                    }
+                    return ImportCount > 0;
+                }
+                catch (Exception ex)
+                {
+                    if (tmpTran != null)
+                    {
+                        tmpTran.Rollback();
+                        tmpTran.Dispose();
+                    }
+                    throw ex;
+                }
+            }
+            finally
+            {
+                if (tmpTran != null)
+                    tmpTran.Dispose();
+                if (File.Exists(tmpPath))
+                    File.Delete(tmpPath);
+                CloseCommand(Cmd);
+            }
+        }
+        /// <summary>
+        ///将DataTable转换为标准的CSV
+        /// </summary>
+        /// <param name="table">数据表</param>
+        /// <returns>返回标准的CSV</returns>
+        private static string DataTableToCsv(DataTable table, int ColIdx)
+        {
+            //以半角逗号（即,）作分隔符，列为空也要表达其存在。
+            //列内容如存在半角逗号（即,）则用半角引号（即""）将该字段值包含起来。
+            //列内容如存在半角引号（即"）则应替换成半角双引号（""）转义，并用半角引号（即""）将该字段值包含起来。
+            StringBuilder sb = new StringBuilder();
+            DataColumn colum;
+            foreach (DataRow row in table.Rows)
+            {
+                for (int i = 0; i <= ColIdx; i++)
+                {
+                    colum = table.Columns[i];
+                    if (i != 0) sb.Append(",");
+                    if (colum.DataType == typeof(string) && row[colum].ToString().Contains(","))
+                    {
+                        sb.Append("\"" + row[colum].ToString().Replace("\"", "\"\"") + "\"");
+                    }
+                    else sb.Append(row[colum].ToString());
+                }
+                sb.AppendLine();
+            }
+            return sb.ToString();
+        }
+
         public override object GetExpressResult(string ExpressionString)
         {
             IDbCommand Cmd = OpenCommand();

@@ -56,5 +56,7 @@ namespace NYear.ODA
         DataTable Select(string SQL, ODAParameter[] ParamList, string StartWithExpress, string ConnectBy, string Prior, string ConnectColumn, string ConnectChar, int MaxLevel);
         [OperationContract]
         DataTable GetUserProcedureArguments(string ProcedureName);
+        [OperationContract]
+        bool Import(string DbTable, ODAParameter[] prms, DataTable FormTable);
     }
 }

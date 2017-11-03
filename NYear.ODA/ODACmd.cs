@@ -567,6 +567,7 @@ namespace NYear.ODA
         internal SelectPagingEventHandler SelectPaging = null;
         internal SelectFirstEventHandler SelectingFirst = null;
         internal SelectRecursionEventHandler SelectRecursion = null;
+        internal ImportEventHandler Importing = null;
         internal UpdateEventHandler Updating = null;
         internal InsertEventHandler Inserting = null;
         internal InsertScriptEventHandler InsertScript = null;
@@ -710,6 +711,18 @@ namespace NYear.ODA
             return DBAccess.ConvertToList<T>(dt);
         }
 
+        /// <summary>
+        /// 批量导入数据
+        /// </summary>
+        /// <param name="Data">源数据</param>
+        /// <param name="Prms">数据表对应的字段（Data.Roww[n][ColumnIndex]与Prms[ColumnIndex]对应）</param>
+        /// <returns></returns>
+        public virtual bool Import(DataTable Data, ODAParameter[] Prms)
+        {
+            if (Importing == null)
+                throw new ODAException(10014, string.Format("{0} no importing handler!", this.CmdName));
+            return Importing(this, Prms, Data);
+        }
         /// <summary>
         /// 在数据库中执行Delete 语句
         /// </summary>

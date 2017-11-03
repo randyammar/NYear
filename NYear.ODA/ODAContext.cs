@@ -63,7 +63,7 @@ namespace NYear.ODA
             cmd.InsertScript = Insert;
             cmd.Deleting = Delete;
             cmd.ExecutingProcedure = ExecuteProcedure;
-
+            cmd.Importing = Import;
             return cmd;
         }
 
@@ -716,6 +716,20 @@ namespace NYear.ODA
             EA.SQL = Sql;
             this.FireExecutingSqlEvent(EA);
             return EA.DBA.ExecuteProcedure(EA.SQL, EA.SqlParams);
+        }
+        protected virtual bool Import(IDBScriptGenerator Cmd, ODAParameter[] Prms, DataTable Data)
+        {
+            string[] mTbl = TableRouting(SQLType.Other, Cmd.CmdName);
+            if (mTbl.Length != 1)
+                throw new ODAException(30007, "存储过程分表设定错误");
+            Cmd.DBObjectMap = mTbl[0];
+
+            Cmd.Alias = "";
+            IDBAccess DBA = DatabaseRouting(SQLType.Other, Cmd);
+            ExecuteEventArgs EA = new ExecuteEventArgs() { DBA = DBA };
+            EA.SqlParams = Prms;
+            this.FireExecutingSqlEvent(EA);
+            return EA.DBA.Import(Cmd.CmdName, Prms, Data);
         }
         #endregion
     }

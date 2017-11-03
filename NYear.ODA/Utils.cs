@@ -105,6 +105,9 @@ namespace NYear.ODA
         OInt = 5,
         OChar = 6,
         OVarchar = 7,
+        /// <summary>
+        /// 主要针对存储过程数组参数
+        /// </summary>
         OArrary = 8,
     }
 
@@ -229,6 +232,7 @@ namespace NYear.ODA
     public delegate bool UpdateEventHandler(ODACmd Cmd, params ODAColumns[] Cols);
     public delegate bool InsertEventHandler(ODACmd Cmd, params ODAColumns[] Cols);
     public delegate bool InsertScriptEventHandler(ODACmd InsertCmd, ODACmd SelectCmd, ODAColumns[] Cols);
+    public delegate bool ImportEventHandler(ODACmd Cmd, ODAParameter[] Prms, DataTable Data);
     public delegate bool DeleteEventHandler(ODACmd Cmd);
     public delegate DataSet ExecuteProcedureEventHandler(ODACmd Cmd, params ODAColumns[] Cols);
     public delegate void ExecuteSqlEventHandler(object source, ExecuteEventArgs args);

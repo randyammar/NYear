@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Linq;
 
 namespace NYear.ODA.Adapter
 {
@@ -288,7 +289,65 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
             dt.Columns.Remove("R_ID_1");
             return dt;
         }
+        public override bool Import(string DbTable, ODAParameter[] prms, DataTable FormTable)
+        {
+            string Sqlcols = "";
+            string Sqlprms = "";
+            IDbCommand Cmd = OpenCommand();
+            try
+            {
+                for (int i = 0; i < prms.Length; i++)
+                {
+                    Sqlcols += "," + prms[i].ParamsName;
+                    Sqlprms += "," + DbAOracle.DBParamsMark + prms[i].ParamsName;
+                    OracleParameter oraPrms = new OracleParameter();
+                    oraPrms.ParameterName = DbAOracle.DBParamsMark + prms[i].ParamsName;
+                    oraPrms.OracleDbType = GetOracleType(prms[i].DBDataType);
+                    oraPrms.Size = prms[i].Size;
+                    oraPrms.Direction = ParameterDirection.Input;
+                    oraPrms.Value = new object[FormTable.Rows.Count];
+                    Cmd.Parameters.Add(oraPrms);
+                }
+                string sql = "INSERT INTO " + DbTable + " ( " + Sqlcols.TrimStart(',') + ") VALUES (" + Sqlprms.TrimStart(',') + ")";
 
+                for (int i = 0; i < FormTable.Rows.Count; i++)
+                    for (int j = 0; j < Cmd.Parameters.Count; j++)
+                       (( object[])((OracleParameter)Cmd.Parameters[j]).Value)[i] = FormTable.Rows[i].ItemArray[j];
+
+                Cmd.CommandText = sql;
+                Cmd.CommandType = CommandType.Text;
+                ((OracleCommand)Cmd).ArrayBindCount = FormTable.Rows.Count;
+                return Cmd.ExecuteNonQuery() > 0;
+            }
+            finally
+            {
+                CloseCommand(Cmd);
+            }
+        }
+
+        private OracleDbType GetOracleType(ODAdbType OdaType)
+        {
+            switch (OdaType)
+            {
+                case ODAdbType.ODatetime:
+                    return OracleDbType.Date;
+                case ODAdbType.ODecimal:
+                    return OracleDbType.Decimal;
+                case ODAdbType.OBinary:
+                    return OracleDbType.Blob;
+                case ODAdbType.OInt:
+                    return OracleDbType.Int32;
+                case ODAdbType.OChar:
+                    return OracleDbType.Char;
+                case ODAdbType.OVarchar:
+                    return OracleDbType.Varchar2;
+                case ODAdbType.OArrary:
+                    return OracleDbType.Raw;
+                default:
+                    return OracleDbType.Varchar2;
+            }
+        }
+    
         public override object GetExpressResult(string ExpressionString)
         {
             IDbCommand Cmd = OpenCommand();

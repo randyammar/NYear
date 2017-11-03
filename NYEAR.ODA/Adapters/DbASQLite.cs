@@ -130,6 +130,85 @@ namespace NYear.ODA.Adapter
             string BlockStr = SQL + " limit " + MaxRecord.ToString() + " offset " + StartIndex.ToString();
             return Select(BlockStr, ParamList);
         }
+        public override bool Import(string DbTable, ODAParameter[] prms, DataTable FormTable)
+        {
+            int ImportCount = 0;
+            string Sqlcols = "";
+            string Sqlprms = "";
+            for (int i = 0; i < prms.Length; i++)
+            {
+                Sqlcols += "," + prms[i].ParamsName;
+                Sqlprms += "," + ODAParameter.ODAParamsMark + prms[i].ParamsName;
+                
+            }
+            string sql = "INSERT INTO " + DbTable + " ( " + Sqlcols.TrimStart(',') + ") VALUES (" + Sqlprms.TrimStart(',') + ")";
+            IDbTransaction tmpTran = null;
+            IDbConnection conn = null;
+            if (this.Transaction != null)
+            {
+                conn = this.Transaction.Connection;
+            }
+            else
+            {
+                conn = this.GetConnection();
+                tmpTran = conn.BeginTransaction();
+            }
+
+            try
+            {
+                for (int i = 0; i < FormTable.Rows.Count; i++)
+                {
+                    for (int j = 0; j < prms.Length; j++)
+                    {
+                        prms[j].ParamsValue = FormTable.Rows[i][j];
+                        prms[j].Direction = ParameterDirection.Input;
+                    }
+
+                    var tmpCmd = conn.CreateCommand();
+                    tmpCmd.CommandType = CommandType.Text;
+                    SetCmdParameters(ref tmpCmd, sql, prms);
+                    if (this.Transaction == null)
+                        tmpCmd.Transaction = tmpTran;
+                    else
+                        tmpCmd.Transaction = this.Transaction;
+                    ImportCount += tmpCmd.ExecuteNonQuery();
+                    tmpCmd.Dispose();
+                }
+                if (tmpTran != null)
+                {
+                    tmpTran.Commit();
+                    tmpTran.Dispose();
+                    conn.Close();
+                    conn.Dispose();
+                    conn = null;
+                }
+                return ImportCount > 0;
+            }
+            catch (Exception ex)
+            {
+                if (tmpTran != null)
+                {
+                    tmpTran.Rollback();
+                    tmpTran.Dispose();
+                }
+                if (conn != null && this.Transaction == null)
+                {
+                    conn.Close();
+                    conn.Dispose();
+                    conn = null;
+                }
+                throw ex;
+            }
+            finally
+            {
+                if (conn != null && this.Transaction == null)
+                {
+                    conn.Close();
+                    conn.Dispose();
+                    conn = null;
+                }
+            }
+        }
 
         public override object GetExpressResult(string ExpressionString)
         {
@@ -159,7 +238,7 @@ namespace NYear.ODA.Adapter
                         param.Size = 1;
                     else
                         param.Size = pr.Size;
-                    param.Direction = pr.Direction;
+                    param.Direction =  pr.Direction;
                     switch (pr.DBDataType)
                     {
                         case ODAdbType.ODatetime:

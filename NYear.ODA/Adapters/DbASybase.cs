@@ -168,7 +168,32 @@ namespace NYear.ODA.Adapter
         //    string BlockStr = SQL + " limit " + StartIndex.ToString() + "," + MaxRecord.ToString();
         //    return Select(TransactionID, BlockStr, ParamList);
         //}
-
+        public override bool Import(string DbTable, ODAParameter[] prms, DataTable FormTable)
+        {
+            IDbCommand Cmd = OpenCommand();
+            try
+            {
+                AseBulkCopy sqlbulkcopy = new AseBulkCopy((AseConnection)Cmd.Connection);
+                for (int i = 0; i < prms.Length; i++)
+                {
+                    if (FormTable.Columns.Contains(prms[i].ParamsName))
+                    {
+                        AseBulkCopyColumnMapping colMap = new AseBulkCopyColumnMapping(FormTable.Columns[i].ColumnName, prms[i].ParamsName);
+                        sqlbulkcopy.ColumnMappings.Add(colMap);
+                    }
+                }
+                //需要操作的数据库表名  
+                sqlbulkcopy.DestinationTableName = DbTable;
+                //将内存表表写入  
+                sqlbulkcopy.WriteToServer(FormTable);
+                sqlbulkcopy.Close();
+                return true;
+            }
+            finally
+            {
+                CloseCommand(Cmd);
+            }
+        }
         public override object GetExpressResult(string ExpressionString)
         {
             IDbCommand Cmd = OpenCommand();
@@ -184,6 +209,7 @@ namespace NYear.ODA.Adapter
                 CloseCommand(Cmd);
             }
         }
+       
 
         protected override void SetCmdParameters(ref IDbCommand Cmd, string SQL, params ODAParameter[] ParamList)
         {

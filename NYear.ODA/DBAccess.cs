@@ -789,6 +789,10 @@ namespace NYear.ODA
                 CloseCommand(Cmd);
             }
         }
+        public virtual bool Import(string DbTable, ODAParameter[] prms, DataTable FormTable)
+        {
+            throw new NotImplementedException();
+        }
         #endregion
     }
 }

@@ -169,7 +169,32 @@ AND UNIQUERULE = 'P'";
             dt.Columns.Remove("r_id_1");
             return dt;
         }
-
+        public override bool Import(string DbTable, ODAParameter[] prms, DataTable FormTable)
+        {
+            IDbCommand Cmd = OpenCommand();
+            try
+            {
+                DB2BulkCopy sqlbulkcopy = new DB2BulkCopy((DB2Connection)Cmd.Connection);
+                for (int i = 0; i < prms.Length; i++)
+                {
+                    if (FormTable.Columns.Contains(prms[i].ParamsName))
+                    {
+                        DB2BulkCopyColumnMapping colMap = new DB2BulkCopyColumnMapping(FormTable.Columns[i].ColumnName, prms[i].ParamsName);
+                        sqlbulkcopy.ColumnMappings.Add(colMap);
+                    }
+                }
+                //需要操作的数据库表名  
+                sqlbulkcopy.DestinationTableName = DbTable;
+                //将内存表表写入  
+                sqlbulkcopy.WriteToServer(FormTable);
+                sqlbulkcopy.Close();
+                return true;
+            }
+            finally
+            {
+                CloseCommand(Cmd);
+            }
+        }
         public override object GetExpressResult(string ExpressionString)
         {
             IDbCommand Cmd = OpenCommand();

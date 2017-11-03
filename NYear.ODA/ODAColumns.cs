@@ -33,6 +33,13 @@ namespace NYear.ODA
                 return string.IsNullOrEmpty(_Cmd.Alias) ? _ColumnName : _Cmd.Alias + "." + _ColumnName;
             }
         }
+        public string ColumnName
+        {
+            get
+            {
+                return _ColumnName;
+            }
+        }
         /// <summary>
         /// In 子查询命令
         /// </summary>
@@ -50,13 +57,6 @@ namespace NYear.ODA
                 return _Cmd;
             }
         }
-        public string ColumnName
-        {
-            get
-            {
-                return _ColumnName;
-            }
-        }
         public object CompareValue
         {
             get
@@ -71,11 +71,9 @@ namespace NYear.ODA
                 return _AliasColumnName;
             }
         }
-
         internal ODAdbType DBDataType { get { return _DBDataType; } }
         internal int Size { get { return _Size; } }
         internal string ColumnComment { get { return _ColumnComment; } }
-
         internal bool IsRequired { get { return _IsRequired; } }
         /// <summary>
         /// 创建ODA字段，默认 OVarchar（2000）,
