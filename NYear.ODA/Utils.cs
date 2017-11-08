@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Runtime;
 using System.Runtime.Serialization;
 
 
@@ -253,8 +254,6 @@ namespace NYear.ODA
                 return this.GetDebugSql(this.SQL, this.SqlParams);
             }
         }
-
-
         private string GetDebugSql(string Sql, params ODAParameter[] prms)
         {
             string debugSql = Sql;

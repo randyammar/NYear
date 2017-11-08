@@ -13,8 +13,8 @@ namespace NYear.ODA
 
         ODAColumns VisualColumn(string Val, ODAdbType ColumnType = ODAdbType.OVarchar);
 
-        //ODAColumns IsNullDefault(ODAColumns Col, object DefVal);
-        //ODAColumns Decode(ODAColumns Col, object DefVal,params object[] KeyValue );
+        ODAColumns NullDefault(ODAColumns Col, object DefVal);
+        ODAColumns Decode(ODAColumns Col, object DefVal, params object[] KeyValue);
 
     }
 }

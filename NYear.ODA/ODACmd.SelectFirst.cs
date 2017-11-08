@@ -20,8 +20,8 @@ namespace NYear.ODA
             if (items == null)
                 return null;
             Record<T0> rlt = new Record<T0>(
-          ChangeType<T0>(0, items)
-          );
+                ChangeType<T0>(0, items)
+                );
             return rlt;
         }
         public Record<T0, T1> SelectFirst<T0, T1>(params ODAColumns[] Cols)

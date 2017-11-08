@@ -6,21 +6,19 @@ using System.Text;
 namespace NYear.ODA
 {
     public class Record<T0>
-       where T0 : IConvertible
+      where T0 : IConvertible
     {
         public Record() { }
         public Record(T0 item0)
         {
             this.Item0 = item0;
-
         }
         public T0 Item0 { get; set; }
-
     }
 
     public class Record<T0, T1>
         where T0 : IConvertible
- where T1 : IConvertible
+        where T1 : IConvertible
     {
         public Record() { }
         public Record(T0 item0, T1 item1)

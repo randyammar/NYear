@@ -16,19 +16,19 @@ namespace NYear.Demo
     public partial class Demo : Form
     {
         List<DemoMethodInfo> _DemoMethods = null;
+
+        StringBuilder _ExeSql = new StringBuilder();
+
         public Demo()
         {
             InitializeComponent();
             InitFuncType();
             _DemoMethods = GetDemoMethods();
             InitNYearODA();
-        }
 
-        private void ODAContext_ExecutingSql(object source, ODA.ExecuteEventArgs args)
-        {
-            rtbxSql.AppendText(args.DebugSQL);
-            rtbxSql.AppendText("\r\n");
-            rtbxSql.AppendText("\r\n");
+            ODAContext.ExecutingSql += (src, args) => {
+                _ExeSql.AppendLine(args.DebugSQL);
+            };
         }
         private void InitNYearODA()
         {
@@ -56,9 +56,6 @@ namespace NYear.Demo
                 GroupID = "Oracle",
                 Tables = null,
             };
-
-
-            ODAContext.ExecutingSql += ODAContext_ExecutingSql;
         }
         private void InitFuncType()
         {
@@ -139,20 +136,21 @@ namespace NYear.Demo
         {
             try
             {
+                _ExeSql.Clear();
+                rtbxSql.Clear();
                 var md = (DemoMethodInfo)((Button)sender).Tag;
-                object sql = "";
-                dynamic rtl = md.DemoMethod.Invoke(null, null);
+                object rlt = md.DemoMethod.Invoke(null, null);
                 if (md.DemoFunc == FuncType.Select)
-                {
-                    dgvData.DataSource = rtl.data;
-                    rtbxSql.Text = rtl.sql;
-                    return;
-                }
-                rtbxSql.Text = sql.ToString();
+                    dgvData.DataSource = rlt;
+                else if(rlt != null )
+                    rtbxSql.AppendText(rlt.ToString());
+                rtbxSql.AppendText(_ExeSql.ToString());
             }
             catch (Exception ex)
             {
-                rtbxSql.Text = GetInnerException(ex).Message; 
+                rtbxSql.AppendText(_ExeSql.ToString());
+                rtbxSql.AppendText("\n\r");
+                rtbxSql.AppendText( GetInnerException(ex).Message);
             }
         }
 

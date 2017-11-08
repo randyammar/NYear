@@ -117,6 +117,7 @@
     <Compile Include="ODAContext.cs" />
     <Compile Include="ODAFunction.cs" />
     <Compile Include="ODACmdView.cs" />
+    <Compile Include="ODAReflection.cs" />
     <Compile Include="ORMCmd.cs" />
     <Compile Include="Record.cs" />
     <Compile Include="Utils.cs" />

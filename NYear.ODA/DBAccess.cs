@@ -12,23 +12,17 @@ namespace NYear.ODA
         #region 数据类型转换
 
 
-        public static List<T> ConvertToList<T>(DataTable dt) //where T : class
+        public static List<T> ConvertToList<T>(DataTable dt)
         {
-            // Tuple<string, int, string> a = new Tuple<string, int, string>(null, 0, null);
-
             List<T> list = new List<T>();
             if (typeof(T).IsValueType || typeof(T) == typeof(string))
             {
                 for (int i = 0; i < dt.Rows.Count; i++)
                 {
                     if (dt.Rows[i][0] is T)
-                    {
                         list.Add((T)dt.Rows[i][0]);
-                    }
                     else
-                    {
                         list.Add((T)System.Convert.ChangeType(dt.Rows[i][0], typeof(T), CultureInfo.InvariantCulture));
-                    }
                 }
             }
             else
@@ -120,13 +114,24 @@ namespace NYear.ODA
         }
         public static T ChangeType<T>(int idx, object[] val) where T : IConvertible
         {
+            Type TargetType = typeof(T);
             if (val == null || val.Length <= idx || val[idx] == null || Convert.IsDBNull(val[idx]))
-                return default(T);
+            {
+                if (TargetType.IsGenericType && TargetType.GetGenericTypeDefinition() == typeof(Nullable<>))
+                    return default(T);
+            }
             if (val[idx] is T)
                 return (T)val[idx];
             try
             {
-                return (T)Convert.ChangeType(val[idx], typeof(T));
+                
+                Type baseType = null; ;
+                if (TargetType.IsGenericType && TargetType.GetGenericTypeDefinition() == typeof(Nullable<>))
+                    baseType = Nullable.GetUnderlyingType(TargetType);
+                else
+                    baseType = TargetType;
+
+                return (T)Convert.ChangeType(val[idx], baseType);
             }
             catch
             {

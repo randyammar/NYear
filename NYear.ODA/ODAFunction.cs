@@ -359,14 +359,21 @@ namespace NYear.ODA
             return this;
         }
 
-        //public ODAColumns IsNullDefault(ODAColumns Col, object DefVal)
-        //{
-        //    return this;
-        //}
-
-        //public ODAColumns Decode(ODAColumns Col, Dictionary<object, object> TrueVale, object DefVal)
-        //{
-        //}
+        public ODAColumns NullDefault(ODAColumns Col, object DefVal)
+        {
+            Dictionary<ODAColumns, object> WhenThen = new Dictionary<ODAColumns, object>();
+            WhenThen.Add(Col.IsNotNull, DefVal);
+            return this.CaseWhen(WhenThen, Col);
+        }
+        public ODAColumns Decode(ODAColumns Col, object DefVal, params object[] KeyValue)
+        {
+            if (KeyValue == null || KeyValue.Length % 2 != 0)
+                throw new ODAException(40007, "Decode Method ,params [KeyValue] duable case ");
+            Dictionary<object, object> TrueVale = new Dictionary<object, object>();
+            for (int i = 0; i < KeyValue.Length; i += 2)
+                TrueVale.Add(KeyValue[i], KeyValue[i + 1]);
+            return this.Case(Col, TrueVale, DefVal);
+        }
 
         #endregion
         /// <summary>
