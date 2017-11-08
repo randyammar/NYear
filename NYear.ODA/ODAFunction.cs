@@ -247,12 +247,12 @@ namespace NYear.ODA
         /// <param name="Function">函数的名字</param>
         /// <param name="ParamsList">函数的参数</param>
         /// <returns></returns>
-        public ODAColumns CreateFunc(string Function, ODAdbType ColumnType = ODAdbType.OVarchar, params object[] ParamsList)
+        public ODAColumns CreateFunc(string Function, params object[] ParamsList)
         {
             _FuncType = Func.Normal;
             _FunArgs.AddRange(ParamsList);
             _FuncName = Function;
-            _DBDataType = ColumnType;
+            _DBDataType = ODAdbType.OVarchar;
             return this;
         }
         /// <summary>
@@ -441,7 +441,7 @@ namespace NYear.ODA
             {
                 List<ODAParameter> prms = new List<ODAParameter>();
                 string Colsql = "";
-               ODAParameter[] prms1 = ((IDBScriptGenerator)_SubCmd).GetSelectSql(out Colsql, _FunColumnList.ToArray());
+                ODAParameter[] prms1 = ((IDBScriptGenerator)_SubCmd).GetSelectSql(out Colsql, _FunColumnList.ToArray());
                 SubSql = colSql.Replace(colName, this._FuncName + " ( " + Colsql + ")");
                 if (prms1 != null && prms1.Length > 0)
                     prms.AddRange(prms1);
@@ -465,6 +465,14 @@ namespace NYear.ODA
                 if (prms.Count > 0)
                     return prms.ToArray();
                 return prms0;
+            }
+            else if (_FuncType == Func.Self)
+            {
+                string tmpCol = "P_" + Guid.NewGuid().ToString("N").ToUpper();
+                _ODAColumnName = tmpCol;
+                ODAParameter[] prms  =   base.GetWhereSubstring(ConIndex,out SubSql);
+                SubSql = SubSql.Replace(tmpCol, this.FunctionName);
+                return prms;
             }
             else
             {

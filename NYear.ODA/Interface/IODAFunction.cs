@@ -7,7 +7,7 @@ namespace NYear.ODA
         ODAColumns Count { get; }
         ODAColumns Case(ODAColumns CaseColumn, Dictionary<object, object> WhenThen, object ElseVal);
         ODAColumns CaseWhen(Dictionary<ODAColumns, object> WhenThen, object ElseVal);
-        ODAColumns CreateFunc(string Function, ODAdbType ColumnType = ODAdbType.OVarchar, params object[] ParamsList);
+        ODAColumns CreateFunc(string Function, params object[] ParamsList);
         ODAColumns Exists(ODACmd Cmd, params ODAColumns[] Cols);
         ODAColumns NotExists(ODACmd Cmd, params ODAColumns[] Cols);
 

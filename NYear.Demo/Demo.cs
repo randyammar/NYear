@@ -27,19 +27,20 @@ namespace NYear.Demo
             InitNYearODA();
 
             ODAContext.ExecutingSql += (src, args) => {
-                _ExeSql.AppendLine(args.DebugSQL);
+                _ExeSql.AppendLine(args.DebugSQL + ";");
+                _ExeSql.AppendLine("");
             };
         }
         private void InitNYearODA()
         {
-            //ODAContext.GolbalDataBaseGroup = new DataBaseGroup()
-            //{
-            //    MasterDataBase = @"Data Source=./sqlite.db",
-            //    DBtype = ODA.DbAType.SQLite,
-            //    SlaveDataBase = null,
-            //    GroupID = "SQLite",
-            //    Tables = null,
-            //};
+            ODAContext.GolbalDataBaseGroup = new DataBaseGroup()
+            {
+                MasterDataBase = @"Data Source=./sqlite.db",
+                DBtype = ODA.DbAType.SQLite,
+                SlaveDataBase = null,
+                GroupID = "SQLite",
+                Tables = null,
+            };
             //ODAContext.GolbalDataBaseGroup = new DataBaseGroup()
             //{
             //    MasterDataBase = @"server=10.16.67.19;database=MES_DEV;uid=mes_app;pwd=1Q2w3e4r;",
@@ -48,14 +49,14 @@ namespace NYear.Demo
             //    GroupID = "SQLserver",
             //    Tables = null,
             //};
-            ODAContext.GolbalDataBaseGroup = new DataBaseGroup()
-            {
-                MasterDataBase = @"user id=cmes;password=cmes_2017;data source=10.16.12.53:1606/mestst6",
-                DBtype = ODA.DbAType.Oracle,
-                SlaveDataBase = null,
-                GroupID = "Oracle",
-                Tables = null,
-            };
+            //ODAContext.GolbalDataBaseGroup = new DataBaseGroup()
+            //{
+            //    MasterDataBase = @"user id=cmes;password=cmes_2017;data source=10.16.12.53:1606/mestst6",
+            //    DBtype = ODA.DbAType.Oracle,
+            //    SlaveDataBase = null,
+            //    GroupID = "Oracle",
+            //    Tables = null,
+            //};
         }
         private void InitFuncType()
         {
