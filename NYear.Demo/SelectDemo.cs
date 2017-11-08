@@ -142,12 +142,27 @@ namespace NYear.Demo
             return rlt; 
         }
 
-        [Demo(Demo = FuncType.Select, MethodName = "whereOr", MethodDescript = "whereOr")]
-        public static object whereOr()
+        [Demo(Demo = FuncType.Select, MethodName = "NullDefault", MethodDescript = "NullDefault")]
+        public static object NullDefault()
         {
-            return null;
+            ODAContext ctx = new ODAContext();
+            CmdPrmRole pr = ctx.GetCmd<CmdPrmRole>();
+          var rlt =  pr.Select(pr.Function.NullDefault(pr.ColDescript, pr.ColRoleName),
+                pr.Function.NullDefault(pr.ColRoleName, "Administrator"),
+                pr.ColDescript);
+            return rlt;
         }
-  
+        [Demo(Demo = FuncType.Select, MethodName = "Decode", MethodDescript = "Decode")]
+        public static object Decode()
+        {
+            ODAContext ctx = new ODAContext();
+            CmdPrmRole pr = ctx.GetCmd<CmdPrmRole>();
+            var rlt = pr.Select(pr.Function.Decode(pr.ColDescript, pr.ColRoleName, pr.ColRoleName,pr.ColCreateBy,pr.ColIsSupperAdmin,"Administrator").As("col1"),
+                  pr.Function.Decode(pr.ColDescript,"Default", "Is1", "then1", "is2", "then2", "is3", "then3").As("col2"),
+                  pr.ColDescript);
+            return rlt;
+        }
+
 
     }
 

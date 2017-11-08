@@ -710,15 +710,17 @@ namespace NYear.ODA
             return left.SetCondition(CmdConditionSymbol.STAY, CValue);
         }
         #endregion
+
+        private int _HashCode = 0;
         public override int GetHashCode()
         {
-            return _ColumnName.GetHashCode()
-                + _CompareValue.GetHashCode()
-                + _SqlColumnList.GetHashCode(); 
+            if (_HashCode == 0)
+                _HashCode = Guid.NewGuid().GetHashCode();
+            return _HashCode;
         }
         public override bool Equals(object obj)
         {
-            if (obj == null)
+            if (obj == null || !(obj is ODAColumns))
                 return false;
             return this.GetHashCode() == obj.GetHashCode();
         }

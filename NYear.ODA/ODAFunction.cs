@@ -362,7 +362,7 @@ namespace NYear.ODA
         public ODAColumns NullDefault(ODAColumns Col, object DefVal)
         {
             Dictionary<ODAColumns, object> WhenThen = new Dictionary<ODAColumns, object>();
-            WhenThen.Add(Col.IsNotNull, DefVal);
+            WhenThen.Add(Col.IsNull, DefVal);
             return this.CaseWhen(WhenThen, Col);
         }
         public ODAColumns Decode(ODAColumns Col, object DefVal, params object[] KeyValue)
