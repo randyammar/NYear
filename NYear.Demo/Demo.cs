@@ -123,11 +123,13 @@ namespace NYear.Demo
                 btn.Text = md.MethodName;
                 btn.Click += Btn_Click;
                 btn.Tag = md;
+                btn.Size = new Size(120, 23);
                 ToolTip ti = new ToolTip();
                 ti.AutoPopDelay = 5000;
                 ti.InitialDelay = 1000;
                 ti.ReshowDelay = 500;
                 ti.ShowAlways = true;
+                
                 ti.SetToolTip(btn, md.MethodDescript);
                 fplDemoFunc.Controls.Add(btn);
             }

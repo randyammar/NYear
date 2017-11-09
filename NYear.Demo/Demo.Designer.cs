@@ -29,13 +29,13 @@
         private void InitializeComponent()
         {
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.fplDemoFunc = new System.Windows.Forms.FlowLayoutPanel();
             this.plFuncType = new System.Windows.Forms.FlowLayoutPanel();
             this.tbpOutput = new System.Windows.Forms.TabControl();
             this.tbpSql = new System.Windows.Forms.TabPage();
             this.rtbxSql = new System.Windows.Forms.RichTextBox();
             this.tbpData = new System.Windows.Forms.TabPage();
             this.dgvData = new System.Windows.Forms.DataGridView();
-            this.fplDemoFunc = new System.Windows.Forms.FlowLayoutPanel();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -65,6 +65,17 @@
             this.splitContainer1.SplitterDistance = 235;
             this.splitContainer1.SplitterWidth = 10;
             this.splitContainer1.TabIndex = 17;
+            // 
+            // fplDemoFunc
+            // 
+            this.fplDemoFunc.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.fplDemoFunc.BackColor = System.Drawing.SystemColors.Info;
+            this.fplDemoFunc.Location = new System.Drawing.Point(4, 45);
+            this.fplDemoFunc.Name = "fplDemoFunc";
+            this.fplDemoFunc.Size = new System.Drawing.Size(761, 187);
+            this.fplDemoFunc.TabIndex = 20;
             // 
             // plFuncType
             // 
@@ -124,17 +135,6 @@
             this.dgvData.RowTemplate.Height = 23;
             this.dgvData.Size = new System.Drawing.Size(758, 194);
             this.dgvData.TabIndex = 2;
-            // 
-            // fplDemoFunc
-            // 
-            this.fplDemoFunc.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.fplDemoFunc.BackColor = System.Drawing.SystemColors.Info;
-            this.fplDemoFunc.Location = new System.Drawing.Point(4, 45);
-            this.fplDemoFunc.Name = "fplDemoFunc";
-            this.fplDemoFunc.Size = new System.Drawing.Size(761, 187);
-            this.fplDemoFunc.TabIndex = 20;
             // 
             // Demo
             // 
