@@ -341,10 +341,19 @@ DISTINCT
         }
         public override bool Import(string DbTable, ODAParameter[] prms, DataTable FormTable)
         {
-            IDbCommand Cmd = OpenCommand();
+            SqlBulkCopy sqlbulkcopy = null;
+            IDbConnection conn = null;
             try
             {
-                SqlBulkCopy sqlbulkcopy = new SqlBulkCopy((SqlConnection)Cmd.Connection);
+                if (this.Transaction == null)
+                {
+                    conn = this.GetConnection();
+                    sqlbulkcopy = new SqlBulkCopy((SqlConnection)conn);
+                }
+                else
+                {
+                    sqlbulkcopy = new SqlBulkCopy((SqlConnection)this.Transaction.Connection, SqlBulkCopyOptions.Default, (SqlTransaction)this.Transaction);
+                }
                 for (int i = 0; i < prms.Length; i++)
                 {
                     if (FormTable.Columns.Contains(prms[i].ParamsName))
@@ -357,12 +366,20 @@ DISTINCT
                 sqlbulkcopy.DestinationTableName = DbTable;
                 //将内存表表写入  
                 sqlbulkcopy.WriteToServer(FormTable);
-                sqlbulkcopy.Close();
                 return true;
             }
             finally
             {
-                CloseCommand(Cmd);
+                if (conn != null)
+                {
+                    conn.Close();
+                    conn.Dispose();
+                }
+                if (sqlbulkcopy != null)
+                {
+                    sqlbulkcopy.Close();
+                    sqlbulkcopy = null;
+                }
             }
         }
         public override object GetExpressResult(string ExpressionString)

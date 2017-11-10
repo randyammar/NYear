@@ -187,57 +187,44 @@ namespace NYear.ODA.Adapter
         }
         public override bool Import(string DbTable, ODAParameter[] prms, DataTable FormTable)
         {
-            IDbCommand Cmd = OpenCommand();
             int ImportCount = 0;
-            IDbTransaction tmpTran = null;
+            MySqlConnection conn = null;
             string tmpPath = Path.GetTempFileName();
             try
             {
+                MySqlBulkLoader bulk = null;
                 string csv = DataTableToCsv(FormTable, prms.Length);
                 File.WriteAllText(tmpPath, csv);
-                var conn = (MySqlConnection)Cmd.Connection;
                 if (this.Transaction == null)
-                    tmpTran = conn.BeginTransaction();
-                MySqlBulkLoader bulk = new MySqlBulkLoader(conn)
                 {
-                    FieldTerminator = ",",
-                    FieldQuotationCharacter = '"',
-                    EscapeCharacter = '"',
-                    LineTerminator = "\r\n",
-                    FileName = tmpPath,
-                    NumberOfLinesToSkip = 0,
-                    TableName = DbTable,
-                };
+                    bulk = new MySqlBulkLoader((MySqlConnection)this.Transaction.Connection);
+                }
+                else
+                {
+                    conn = (MySqlConnection)this.GetConnection();
+                    bulk = new MySqlBulkLoader((MySqlConnection)conn);
+                }
+                bulk.FieldTerminator = ",";
+                bulk.FieldQuotationCharacter = '"';
+                bulk.EscapeCharacter = '"';
+                bulk.LineTerminator = "\r\n";
+                bulk.FileName = tmpPath;
+                bulk.NumberOfLinesToSkip = 0;
+                bulk.TableName = DbTable;
                 for (int i = 0; i < prms.Length; i++)
                     bulk.Columns.Add(prms[i].ParamsName);
-
-                try
-                {
-                    ImportCount = bulk.Load();
-                    if (tmpTran != null)
-                    {
-                        tmpTran.Commit();
-                        tmpTran.Dispose();
-                    }
-                    return ImportCount > 0;
-                }
-                catch (Exception ex)
-                {
-                    if (tmpTran != null)
-                    {
-                        tmpTran.Rollback();
-                        tmpTran.Dispose();
-                    }
-                    throw ex;
-                }
+                ImportCount = bulk.Load();
+                return ImportCount > 0;
             }
             finally
             {
-                if (tmpTran != null)
-                    tmpTran.Dispose();
+                if (conn != null)
+                {
+                    conn.Close();
+                    conn.Dispose();
+                }
                 if (File.Exists(tmpPath))
                     File.Delete(tmpPath);
-                CloseCommand(Cmd);
             }
         }
         /// <summary>

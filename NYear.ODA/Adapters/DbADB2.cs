@@ -171,28 +171,45 @@ AND UNIQUERULE = 'P'";
         }
         public override bool Import(string DbTable, ODAParameter[] prms, DataTable FormTable)
         {
-            IDbCommand Cmd = OpenCommand();
+            DB2BulkCopy bulkcopy = null;
+            IDbConnection conn = null;
             try
             {
-                DB2BulkCopy sqlbulkcopy = new DB2BulkCopy((DB2Connection)Cmd.Connection);
+                if (this.Transaction == null)
+                {
+                    conn = this.GetConnection();
+                    bulkcopy = new DB2BulkCopy((DB2Connection)conn);
+                }
+                else
+                {
+                    bulkcopy = new DB2BulkCopy((DB2Connection)this.Transaction.Connection, DB2BulkCopyOptions.Default);
+                }
                 for (int i = 0; i < prms.Length; i++)
                 {
                     if (FormTable.Columns.Contains(prms[i].ParamsName))
                     {
                         DB2BulkCopyColumnMapping colMap = new DB2BulkCopyColumnMapping(FormTable.Columns[i].ColumnName, prms[i].ParamsName);
-                        sqlbulkcopy.ColumnMappings.Add(colMap);
+                        bulkcopy.ColumnMappings.Add(colMap);
                     }
                 }
                 //需要操作的数据库表名  
-                sqlbulkcopy.DestinationTableName = DbTable;
+                bulkcopy.DestinationTableName = DbTable;
                 //将内存表表写入  
-                sqlbulkcopy.WriteToServer(FormTable);
-                sqlbulkcopy.Close();
+                bulkcopy.WriteToServer(FormTable);
                 return true;
             }
             finally
             {
-                CloseCommand(Cmd);
+                if (conn != null)
+                {
+                    conn.Close();
+                    conn.Dispose();
+                }
+                if (bulkcopy != null)
+                {
+                    bulkcopy.Close();
+                    bulkcopy = null;
+                }
             }
         }
         public override object GetExpressResult(string ExpressionString)
