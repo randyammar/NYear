@@ -45,6 +45,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Gen\CmdTestBatchImport.cs" />
     <Compile Include="Gen\Cmd\CmdOrgDepartment.cs" />
     <Compile Include="Gen\Model\ORG_DEPARTMENT.cs" />
     <Compile Include="InsertDemo.cs" />

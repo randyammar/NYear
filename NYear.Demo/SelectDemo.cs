@@ -241,6 +241,16 @@ namespace NYear.Demo
             return rlt;
         }
 
+        [Demo(Demo = FuncType.Select, MethodName = "Statistics ", MethodDescript = "统计运算")]
+        public static object Statistics()
+        {
+            ODAContext ctx = new ODAContext();
+            CmdPrmRole pr = ctx.GetCmd<CmdPrmRole>();
+            var rlt = pr.Where(pr.ColRoleName == "Administrator")
+                .Select(pr.ColDescript.Min.As("MIN_DESCRIPT"), pr.ColRoleName.Sum.As("SUM_ROLE_NAME"));
+            return rlt;
+        }
+
         [Demo(Demo = FuncType.Select, MethodName = "VisualColumn", MethodDescript = "虚拟字段、临时字段")]
         public static object VisualColumn()
         {

@@ -50,9 +50,9 @@ namespace NYear.ODA
         /// <typeparam name="U">命令类型</typeparam>
         /// <param name="Alias">别名</param>
         /// <returns></returns>
-        public virtual U GetCmd<U>(string Alias = null) where U : ODACmd
+        public virtual U GetCmd<U>(string Alias = null) where U : ODACmd,new()
         {
-            U cmd = Activator.CreateInstance<U>();
+            U cmd = new U();
             cmd.Counting = Count;
             cmd.Selecting = Select;
             cmd.SelectPaging = Select;
