@@ -7,7 +7,6 @@ using System.Globalization;
 
 namespace NYear.ODA.Adapter
 {
-
     public class DbASQLite : DBAccess
     {
         public DbASQLite(string ConnectionString)
@@ -139,7 +138,7 @@ namespace NYear.ODA.Adapter
             {
                 Sqlcols += "," + prms[i].ParamsName;
                 Sqlprms += "," + ODAParameter.ODAParamsMark + prms[i].ParamsName;
-                
+
             }
             string sql = "INSERT INTO " + DbTable + " ( " + Sqlcols.TrimStart(',') + ") VALUES (" + Sqlprms.TrimStart(',') + ")";
             IDbTransaction tmpTran = null;
@@ -178,9 +177,6 @@ namespace NYear.ODA.Adapter
                 {
                     tmpTran.Commit();
                     tmpTran.Dispose();
-                    conn.Close();
-                    conn.Dispose();
-                    conn = null;
                 }
                 return ImportCount > 0;
             }
@@ -190,12 +186,6 @@ namespace NYear.ODA.Adapter
                 {
                     tmpTran.Rollback();
                     tmpTran.Dispose();
-                }
-                if (conn != null && this.Transaction == null)
-                {
-                    conn.Close();
-                    conn.Dispose();
-                    conn = null;
                 }
                 throw ex;
             }

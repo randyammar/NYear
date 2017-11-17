@@ -27,7 +27,7 @@ namespace NYear.Demo
             InitNYearODA();
 
             ODAContext.ExecutingSql += (src, args) => {
-                _ExeSql.AppendLine(args.DebugSQL + ";");
+                _ExeSql.AppendLine(args.SQL + ";");
                 _ExeSql.AppendLine("");
             };
         }
@@ -49,14 +49,14 @@ namespace NYear.Demo
             //    GroupID = "SQLserver",
             //    Tables = null,
             //};
-            //ODAContext.GolbalDataBaseGroup = new DataBaseGroup()
-            //{
-            //    MasterDataBase = @"user id=cmes;password=cmes_2017;data source=10.16.12.53:1606/mestst6",
-            //    DBtype = ODA.DbAType.Oracle,
-            //    SlaveDataBase = null,
-            //    GroupID = "Oracle",
-            //    Tables = null,
-            //};
+            ODAContext.GolbalDataBaseGroup = new DataBaseGroup()
+            {
+                MasterDataBase = @"user id=cmes;password=cmes_2017;data source=10.16.12.53:1606/mestst6",
+                DBtype = ODA.DbAType.Oracle,
+                SlaveDataBase = null,
+                GroupID = "Oracle",
+                Tables = null,
+            };
         }
         private void InitFuncType()
         {

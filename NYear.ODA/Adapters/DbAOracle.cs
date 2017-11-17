@@ -308,7 +308,7 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
                     oraPrms.Value = new object[FormTable.Rows.Count];
                     Cmd.Parameters.Add(oraPrms);
                 }
-                string sql = "INSERT INTO " + DbTable + " ( " + Sqlcols.TrimStart(',') + ") VALUES (" + Sqlprms.TrimStart(',') + ")";
+                string sql = "INSERT INTO " + DbTable + " ( " + Sqlcols.TrimStart(',') + ") VALUES (" + Sqlprms.TrimStart(',') + ") ";
 
                 for (int i = 0; i < FormTable.Rows.Count; i++)
                     for (int j = 0; j < Cmd.Parameters.Count; j++)

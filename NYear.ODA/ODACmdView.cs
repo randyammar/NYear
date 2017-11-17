@@ -13,6 +13,17 @@ namespace NYear.ODA
                 return _CmdView.CmdName;
             }
         }
+        public ODAColumns[] ViewColumns
+        {
+            get
+            {
+                int vcl = SelectCols == null ? 0 : SelectCols.Length;
+                ODAColumns[] vc = new ODAColumns[vcl];
+                for (int i = 0; i < vcl && SelectCols != null; i++)
+                    vc[i] = new ODAColumns(this, SelectCols[i].ColumnName, SelectCols[i].DBDataType, SelectCols[i].Size);
+                return vc;
+            }
+        }
         protected override ODACmd BaseCmd
         {
             get

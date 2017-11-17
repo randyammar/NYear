@@ -16,9 +16,25 @@ namespace NYear.Demo
         public static object DataTypeTest()
         {
             ODAContext ctx = new ODAContext();
-            CmdTestBatchImport t = ctx.GetCmd<CmdTestBatchImport>();
-            var rlt = t.SelectFirst<string, decimal, string>(t.ColId, t.ColNum, t.ColTest);
-            return rlt;
+            var t = ctx.GetCmd<CmdTestBatchImport>();
+
+            DataTable dt = new DataTable();
+            dt.Columns.Add(new DataColumn(t.ColId.ColumnName, typeof(string)));
+            dt.Columns.Add(new DataColumn(t.ColNum.ColumnName, typeof(int)));
+            dt.Columns.Add(new DataColumn(t.ColTest.ColumnName, typeof(string)));
+
+            ODAParameter[] prms = new ODAParameter[3];
+            prms[0] = new ODAParameter() { ParamsName = t.ColId.ColumnName, DBDataType = ODAdbType.OVarchar };
+            prms[1] = new ODAParameter() { ParamsName = t.ColNum.ColumnName, DBDataType = ODAdbType.ODecimal };
+            prms[2] = new ODAParameter() { ParamsName = t.ColTest.ColumnName };
+
+            for (int i = 0; i < 100; i++)
+                dt.Rows.Add(Guid.NewGuid().ToString("N").ToUpper(), i + 1, string.Format("this is {0} Rows", i + 1));
+
+            dt.Columns.Add("new", typeof(string), "COL_ID+COL_TEST");
+
+
+            return dt;
         }
 
         [Demo(Demo = FuncType.Select, MethodName = "GetDBDatetime", MethodDescript = "获取数据库时间")]
@@ -451,10 +467,13 @@ namespace NYear.Demo
         {
             ODAContext ctx = new ODAContext();
             CmdPrmRole rl = ctx.GetCmd<CmdPrmRole>();
+            rl.Alias = "V0";
             CmdPrmRoleAuthorize rla = ctx.GetCmd<CmdPrmRoleAuthorize>();
+            rla.Alias = "V1";
             CmdPrmUserRole ur = ctx.GetCmd<CmdPrmUserRole>();
+            ur.Alias = "VV";
 
-            var vwCmd = ur.InnerJoin(rl, rl.ColRoleName == rla.ColRoleName)
+            var vwCmd = ur.InnerJoin(rl, rl.ColRoleName == rla.ColRoleName, rl.ColRoleName == "Admin")
                 .InnerJoin(rla, rl.ColRoleName == ur.ColRoleName, rla.ColIsForbidden == "N")
                 .Where(ur.ColUserName == "MyUserName")
                 .ToView(rla.ColResourceName, rla.ColOperateName, rla.ColIsForbidden, rla.ColRoleName, ur.ColUserId, ur.ColUserName);
@@ -469,10 +488,10 @@ namespace NYear.Demo
                   .Select(p.ColResourceName,
                   p.ColOperateName,
                   p.ColDescript,
-                  vwCmd.CreateColumn(rla.ColIsForbidden.ColumnName),
-                  vwCmd.CreateColumn(rla.ColRoleName.ColumnName),
-                  vwCmd.CreateColumn(ur.ColUserId.ColumnName),
-                  vwCmd.CreateColumn(ur.ColUserName.ColumnName)
+                  vwCmd.ViewColumns[0],
+                  vwCmd.ViewColumns[1],
+                  vwCmd.ViewColumns[2],
+                  vwCmd.ViewColumns[3]
                    );
 
             return rlt;
@@ -501,6 +520,37 @@ namespace NYear.Demo
 
             rlt1.Merge(rlt);
             return rlt1;
+        }
+
+
+
+
+        internal partial class CmdSfcBarcodeWipSerials : ORMCmd<object>
+        {
+            public ODAColumns ColBalanceQty { get { return new ODAColumns(this, "BALANCE_QTY", ODAdbType.ODecimal, 9); } }
+            public ODAColumns ColBarcodeType { get { return new ODAColumns(this, "BARCODE_TYPE", ODAdbType.OVarchar, 80); } }
+            public ODAColumns ColDatetimeCreated { get { return new ODAColumns(this, "DATETIME_CREATED", ODAdbType.ODatetime, 8); } }
+            public ODAColumns ColDatetimeModified { get { return new ODAColumns(this, "DATETIME_MODIFIED", ODAdbType.ODatetime, 8); } }
+            public ODAColumns ColEnterpriseId { get { return new ODAColumns(this, "ENTERPRISE_ID", ODAdbType.OVarchar, 36); } }
+            public ODAColumns ColId { get { return new ODAColumns(this, "ID", ODAdbType.OVarchar, 36); } }
+            public ODAColumns ColIsCompleted { get { return new ODAColumns(this, "IS_COMPLETED", ODAdbType.OVarchar, 1); } }
+            public ODAColumns ColMoCode { get { return new ODAColumns(this, "MO_CODE", ODAdbType.OVarchar, 80); } }
+            public ODAColumns ColOrgId { get { return new ODAColumns(this, "ORG_ID", ODAdbType.OVarchar, 36); } }
+            public ODAColumns ColPrintoutCount { get { return new ODAColumns(this, "PRINTOUT_COUNT", ODAdbType.OInt, 4); } }
+            public ODAColumns ColQty { get { return new ODAColumns(this, "QTY", ODAdbType.ODecimal, 9); } }
+            public ODAColumns ColRunCard { get { return new ODAColumns(this, "RUN_CARD", ODAdbType.OVarchar, 480); } }
+            public ODAColumns ColScheId { get { return new ODAColumns(this, "SCHE_ID", ODAdbType.OVarchar, 36); } }
+            public ODAColumns ColSeq { get { return new ODAColumns(this, "SEQ", ODAdbType.OInt, 4); } }
+            public ODAColumns ColSerialNumber { get { return new ODAColumns(this, "SERIAL_NUMBER", ODAdbType.OVarchar, 480); } }
+            public ODAColumns ColState { get { return new ODAColumns(this, "STATE", ODAdbType.OVarchar, 1); } }
+            public ODAColumns ColUserCreated { get { return new ODAColumns(this, "USER_CREATED", ODAdbType.OVarchar, 80); } }
+            public ODAColumns ColUserModified { get { return new ODAColumns(this, "USER_MODIFIED", ODAdbType.OVarchar, 80); } }
+            public override string CmdName { get { return "SFC_BARCODE_WIP_SERIALS"; } }
+            public override DataSet Procedure(params ODAColumns[] Cols) { throw new ODAException("Not Suport Procedure CmdName " + CmdName); }
+            public override List<ODAColumns> GetColumnList()
+            {
+                return new List<ODAColumns>() { ColBalanceQty, ColBarcodeType, ColDatetimeCreated, ColDatetimeModified, ColEnterpriseId, ColId, ColIsCompleted, ColMoCode, ColOrgId, ColPrintoutCount, ColQty, ColRunCard, ColScheId, ColSeq, ColSerialNumber, ColState, ColUserCreated, ColUserModified };
+            }
         }
     }
 }

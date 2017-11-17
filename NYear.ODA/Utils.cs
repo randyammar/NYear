@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Globalization;
+using System.Reflection;
 using System.Runtime;
 using System.Runtime.Serialization;
 
@@ -284,4 +286,124 @@ namespace NYear.ODA
             return debugSql;
         }
     }
+
+
+    //public static class DataConvert
+    //{
+    //    public static List<T> ConvertToList<T>(DataTable dt) where T:new()
+    //    {
+    //        List<T> list = new List<T>();
+    //        if (typeof(T).IsValueType || typeof(T) == typeof(string))
+    //        {
+    //            for (int i = 0; i < dt.Rows.Count; i++)
+    //            {
+    //                if (dt.Rows[i][0] is T)
+    //                    list.Add((T)dt.Rows[i][0]);
+    //                else
+    //                    list.Add((T)System.Convert.ChangeType(dt.Rows[i][0], typeof(T), CultureInfo.InvariantCulture));
+    //            }
+    //        }
+    //        else
+    //        {
+    //            T t = new T();
+    //            PropertyInfo[] propertypes = t.GetType().GetProperties();
+    //            for (int i = 0; i < dt.Rows.Count; i++)
+    //            {
+    //                foreach (PropertyInfo pro in propertypes)
+    //                {
+    //                    if (pro.CanWrite && dt.Columns.Contains(pro.Name))
+    //                    {
+    //                        object value = dt.Rows[i][pro.Name];
+    //                        pro.SetValue(t, DataConvert(value, pro.PropertyType), null);
+    //                    }
+    //                }
+    //                list.Add(t);
+    //            }
+    //        }
+    //        return list;
+    //    }
+
+    //    public static T ConvertToModel<T>(DataTable dt)
+    //    {
+    //        T t = Activator.CreateInstance<T>();
+    //        PropertyInfo[] propertypes = t.GetType().GetProperties();
+    //        if (dt.Rows.Count > 0)
+    //        {
+    //            foreach (PropertyInfo pro in propertypes)
+    //            {
+    //                if (pro.CanWrite && dt.Columns.Contains(pro.Name))
+    //                {
+    //                    object value = dt.Rows[0][pro.Name];
+    //                    pro.SetValue(t, DataConvert(value, pro.PropertyType), null);
+    //                }
+    //            }
+    //            return t;
+    //        }
+    //        return default(T);
+    //    }
+
+    //    public static T ConvertToModeT<T>(object A) where T : class
+    //    {
+    //        T t = default(T);
+    //        t = Activator.CreateInstance<T>();
+    //        PropertyInfo[] PList = t.GetType().GetProperties();
+    //        Type AT = A.GetType();
+    //        foreach (PropertyInfo P in PList)
+    //        {
+    //            try
+    //            {
+    //                object obj = AT.GetProperty(P.Name).GetValue(A, null);
+    //                P.SetValue(t, DataConvert(obj, P.PropertyType), null);
+    //            }
+    //            catch { }
+    //        }
+    //        return t;
+    //    }
+
+    //    public static object DataConvert(object val, Type targetType)
+    //    {
+    //        if (val == null || val == System.DBNull.Value)
+    //        {
+    //            if (targetType.GetGenericTypeDefinition() == typeof(Nullable<>))
+    //                return null;
+    //            return Activator.CreateInstance(targetType);
+    //        }
+    //        if (targetType.IsInstanceOfType(val))
+    //        {
+    //            return val;
+    //        }
+    //        else
+    //        {
+    //            try
+    //            {
+    //                Type baseTargetType = targetType;
+    //                if (targetType.IsGenericType && targetType.GetGenericTypeDefinition() == typeof(Nullable<>))
+    //                    baseTargetType = Nullable.GetUnderlyingType(targetType);
+    //                return System.Convert.ChangeType(val, baseTargetType, CultureInfo.InvariantCulture);
+    //            }
+    //            catch
+    //            {
+    //                if (targetType.IsValueType)
+    //                    return Activator.CreateInstance(targetType);
+    //                return null;
+    //            }
+    //        }
+    //    }
+         
+    //    public static T ChangeType<T>(int idx, object[] val) where T : IConvertible
+    //    {
+    //        if (val == null || val.Length <= idx || val[idx] == null || Convert.IsDBNull(val[idx]))
+    //            return default(T);
+    //        if (val[idx] is T)
+    //            return (T)val[idx];
+    //        try
+    //        {
+    //            return (T)Convert.ChangeType(val[idx], typeof(T));
+    //        }
+    //        catch
+    //        {
+    //            return default(T);
+    //        }
+    //    }
+    //}
 }

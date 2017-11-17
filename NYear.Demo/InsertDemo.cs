@@ -57,16 +57,18 @@ namespace NYear.Demo
             dt.Columns.Add(new DataColumn(t.ColTest.ColumnName, typeof(string)));
 
             ODAParameter[] prms = new ODAParameter[3];
-            prms[0] = new ODAParameter() { ParamsName = t.ColId.ColumnName };
-            prms[1] = new ODAParameter() { ParamsName = t.ColNum.ColumnName };
+            prms[0] = new ODAParameter() { ParamsName = t.ColId.ColumnName, DBDataType = ODAdbType.OVarchar };
+            prms[1] = new ODAParameter() { ParamsName = t.ColNum.ColumnName, DBDataType = ODAdbType.ODecimal };
             prms[2] = new ODAParameter() { ParamsName = t.ColTest.ColumnName };
 
             for (int i = 0; i < 100000; i++)
                 dt.Rows.Add(Guid.NewGuid().ToString("N").ToUpper(), i + 1, string.Format("this is {0} Rows", i + 1));
 
+            ctx.BeginTransaction();
             DateTime be = DateTime.Now;
             t.Import(dt, prms);
             DateTime en = DateTime.Now;
+            ctx.RollBack();
 
             return string.Format("Import data {0} records  from {1} to {2}", dt.Rows.Count.ToString(), be.ToString("yyyy-MM-dd HH:mm:ss.ffff"), en.ToString("yyyy-MM-dd HH:mm:ss.ffff"));
         }
