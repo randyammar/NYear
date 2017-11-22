@@ -80,6 +80,14 @@ namespace NYear.ODA
                 return System.Text.Encoding.UTF8;
             }
         }
+        /// <summary>
+        /// 此命令作用于哪个数据库（如果存在分库)
+        /// </summary>
+        public virtual string  ForDB
+        {
+            get;
+            set;             
+        }
         #endregion
 
         #region ODA应用语法定义
@@ -436,7 +444,7 @@ namespace NYear.ODA
 
             if (Cols == null || Cols.Length == 0)
             {
-                SelSql += "*";
+                SelSql += " * ";
             }
             else
             {
@@ -710,7 +718,17 @@ namespace NYear.ODA
             DataTable dt = Select(StartIndex, MaxRecord, out TotalRecord, Cols);
             return DBAccess.ConvertToList<T>(dt);
         }
-
+        /// <summary>
+        /// 查询数据，接参数参顺序返回第一行的数据
+        /// </summary>
+        /// <param name="Cols">要查询的字段</param>
+        /// <returns>第一行的数据据</returns>
+        public object[] SelectFirst(params ODAColumns[] Cols)
+        {
+            if (SelectingFirst == null)
+                throw new ODAException(10019, "ODACmd SelectingFirst 没有执行程序 ");
+            return SelectingFirst(this, Cols);
+        }
         /// <summary>
         /// 批量导入数据
         /// </summary>

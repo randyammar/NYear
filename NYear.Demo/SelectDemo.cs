@@ -32,8 +32,6 @@ namespace NYear.Demo
                 dt.Rows.Add(Guid.NewGuid().ToString("N").ToUpper(), i + 1, string.Format("this is {0} Rows", i + 1));
 
             dt.Columns.Add("new", typeof(string), "COL_ID+COL_TEST");
-
-
             return dt;
         }
 
@@ -56,7 +54,8 @@ namespace NYear.Demo
         {
             ODAContext ctx = new ODAContext();
             CmdPrmRole pr = ctx.GetCmd<CmdPrmRole>();
-            List<PRM_ROLE> rlt = pr.Where(pr.ColRoleName == "Administrator").SelectM();
+            List<PRM_ROLE> rlt = pr.Where(pr.ColRoleName == "Administrator")
+                .SelectM(pr.ColRoleName,pr.ColIsSupperAdmin,pr.ColDescript);
             return rlt;
         }
         [Demo(Demo = FuncType.Select, MethodName = "Select", MethodDescript = "简单查询并返回DataTable")]
@@ -514,7 +513,7 @@ namespace NYear.Demo
 
             ////由下而上递归
             var rlt1 = dpt1.Where(dpt1.ColStatue == "O")
-              .StartWithConnectBy(dpt1.ColDeptId.ColumnName + "='小队1'", dpt1.ColDeptId.ColumnName, dpt1.ColParentDept.ColumnName, "DEPT_FULL_NAME", "<-", 10)
+              .StartWithConnectBy(dpt1.ColDeptId.ColumnName + "='公司1'", dpt1.ColDeptId.ColumnName, dpt1.ColParentDept.ColumnName, "DEPT_FULL_NAME", "<-", 10)
               .Select(dpt1.ColDeptName.As("DEPT_FULL_NAME"),
                dpt1.ColDeptId, dpt1.ColDeptName, dpt1.ColParentDept, dpt1.ColAssistantName, dpt1.ColAssistantId, dpt1.ColBossId, dpt1.ColBossName);
 
@@ -522,6 +521,22 @@ namespace NYear.Demo
             return rlt1;
         }
 
+        [Demo(Demo = FuncType.Select, MethodName = "ColumnCompute", MethodDescript = "字段之间的连接与运算")]
+        public static object ColumnCompute()
+        {
+            DataTable dt = new DataTable();
+            dt.Columns.Add(new DataColumn("COL_ID", typeof(string)));
+            dt.Columns.Add(new DataColumn("COL_NUM", typeof(int)));
+            dt.Columns.Add(new DataColumn("COL_TEST", typeof(string)));
+            dt.Columns.Add(new DataColumn("COL_NUM2", typeof(int)));
+
+            for (int i = 0; i < 100; i++)
+                dt.Rows.Add(Guid.NewGuid().ToString("N").ToUpper(), i + 1, string.Format("this is {0} Rows", i + 1),1000);
+
+            dt.Columns.Add("CONNECT_COL", typeof(string), "COL_ID+'  +  '+COL_TEST");
+            dt.Columns.Add("ADD_COL", typeof(decimal), "COL_NUM+COL_NUM2");
+            return dt;
+        }
 
 
 

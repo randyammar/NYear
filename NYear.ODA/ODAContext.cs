@@ -1,4 +1,28 @@
-﻿using NYear.ODA.Adapter;
+﻿/*======================================================================================================
+ * 分库的约束条件：
+ * 分库是为了减少单个数据库压力而分开多个数据库存储和处理两个或者多个系统或模块数据的方法。
+ * 分库是有限制的
+ * 1.不能跨库强关连。
+ *    分库是为了提高性能，但跨库强关连性能十分低下（例:oracle的dblink)
+ *    技术实现难度太大，只能从各个库中作数查询足够完整的数据然后在内存中连接筛选，耗费资源太多，得不偿失。
+ * 2.分布式事务很难做而且性能不理想，应用服务器暂时做不到，所以在应用服务上不能有跨库事务。
+ *    目前的分布式事务解决方案是二阶段提交（PreCommit、doCommit）或三阶段提交（CanCommit、PreCommit、doCommit）。
+ *    跨库事务一般都是数据库层面考虑。
+ *
+ * 数据库集群（读写分离或者说是主从数据库）：
+ *   从数据库的数量不是越多越好，也是有约束的，约束如下（只是理论值，而不考虑网终制约的条件下) 
+ *   如测定一个数据库一秒内的最大吞吐量：reads + 2×writes = 1200 (平均耗时 写是读的两倍）
+ *   writes = 2 ×reads (平均耗时 写是读的两倍）
+ *   如测定系统读写分布比例：90%读10%写，则从服务器最大数量：reads/9 = writes / (N + 1) （N 从服务器数量)
+ *   
+ * 分表
+ *  水平分表，与分区表同理
+ *  垂直分表，一般不作此类分表(违返三范式)
+ *   但有一些大字段如 Blob、Clob字段或冷热不均的数据（标题/作者/分类与浏览量/回复数等的统计信息)
+ *   为了提高表的处理速度或为了做缓存而分割。
+ ========================================================================================================*/
+
+using NYear.ODA.Adapter;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -50,9 +74,10 @@ namespace NYear.ODA
         /// <typeparam name="U">命令类型</typeparam>
         /// <param name="Alias">别名</param>
         /// <returns></returns>
-        public virtual U GetCmd<U>(string Alias = null) where U : ODACmd,new()
+        public virtual U GetCmd<U>(string Alias = "") where U : ODACmd,new()
         {
             U cmd = new U();
+            cmd.Alias = Alias;
             cmd.Counting = Count;
             cmd.Selecting = Select;
             cmd.SelectPaging = Select;

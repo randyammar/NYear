@@ -7,12 +7,6 @@ namespace NYear.ODA
 {
     public partial class ODACmd
     {
-        public object[] SelectFirst(params ODAColumns[] Cols)
-        {
-            if (SelectingFirst == null)
-                throw new ODAException(10019, "ODACmd SelectingFirst 没有执行程序 ");
-            return SelectingFirst(this, Cols);
-        }
         public Record<T0> SelectFirst<T0>(params ODAColumns[] Cols)
             where T0 : IConvertible
         {
