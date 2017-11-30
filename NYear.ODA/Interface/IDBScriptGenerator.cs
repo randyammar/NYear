@@ -7,6 +7,10 @@ namespace NYear.ODA
     public interface IDBScriptGenerator
     {
         string Alias { get; set; }
+        /// <summary>
+        /// 数据
+        /// </summary>
+        string SystemID { get;  }
         string CmdName { get; }
 
         ODACmd BaseCmd { get; }

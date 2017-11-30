@@ -33,26 +33,23 @@ namespace NYear.Demo
         }
         private void InitNYearODA()
         {
-            ODAContext.GolbalDataBaseGroup = new DataBaseGroup()
-            {
-                MasterDataBase = @"Data Source=./sqlite.db",
-                DBtype = ODA.DbAType.SQLite,
-                GroupID = "SQLite",
-            };
-            //ODAContext.GolbalDataBaseGroup = new DataBaseGroup()
+            ODAContext.DataBaseSetting = new List<DataBaseSetting>();
+
+            //ODAContext.DataBaseSetting.Add(new DataBaseSetting()
             //{
-            //    MasterDataBase = @"server=10.16.67.19;database=MES_DEV;uid=mes_app;pwd=1Q2w3e4r;",
-            //    DBtype = ODA.DbAType.MsSQL,
-            //    SlaveDataBase = null,
-            //    GroupID = "SQLserver",
-            //    Tables = null,
-            //};
-            ODAContext.GolbalDataBaseGroup = new DataBaseGroup()
+            //    ConnectionString = @"Data Source=./sqlite.db",
+            //    DBtype = ODA.DbAType.SQLite,
+            //});
+            ODAContext.DataBaseSetting.Add(new DataBaseSetting()
             {
-                MasterDataBase = @"user id=cmes;password=cmes_2017;data source=10.16.12.53:1606/mestst6",
-                DBtype = ODA.DbAType.Oracle,
-                GroupID = "Oracle",
-            };
+                ConnectionString = @"server=10.16.67.19;database=MES_ALPHA;uid=mes_app;pwd=1Q2w3e4r;",
+                DBtype = ODA.DbAType.MsSQL,
+            });
+            //ODAContext.DataBaseSetting.Add(new DataBaseSetting()
+            //{
+            //    ConnectionString = @"user id=cmes;password=cmes_2017;data source=10.16.12.53:1606/mestst6",
+            //    DBtype = ODA.DbAType.Oracle,
+            //});
         }
         private void InitFuncType()
         {

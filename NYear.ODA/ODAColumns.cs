@@ -82,22 +82,22 @@ namespace NYear.ODA
         /// <param name="ColumnName"></param>
         public ODAColumns(ODACmd Cmd, string ColumnName)
         {
-            this.ODAColumnsInit(Cmd, ColumnName, ODAdbType.OVarchar, 2000,null,false, ParameterDirection.Input);
+            this.ODAColumnsInit(Cmd, ColumnName, ODAdbType.OVarchar, 2000, null, false, ParameterDirection.Input);
         }
         public ODAColumns(ODACmd Cmd, string ColumnName, ODAdbType DBDataType)
         {
-            this.ODAColumnsInit(Cmd, ColumnName, DBDataType, 2000,null,false, ParameterDirection.Input);
+            this.ODAColumnsInit(Cmd, ColumnName, DBDataType, 2000, null, false, ParameterDirection.Input);
         }
         public ODAColumns(ODACmd Cmd, string ColumnName, ODAdbType DBDataType, int Size)
         {
-            this.ODAColumnsInit(Cmd, ColumnName, DBDataType, Size,null,false,ParameterDirection.Input);
+            this.ODAColumnsInit(Cmd, ColumnName, DBDataType, Size, null, false, ParameterDirection.Input);
         }
         public ODAColumns(ODACmd Cmd, string ColumnName, ODAdbType DBDataType, int Size, bool IsRequired)
         {
-            this.ODAColumnsInit(Cmd, ColumnName, DBDataType, Size,  null, IsRequired, ParameterDirection.Input);
+            this.ODAColumnsInit(Cmd, ColumnName, DBDataType, Size, null, IsRequired, ParameterDirection.Input);
         }
 
-        public ODAColumns(ODACmd Cmd, string ColumnName, ODAdbType DBDataType, int Size, string ColumnComment, bool IsRequired,ParameterDirection Direction)
+        public ODAColumns(ODACmd Cmd, string ColumnName, ODAdbType DBDataType, int Size, string ColumnComment, bool IsRequired, ParameterDirection Direction)
         {
             this.ODAColumnsInit(Cmd, ColumnName, DBDataType, Size, ColumnComment, IsRequired, Direction);
         }
@@ -115,7 +115,7 @@ namespace NYear.ODA
             _PDirection = Direction;
             _IsRequired = IsRequired;
         }
-        public  string GetColumnName()
+        public string GetColumnName()
         {
             string SColumn = "";
             switch (_Fun)
@@ -324,7 +324,7 @@ namespace NYear.ODA
                     SubSql = _ColumnName + " % ";
                     break;
                 default:
-                    throw new ODAException(20004,(string.IsNullOrEmpty(_ColumnComment) ? _ColumnName : _ColumnComment) + "CmdConditionSymbol Errror");
+                    throw new ODAException(20004, (string.IsNullOrEmpty(_ColumnComment) ? _ColumnName : _ColumnComment) + "CmdConditionSymbol Errror");
             }
             if (_CompareValue is ODAColumns)
             {
@@ -405,13 +405,13 @@ namespace NYear.ODA
                         SColumn += " % ";
                         break;
                     default:
-                        throw new ODAException(20005,string.IsNullOrEmpty(_ColumnComment) ? _ColumnName + " not assign" : _ColumnComment + "CmdConditionSymbol Errror");
+                        throw new ODAException(20005, string.IsNullOrEmpty(_ColumnComment) ? _ColumnName + " not assign" : _ColumnComment + "CmdConditionSymbol Errror");
                 }
                 string SubSqltmp = "";
                 if (((ODAColumns)_CompareValue)._Symbol == CmdConditionSymbol.NONE)
                     SColumn += ((ODAColumns)_CompareValue).ODAColumnName;
                 else
-                    ParamsList.AddRange(((ODAColumns)_CompareValue).GetWhereSubstring(ConIndex +"C", out SubSqltmp));
+                    ParamsList.AddRange(((ODAColumns)_CompareValue).GetWhereSubstring(ConIndex + "C", out SubSqltmp));
                 SColumn += SubSqltmp;
             }
             else
@@ -549,7 +549,7 @@ namespace NYear.ODA
                         ParamsList.Add(param);
                         break;
                     default:
-                        throw new ODAException(20006,string.IsNullOrWhiteSpace(_ColumnComment) ? _ColumnName + " not assign" : _ColumnComment + "CmdConditionSymbol Errror");
+                        throw new ODAException(20006, string.IsNullOrWhiteSpace(_ColumnComment) ? _ColumnName + " not assign" : _ColumnComment + "CmdConditionSymbol Errror");
                 }
             }
             string cSql = "";
@@ -579,7 +579,7 @@ namespace NYear.ODA
             _AliasColumnName = AliasColumnName;
             return this;
         }
-       
+
         public ODAColumns SetParamDataType(ODAdbType ParamType)
         {
             this._DBDataType = ParamType;
@@ -588,9 +588,9 @@ namespace NYear.ODA
         public ODAColumns SetCondition(CmdConditionSymbol Symbol, object CompareValue)
         {
             if (Symbol == CmdConditionSymbol.NONE)
-                throw new ODAException(20007,string.IsNullOrEmpty(_ColumnComment) ? _ColumnName : _ColumnComment + "CmdConditionSymbol Should not be NONE");
+                throw new ODAException(20007, string.IsNullOrEmpty(_ColumnComment) ? _ColumnName : _ColumnComment + "CmdConditionSymbol Should not be NONE");
             if (_Symbol != CmdConditionSymbol.NONE)
-                throw new ODAException(20008,string.IsNullOrEmpty(_ColumnComment) ? _ColumnName : _ColumnComment + "CmdConditionSymbol was setted");
+                throw new ODAException(20008, string.IsNullOrEmpty(_ColumnComment) ? _ColumnName : _ColumnComment + "CmdConditionSymbol was setted");
             _Symbol = Symbol;
             _CompareValue = CompareValue == null ? System.DBNull.Value : CompareValue;
             return this;
@@ -616,23 +616,23 @@ namespace NYear.ODA
         public ODAColumns In(params object[] CompareValue)
         {
             if (CompareValue == null)
-                throw new ODAException(20009,(string.IsNullOrEmpty(_ColumnComment) ? _ColumnName : _ColumnComment) + " In statement CompareValue Can't be null");
+                throw new ODAException(20009, (string.IsNullOrEmpty(_ColumnComment) ? _ColumnName : _ColumnComment) + " In statement CompareValue Can't be null");
             if (CompareValue.Length == 0)
-                throw new ODAException(20010,(string.IsNullOrEmpty(_ColumnComment) ? _ColumnName : _ColumnComment) + " In statement  CompareValue Can't be empty");
+                throw new ODAException(20010, (string.IsNullOrEmpty(_ColumnComment) ? _ColumnName : _ColumnComment) + " In statement  CompareValue Can't be empty");
             return SetCondition(CmdConditionSymbol.IN, CompareValue);
         }
         public ODAColumns NotIn(params object[] CompareValue)
         {
             if (CompareValue == null)
-                throw new ODAException(20011,(string.IsNullOrEmpty(_ColumnComment) ? _ColumnName : _ColumnComment) + "In statement  CompareValue Can't be null");
+                throw new ODAException(20011, (string.IsNullOrEmpty(_ColumnComment) ? _ColumnName : _ColumnComment) + "In statement  CompareValue Can't be null");
             if (CompareValue.Length == 0)
-                throw new ODAException(20012,(string.IsNullOrEmpty(_ColumnComment) ? _ColumnName : _ColumnComment) + "In statement CompareValue Can't be empty");
+                throw new ODAException(20012, (string.IsNullOrEmpty(_ColumnComment) ? _ColumnName : _ColumnComment) + "In statement CompareValue Can't be empty");
             return SetCondition(CmdConditionSymbol.NOTIN, CompareValue);
         }
         public ODAColumns In(ODACmd Cmd, ODAColumns Col)
         {
             if (Cmd == null || System.Object.ReferenceEquals(Col, null))
-                throw new ODAException(20013,"Cmd and Col Args Can't be null");
+                throw new ODAException(20013, "Cmd and Col Args Can't be null");
             _InColumn = Col;
             _InCmd = Cmd;
             return SetCondition(CmdConditionSymbol.IN, null);
@@ -640,7 +640,7 @@ namespace NYear.ODA
         public ODAColumns NotIn(ODACmd Cmd, ODAColumns Col)
         {
             if (Cmd == null || System.Object.ReferenceEquals(Col, null))
-                throw new ODAException(20014,"Cmd and Col Args Can't be null");
+                throw new ODAException(20014, "Cmd and Col Args Can't be null");
             _InColumn = Col;
             _InCmd = Cmd;
             return SetCondition(CmdConditionSymbol.NOTIN, null);
@@ -656,7 +656,7 @@ namespace NYear.ODA
         }
         public ODAColumns Or(params ODAColumns[] Columns)
         {
-            if(Columns != null)
+            if (Columns != null)
             {
                 foreach (ODAColumns cl in Columns)
                     _SqlColumnList.Add(new SqlColumnScript() { ConnScript = " OR ", SqlColumn = cl });

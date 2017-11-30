@@ -80,14 +80,7 @@ namespace NYear.ODA
                 return System.Text.Encoding.UTF8;
             }
         }
-        /// <summary>
-        /// 此命令作用于哪个数据库（如果存在分库)
-        /// </summary>
-        public virtual string  ForDB
-        {
-            get;
-            set;             
-        }
+ 
         #endregion
 
         #region ODA应用语法定义
@@ -831,7 +824,14 @@ namespace NYear.ODA
         #endregion
 
         #region  Interface IDBScriptGenerator
-
+        /// <summary>
+        /// 此命令作用于哪个数据库（如果存在分库)
+        /// </summary>
+        public virtual string SystemID
+        {
+            get;
+        }
+        #endregion
         ODACmd IDBScriptGenerator.BaseCmd { get { return this.BaseCmd; } }
         /// <summary>
         /// 操作的表名
@@ -871,6 +871,6 @@ namespace NYear.ODA
         {
             return this.GetUpdateSql(out Sql, Cols);
         }
-        #endregion
+
     }
 }

@@ -383,7 +383,6 @@ namespace NYear.ODA
             {
                 throw new ODAException(101, "There isn't any Transaction to Commit");
             }
-
         }
         public void RollBack()
         {

@@ -177,13 +177,12 @@ namespace NYear.ODA
     /// <summary>
     /// 数据库集群（主－从）
     /// </summary>
-    public class DataBaseGroup
+    public class DataBaseSetting
     {
-        public string GroupID { get; set; }
+        public string SystemID { get; set; }
         public DbAType DBtype { get; set; }
-        public string MasterDataBase { get; set; }
-        public List<string> SlaveDataBase { get; set; }
-        public List<string> Tables { get; set; }
+        public string ConnectionString { get; set; }
+        public List<string> SlaveConnectionStrings { get; set; }
     }
 
     /// <summary>
@@ -191,6 +190,7 @@ namespace NYear.ODA
     /// </summary>
     public class TableGroup
     {
+        public string SystemID { get; set; }
         /// <summary>
         /// 默认表
         /// </summary>
@@ -244,6 +244,8 @@ namespace NYear.ODA
     {
         public ODA.IDBAccess DBA { get; set; }
         public string SQL { get; set; }
+
+        public SQLType Operation { get; set; }
 
         public ODAParameter[] SqlParams { get; set; }
 

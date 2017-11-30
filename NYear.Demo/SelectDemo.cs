@@ -12,29 +12,7 @@ namespace NYear.Demo
 {
     public class SelectDemo
     {
-        [Demo(Demo = FuncType.Select, MethodName = "DataTypeTest", MethodDescript = "DataTypeTest")]
-        public static object DataTypeTest()
-        {
-            ODAContext ctx = new ODAContext();
-            var t = ctx.GetCmd<CmdTestBatchImport>();
-
-            DataTable dt = new DataTable();
-            dt.Columns.Add(new DataColumn(t.ColId.ColumnName, typeof(string)));
-            dt.Columns.Add(new DataColumn(t.ColNum.ColumnName, typeof(int)));
-            dt.Columns.Add(new DataColumn(t.ColTest.ColumnName, typeof(string)));
-
-            ODAParameter[] prms = new ODAParameter[3];
-            prms[0] = new ODAParameter() { ParamsName = t.ColId.ColumnName, DBDataType = ODAdbType.OVarchar };
-            prms[1] = new ODAParameter() { ParamsName = t.ColNum.ColumnName, DBDataType = ODAdbType.ODecimal };
-            prms[2] = new ODAParameter() { ParamsName = t.ColTest.ColumnName };
-
-            for (int i = 0; i < 100; i++)
-                dt.Rows.Add(Guid.NewGuid().ToString("N").ToUpper(), i + 1, string.Format("this is {0} Rows", i + 1));
-
-            dt.Columns.Add("new", typeof(string), "COL_ID+COL_TEST");
-            return dt;
-        }
-
+        
         [Demo(Demo = FuncType.Select, MethodName = "GetDBDatetime", MethodDescript = "获取数据库时间")]
         public static object GetDBDatetime()
         {
@@ -72,6 +50,29 @@ namespace NYear.Demo
             List<PRM_ROLE> rlt = ctx.GetCmd<CmdPrmRole>().Select<PRM_ROLE>();
             return rlt;
         }
+        [Demo(Demo = FuncType.Select, MethodName = "SelectFirstAll", MethodDescript = "获取第一条数据")]
+        public static object SelectFirstAll()
+        {
+            ODAContext ctx = new ODAContext();
+            CmdPrmRole pr = ctx.GetCmd<CmdPrmRole>();
+            CmdPrmRoleAuthorize pra = ctx.GetCmd<CmdPrmRoleAuthorize>();
+            try
+            {
+                var rlt = pr
+                    .InnerJoin(pra, pr.ColRoleName == pra.ColRoleName)
+                    .Where(pra.ColIsForbidden == "Y", pra.ColResourceName == "resource")
+                    .SelectFirst();
+            }
+            catch { }
+
+            CmdPrmRole pr1 = ctx.GetCmd<CmdPrmRole>();
+            CmdPrmRoleAuthorize pra1 = ctx.GetCmd<CmdPrmRoleAuthorize>();
+            var rlt1 = pr
+                .InnerJoin(pra1, pr1.ColRoleName == pra1.ColRoleName)
+                .Where(pra1.ColIsForbidden == "Y", pra1.ColResourceName == "resource")
+                .SelectFirst<string,string,string>();
+            return rlt1;
+        }
 
         [Demo(Demo = FuncType.Select, MethodName = "SelectFirst", MethodDescript = "获取第一条数据")]
         public static object SelectFirst()
@@ -90,13 +91,28 @@ namespace NYear.Demo
         public static object SelectDynamic()
         {
             ODAContext ctx = new ODAContext();
+
             CmdPrmRole pr = ctx.GetCmd<CmdPrmRole>();
             CmdPrmRoleAuthorize pra = ctx.GetCmd<CmdPrmRoleAuthorize>();
-            var rlt = pr
-                .InnerJoin(pra, pr.ColRoleName == pra.ColRoleName)
-                .Where(pra.ColIsForbidden == "Y", pra.ColResourceName == "resource")
+
+            try
+            {
+                var rlt = pr
+                    .InnerJoin(pra, pr.ColRoleName == pra.ColRoleName)
+                    .Where(pra.ColIsForbidden == "Y", pra.ColResourceName == "resource")
+                    .Distinct.SelectDynamic<string, string, string>();
+            }
+            catch { }
+
+
+            CmdPrmRole pr1 = ctx.GetCmd<CmdPrmRole>();
+            CmdPrmRoleAuthorize pra1 = ctx.GetCmd<CmdPrmRoleAuthorize>();
+            var rlt1 = pr1
+                .InnerJoin(pra1, pr1.ColRoleName == pra1.ColRoleName)
+                .Where(pra1.ColIsForbidden == "Y", pra1.ColResourceName == "resource")
                 .Distinct.SelectDynamic<string, string, string>(pr.ColRoleName, pr.ColIsSupperAdmin, pr.ColDescript);
-            return rlt;
+
+            return rlt1;
         }
         [Demo(Demo = FuncType.Select, MethodName = "ToModel", MethodDescript = "返回指定数据模型")]
         public static object ToModel()
