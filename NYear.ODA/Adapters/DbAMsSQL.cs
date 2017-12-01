@@ -322,11 +322,11 @@ DISTINCT
 
             if (distinct < 0 || distinct > "SELECT * FROM ".Length)
             {
-                SQL = SQL.Insert(sidx, "SELECT  TOP " + (StartIndex + MaxRecord).ToString() + " row_number() over(order by getdate()) AS R_ID_1, ");
+                SQL = SQL.Insert(sidx, "SELECT  TOP " + (StartIndex + MaxRecord).ToString() + " row_number() over(order by NEWID()) AS R_ID_1, ");
             }
             else
             {
-                SQL = "SELECT TOP " + (StartIndex + MaxRecord).ToString() + " ROW_NUMBER() OVER(ORDER BY GETDATE()) AS R_ID_1,DISTINCT_TMP.* FROM ( SELECT  " + SQL + ") DISTINCT_TMP";
+                SQL = "SELECT TOP " + (StartIndex + MaxRecord).ToString() + " ROW_NUMBER() OVER(ORDER BY NEWID()) AS R_ID_1,DISTINCT_TMP.* FROM ( SELECT  " + SQL + ") DISTINCT_TMP";
             }
             DataTable dt = Select("SELECT a_b_1.* FROM ( " + SQL + " ) as a_b_1 WHERE a_b_1.R_ID_1 > " + StartIndex.ToString(), ParamList);
             dt.Columns.Remove("R_ID_1");

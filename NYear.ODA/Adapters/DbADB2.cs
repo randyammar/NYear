@@ -162,7 +162,7 @@ AND UNIQUERULE = 'P'";
 
         public override DataTable Select(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord)
         {
-            string BlockStr = "select* from (select row_number() over(order by current time) as r_id_1,t_1.* from ( ";
+            string BlockStr = "select* from (select row_number() over() as r_id_1,t_1.* from ( ";
             BlockStr += SQL;
             BlockStr += ") t_1 ) t_t_1 where t_t_1.r_id_1 > " + StartIndex.ToString() + " and t_t_1.r_id_1  <= " + (StartIndex + MaxRecord).ToString();
             DataTable dt = Select(BlockStr, ParamList);

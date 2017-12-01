@@ -1,25 +1,30 @@
 ﻿/*======================================================================================================
- * 分库的约束条件：
- * 分库是为了减少单个数据库压力而分开多个数据库存储和处理两个或者多个系统或模块数据的方法。
- * 分库是有限制的
+ * 分库：
+ * 分库是为了减少单个数据库压力而分开多个数据库存储和处理多个系统或模块数据的方法，是业务逻辑的分割。
+ * 分库的技术限制：
  * 1.不能跨库强关连。
  *    分库是为了提高性能，但跨库强关连性能十分低下（例:oracle的dblink)
  *    技术实现难度太大，只能从各个库中作数查询足够完整的数据然后在内存中连接筛选，耗费资源太多，得不偿失。
- * 2.分布式事务很难做而且性能不理想，应用服务器暂时做不到，所以在应用服务上不能有跨库事务。
- *    目前的分布式事务解决方案是二阶段提交（PreCommit、doCommit）或三阶段提交（CanCommit、PreCommit、doCommit）。
- *    跨库事务一般都是数据库层面考虑。
+ * 2.分布式事务很难做，应用服务器（ODA）做不到，所以在应用服务上不能有跨库事务，跨库事务一般都是数据库层面考虑。
+ *    目前的分布式事务解决方案是数据库的二阶段提交（PreCommit、doCommit）或三阶段提交（CanCommit、PreCommit、doCommit）。
+ *    除此之外还可以业务结合技术考虑,如：
+ *    同一个事务内的表各自增加一个事务表，把事务数据（原数据及新数据）暂存到事务表，以备回滚和提交（CanCommit、PreCommit），
+ *    提交或回滚时(DoCommit)再从事务表更新数据到业务表。
  *
  * 数据库集群（读写分离或者说是主从数据库）：
- *   从数据库的数量不是越多越好，也是有约束的，约束如下（只是理论值，而不考虑网终制约的条件下) 
- *   如测定一个数据库一秒内的最大吞吐量：reads + 2×writes = 1200 (平均耗时 写是读的两倍）
- *   writes = 2 ×reads (平均耗时 写是读的两倍）
- *   如测定系统读写分布比例：90%读10%写，则从服务器最大数量：reads/9 = writes / (N + 1) （N 从服务器数量)
+ * 提高系统响应速度的纯技术方案，以空间换速度。对业务透明，付带效果是容灾备份但增加维护复杂度及成本。
+ *   从数据库的数量不是越多越好，也是有约束的，约束如下（只是理论值，不考虑网络且数据库硬用性能都一样) 
+ *   如测定一个数据库一秒内的最大吞吐量：reads + 2×writes = 1200,90%读10%写,writes = 2* reads(写耗时是读的两倍)
+ *   则从服务器最大数量：reads/9 = writes / (N + 1) （N 从服务器最大数量)
  *   
- * 分表
- *  水平分表，与分区表同理
- *  垂直分表，一般不作此类分表(违返三范式)
- *   但有一些大字段如 Blob、Clob字段或冷热不均的数据（标题/作者/分类与浏览量/回复数等的统计信息)
- *   为了提高表的处理速度或为了做缓存而分割。
+ * 分表：
+ * 分表是为了提高单个功能的响应速度，而进行的数据存储结构优化方案。
+ *  1.水平分表(按数据内容分表)，与分区表原理相同；
+ *     ODA分表方式：一个主视图（一般为物化视图)以及多个子物理表。
+ *  
+ *  2.垂直分表（按字段分表)，一般不作此类分表，因为这样分表对常规的查询有反作用（增加复杂性、降低查询速度)；
+ *     但有一些大字段如 Blob、Clob字段或冷热不均的数据（标题、作者、分类、文章内容与浏览量、回复数等统计信息)
+ *     为了提高表的处理速度和减少对大字段操作或为了做缓存而垂直分割。
  ========================================================================================================*/
 
 using NYear.ODA.Adapter;
@@ -27,6 +32,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Security.Cryptography;
+using System.Timers;
 
 namespace NYear.ODA
 {
@@ -35,12 +41,106 @@ namespace NYear.ODA
     /// </summary>
     public class ODAContext
     {
+        #region 数据库连接管理
+        private static List<DataBaseSetting> _DataBaseSetting;
+        /// <summary>
+        /// 数据库连接设定
+        /// </summary>
+        public static List<DataBaseSetting> DataBaseSetting
+        {
+            get { return _DataBaseSetting; }
+            set { _DataBaseSetting = value; }
+        }
+        private static List<TableGroup> _SystemTableGroups = new List<TableGroup>();
+        /// <summary>
+        /// 分表设定,不设定有错误
+        /// </summary>
+        public static List<TableGroup> SystemTableGroups
+        {
+            get
+            {
+                return _SystemTableGroups;
+            }
+            set
+            {
+                _SystemTableGroups = value;
+            }
+        }
+        private static double? _DBTimeDiff = null;
+        private static IDBAccess NewDBConnect(DbAType dbtype, string Connecting)
+        {
+            IDBAccess DBA = null;
+            switch (dbtype)
+            {
+                case DbAType.DB2:
+                    DBA = new DbADB2(Connecting);
+                    break;
+                case DbAType.MsSQL:
+                    DBA = new DbAMsSQL(Connecting);
+                    break;
+                case DbAType.MySql:
+                    DBA = new DbAMySql(Connecting);
+                    break;
+                case DbAType.OdbcInformix:
+                    DBA = new DbAOdbcInformix(Connecting);
+                    break;
+                case DbAType.OledbAccess:
+                    DBA = new DbAOledbAccess(Connecting);
+                    break;
+                case DbAType.Oracle:
+                    DBA = new DbAOracle(Connecting);
+                    break;
+                case DbAType.SQLite:
+                    DBA = new DbASQLite(Connecting);
+                    break;
+                case DbAType.Sybase:
+                    DBA = new DbASybase(Connecting);
+                    break;
+            }
+            return DBA;
+        }
+
+        //static ODAContext()
+        //{
+        //    Timer tmr = new Timer();
+        //    tmr.Interval = 1000;
+        //    tmr.Elapsed += Tmr_Elapsed;
+        //}
+        ///// <summary>
+        ///// 从数据库可用性维护
+        ///// </summary>
+        ///// <param name="sender"></param>
+        ///// <param name="e"></param>
+        //private static void Tmr_Elapsed(object sender, ElapsedEventArgs e)
+        //{
+        //    ((Timer)sender).Stop();
+        //    if (_DataBaseSetting != null && _DataBaseSetting.Count > 0)
+        //    {
+        //        Dictionary<string[], DbAType> SlaveDb = new Dictionary<string[], DbAType>();
+        //        lock (_DataBaseSetting)
+        //        {
+        //            foreach (var db in _DataBaseSetting)
+        //            {
+        //                if (db.SlaveConnectionStrings != null && db.SlaveConnectionStrings.Count > 0)
+        //                {
+        //                    SlaveDb.Add(db.SlaveConnectionStrings.ToArray(), db.DBtype);
+        //                }
+        //            }
+        //        }
+
+        //        if (SlaveDb.Count > 0)
+        //        {
+        //            ///
+        //        }
+        //    }
+        //    ((Timer)sender).Start();
+        //}
+        #endregion
         public ODAContext()
         {
             if (ODAContext.DataBaseSetting == null || ODAContext.DataBaseSetting.Count == 0)
                 throw new ODAException(30000, "DataBaseSetting is not setted!");
         }
-
         /// <summary>
         /// 数据库当前的时间
         /// </summary>
@@ -54,7 +154,7 @@ namespace NYear.ODA
                     {
                         if (!string.IsNullOrWhiteSpace(ODAContext.DataBaseSetting[0].ConnectionString))
                         {
-                            _DBTimeDiff = (NewDBConnect(ODAContext.DataBaseSetting[0].DBtype, ODAContext.DataBaseSetting[0].ConnectionString).GetDBDateTime() - DateTime.Now).TotalSeconds;
+                            _DBTimeDiff = (ODAContext.NewDBConnect(ODAContext.DataBaseSetting[0].DBtype, ODAContext.DataBaseSetting[0].ConnectionString).GetDBDateTime() - DateTime.Now).TotalSeconds;
                         }
                     }
                     else
@@ -92,68 +192,6 @@ namespace NYear.ODA
             return cmd;
         }
 
-        #region 数据库连接管理
-        /// <summary>
-        /// 数据库连接设定
-        /// </summary>
-        public static List<DataBaseSetting> DataBaseSetting
-        {
-            get;
-            set;
-        }
- 
-        private static List<TableGroup> _SystemTableGroups = new List<TableGroup>();
-        /// <summary>
-        /// 分表设定,不设定有错误
-        /// </summary>
-        public static List<TableGroup> SystemTableGroups
-        {
-            get
-            {
-                return _SystemTableGroups;
-            }
-            set
-            {
-                _SystemTableGroups = value;
-            }
-        }
-
-        private static double? _DBTimeDiff = null;
-        private static IDBAccess NewDBConnect(DbAType dbtype, string Connecting)
-        {
-            IDBAccess DBA = null;
-            switch (dbtype)
-            {
-                case DbAType.DB2:
-                    DBA = new DbADB2(Connecting);
-                    break;
-                case DbAType.MsSQL:
-                    DBA = new DbAMsSQL(Connecting);
-                    break;
-                case DbAType.MySql:
-                    DBA = new DbAMySql(Connecting);
-                    break;
-                case DbAType.OdbcInformix:
-                    DBA = new DbAOdbcInformix(Connecting);
-                    break;
-                case DbAType.OledbAccess:
-                    DBA = new DbAOledbAccess(Connecting);
-                    break;
-                case DbAType.Oracle:
-                    DBA = new DbAOracle(Connecting);
-                    break;
-                case DbAType.SQLite:
-                    DBA = new DbASQLite(Connecting);
-                    break;
-                case DbAType.Sybase:
-                    DBA = new DbASybase(Connecting);
-                    break;
-            }
-            return DBA;
-        }
-
-        #endregion
-
         #region 事务管理
         private ODATransaction _Tran = null;
         /// <summary>
@@ -170,16 +208,20 @@ namespace NYear.ODA
                 return null;
             }
         }
-        protected void CheckTransaction(string DBObjectName)
+        /// <summary>
+        /// 检查事务对象的顺序
+        /// </summary>
+        /// <param name="Cmd"></param>
+        protected void CheckTransaction(IDBScriptGenerator Cmd)
         {
-            return;
+            //this._Tran.TransactionId
+            //return;
         }
 
         /// <summary>
         /// 启动了事务的数据库
         /// </summary>
         private Dictionary<string, IDBAccess> _TransDataBase = new Dictionary<string, IDBAccess>();
-
         /// <summary>
         /// 开启事务，默认30秒超时
         /// </summary>
@@ -187,7 +229,6 @@ namespace NYear.ODA
         {
             BeginTransaction(30);
         }
-
         /// <summary>
         /// 开启事务
         /// </summary>
@@ -290,6 +331,7 @@ namespace NYear.ODA
             DataBaseSetting DB = RoutToDatabase(SqlType, Cmd);
             if (_Tran != null)
             {
+                this.CheckTransaction(Cmd);
                 if (_TransDataBase != null && _TransDataBase.ContainsKey(DB.ConnectionString))
                 {
                     return _TransDataBase[DB.ConnectionString];
@@ -299,7 +341,7 @@ namespace NYear.ODA
                     throw new ODAException(30008,"不支持跨数据库事务（分布式事务)");
                 }
 
-                DBA = NewDBConnect(DB.DBtype, DB.ConnectionString);
+                DBA = ODAContext.NewDBConnect(DB.DBtype, DB.ConnectionString);
                 DBA.BeginTransaction();
                 _Tran.DoCommit += DBA.Commit;
                 _Tran.RollBacking += DBA.RollBack;
@@ -310,14 +352,14 @@ namespace NYear.ODA
                 int curDt = 0;
                 if (SqlType == SQLType.Select && DB.SlaveConnectionStrings != null && DB.SlaveConnectionStrings.Capacity != 0)
                 {
-                    int curDate = int.Parse(System.DateTime.Now.ToString("HHmmssfff"));
+                    int curDate = int.Parse(System.DateTime.Now.ToString("ssfffff"));
                     curDt = curDate % DB.SlaveConnectionStrings.Count;
-                    DBA = NewDBConnect(DB.DBtype, DB.SlaveConnectionStrings[curDt]);
+                    DBA = ODAContext.NewDBConnect(DB.DBtype, DB.SlaveConnectionStrings[curDt]);
                 }
                 else
                 {
                     DB = RoutToDatabase(SqlType, Cmd); 
-                    DBA = NewDBConnect(DB.DBtype, DB.ConnectionString);
+                    DBA = ODAContext.NewDBConnect(DB.DBtype, DB.ConnectionString);
                 }
             }
             return DBA;
@@ -344,7 +386,6 @@ namespace NYear.ODA
                     }
                 }
             }
-
             ///没有分表设定
             if (tbl == null || tbl.SubTable == null || tbl.SubTable.Count == 0)
                 return new string[] { Cmd.CmdName };
@@ -474,10 +515,7 @@ namespace NYear.ODA
             return SubTableList.ToArray();
         }
         #endregion
-
         #region SQL语句执行。（待扩展：使用消息队列实现多数据实时同步）
-
-    
         public static event ExecuteSqlEventHandler ExecutingSql;
         public event ExecuteSqlEventHandler CurrentExecutingSql;
         private void FireExecutingSqlEvent(ExecuteEventArgs args)
