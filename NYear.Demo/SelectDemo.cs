@@ -12,7 +12,17 @@ namespace NYear.Demo
 {
     public class SelectDemo
     {
-        
+
+        [Demo(Demo = FuncType.Select, MethodName = "Test", MethodDescript = "测试")]
+        public static object Test()
+        {
+            ODAContext ctx = new ODAContext();
+
+            // var cmd = ctx.GetCmd<CmdVIqcInspectionInfo>();
+
+            return null;
+        }
+
         [Demo(Demo = FuncType.Select, MethodName = "GetDBDatetime", MethodDescript = "获取数据库时间")]
         public static object GetDBDatetime()
         {
