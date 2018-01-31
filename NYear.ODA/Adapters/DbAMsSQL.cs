@@ -20,15 +20,9 @@ namespace NYear.ODA.Adapter
             if (_DBConn == null)
                 _DBConn = new SqlConnection(ConnString);
             if (_DBConn.State == ConnectionState.Closed)
-                _DBConn.Open();
-            _DBConn.Disposed += _DBConn_Disposed;
+                _DBConn.Open(); 
             return _DBConn;
-        }
-        private void _DBConn_Disposed(object sender, EventArgs e)
-        {
-            _DBConn = null;
-        }
-
+        } 
         protected override DbDataAdapter GetDataAdapter(IDbCommand SelectCmd)
         {
             return new SqlDataAdapter((SqlCommand)SelectCmd);
@@ -332,14 +326,23 @@ DISTINCT
             dt.Columns.Remove("R_ID_1");
             return dt;
 
+            //IDbCommand Cmd = OpenCommand();
+            //try
+            //{
+            //    Cmd.CommandType = CommandType.Text;
+            //    SetCmdParameters(ref Cmd, SQL, ParamList);
+            //    DbDataAdapter Da = GetDataAdapter(Cmd);
+            //    DataTable dt = new DataTable();
+            //    Da.Fill(StartIndex, MaxRecord,dt);
+            //    Da.Dispose();
+            //    return dt;
+            //}
+            //finally
+            //{
+            //    CloseCommand(Cmd);
+            //}
 
 
-            //string BlockStr = "select* from (select row_number() over(order by getdate()) as r_id_1,t_1.* from ( ";
-            //BlockStr += SQL;
-            //BlockStr += ") t_1 ) t_t_1 where t_t_1.r_id_1 > " + StartIndex.ToString() + " and t_t_1.r_id_1  <= " + (StartIndex + MaxRecord).ToString();
-            //DataTable dt = Select(BlockStr, ParamList);
-            //dt.Columns.Remove("r_id_1");
-            //return dt;
         }
         public override bool Import(string DbTable, ODAParameter[] prms, DataTable FormTable)
         {

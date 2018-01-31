@@ -16,11 +16,33 @@ namespace NYear.Demo
         [Demo(Demo = FuncType.Select, MethodName = "Test", MethodDescript = "测试")]
         public static object Test()
         {
+            DateTime dt1 = DateTime.Now;
             ODAContext ctx = new ODAContext();
+            CmdTestBatchImport c = ctx.GetCmd<CmdTestBatchImport>();// new CmdTestBatchImport();
+            int total = 0;
+            DataTable dt = c.Select(2000000, 30, out total);
+            DateTime dt2 = DateTime.Now;
+            return dt;
+        }
 
-            // var cmd = ctx.GetCmd<CmdVIqcInspectionInfo>();
 
-            return null;
+        private static DataTable DatetimeTable(int Days = 1)
+        {
+            DataTable dt = new DataTable();
+            dt.Columns.Add("SEQ", typeof(int));
+            dt.Columns.Add("DayOfYear", typeof(int));
+            dt.Columns.Add("DayOfMonth", typeof(int));
+            dt.Columns.Add("DayOfWeek", typeof(int));
+            dt.Columns.Add("HourMinute", typeof(string));
+            dt.Columns.Add("NEXT_DATE", typeof(DateTime));
+
+            DateTime dtNext = DateTime.Now.Date;
+            for (int i = 1; i < 24 * 60 * Days; i++)
+            {
+                DateTime NEXT_DATE = dtNext.AddMinutes(i);
+                dt.Rows.Add(i, NEXT_DATE.DayOfYear, NEXT_DATE.Day, NEXT_DATE.DayOfWeek.ToString("d"), NEXT_DATE.ToString("HHmm"), NEXT_DATE);
+            }
+            return dt;
         }
 
         [Demo(Demo = FuncType.Select, MethodName = "GetDBDatetime", MethodDescript = "获取数据库时间")]
@@ -222,6 +244,8 @@ namespace NYear.Demo
         public static object OrderBy()
         {
             ODAContext ctx = new ODAContext();
+            StringBuilder sb = new StringBuilder();
+       
             CmdPrmRole pr = ctx.GetCmd<CmdPrmRole>();
             CmdPrmRoleAuthorize pra = ctx.GetCmd<CmdPrmRoleAuthorize>();
 

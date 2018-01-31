@@ -40,11 +40,16 @@ namespace NYear.Demo
             //    ConnectionString = @"Data Source=./sqlite.db",
             //    DBtype = ODA.DbAType.SQLite,
             //});
+            //ODAContext.DataBaseSetting.Add(new DataBaseSetting()
+            //{
+            //    ConnectionString = @"server=10.16.67.19;database=MES_ALPHA;uid=mes_app;pwd=1Q2w3e4r;",
+            //    DBtype = ODA.DbAType.MsSQL,
+            //});
             ODAContext.DataBaseSetting.Add(new DataBaseSetting()
             {
-                ConnectionString = @"server=10.16.67.19;database=MES_ALPHA;uid=mes_app;pwd=1Q2w3e4r;",
+                ConnectionString = @"server = localhost; database = MES_LK; uid = sa; pwd = 123;",
                 DBtype = ODA.DbAType.MsSQL,
-            });
+            }); 
             //ODAContext.DataBaseSetting.Add(new DataBaseSetting()
             //{
             //    ConnectionString = @"user id=cmes;password=cmes_2017;data source=10.16.12.53:1606/mestst6",

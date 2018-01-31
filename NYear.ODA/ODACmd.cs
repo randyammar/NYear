@@ -196,7 +196,7 @@ namespace NYear.ODA
         {
             if (MaxLevel > 32)
                 throw new ODAException(10003, "MaxLevel should be smaller than  32");
-            if (string.IsNullOrEmpty(ConnectByParent) || string.IsNullOrEmpty(PriorChild) || string.IsNullOrEmpty(StartWithExpress))
+            if (string.IsNullOrWhiteSpace(ConnectByParent) || string.IsNullOrWhiteSpace(PriorChild) || string.IsNullOrWhiteSpace(StartWithExpress))
                 throw new ODAException(10004, "StartWithExpress and ConnectByParent and PriorChild Can't be Empty");
             _StartWithExpress = StartWithExpress;
             _ConnectColumn = ConnectColumn;

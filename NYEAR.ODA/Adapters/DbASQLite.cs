@@ -22,13 +22,8 @@ namespace NYear.ODA.Adapter
                 _DBConn = new SQLiteConnection(ConnString);
             if (_DBConn.State == ConnectionState.Closed)
                 _DBConn.Open();
-            _DBConn.Disposed += _DBConn_Disposed;
             return _DBConn;
-        }
-        private void _DBConn_Disposed(object sender, EventArgs e)
-        {
-            _DBConn = null;
-        }
+        } 
 
         public static void CreateDataBase(string FileName)
         {

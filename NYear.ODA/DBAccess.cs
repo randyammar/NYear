@@ -624,7 +624,7 @@ namespace NYear.ODA
                     throw new ODAException(103, "DataModel not contain Column:" + ConnectColumn);
             }
 
-            if (!Model.Columns.Contains(ConnectBy) || !Model.Columns.Contains(Prior))
+            if ( !Model.Columns.Contains(ConnectBy) || !Model.Columns.Contains(Prior))
                 throw new ODAException(104, "DataModel not contain ConnectBy or Prior Column");
 
             DataTable dtRtl = this.Recursion(Model, StartWithExpress, ConnectBy, Prior, ConnectColumn, ConnectChar, "", 0, MaxLevel);

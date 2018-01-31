@@ -136,10 +136,16 @@ namespace NYear.ODA
         //    ((Timer)sender).Start();
         //}
         #endregion
+
+        private DbAType dbType = DbAType.MsSQL;
+        private string dbConn = null;
         public ODAContext()
         {
-            if (ODAContext.DataBaseSetting == null || ODAContext.DataBaseSetting.Count == 0)
-                throw new ODAException(30000, "DataBaseSetting is not setted!");
+        }
+        public ODAContext(DbAType DbType, string ConectionString)
+        {
+            dbType = DbType;
+            dbConn = ConectionString;
         }
         /// <summary>
         /// 数据库当前的时间
@@ -150,14 +156,21 @@ namespace NYear.ODA
             {   /////第一次取数据库时间,并保存与本地的时间差异,下一次取本地时间
                 if (_DBTimeDiff == null)
                 {
-                    if (ODAContext.DataBaseSetting != null || ODAContext.DataBaseSetting.Count > 0)
+                    if (string.IsNullOrWhiteSpace(dbConn))
                     {
-                        if (!string.IsNullOrWhiteSpace(ODAContext.DataBaseSetting[0].ConnectionString))
+                        if (ODAContext.DataBaseSetting != null || ODAContext.DataBaseSetting.Count > 0)
                         {
-                            _DBTimeDiff = (ODAContext.NewDBConnect(ODAContext.DataBaseSetting[0].DBtype, ODAContext.DataBaseSetting[0].ConnectionString).GetDBDateTime() - DateTime.Now).TotalSeconds;
+                            if (!string.IsNullOrWhiteSpace(ODAContext.DataBaseSetting[0].ConnectionString))
+                            {
+                                _DBTimeDiff = (ODAContext.NewDBConnect(ODAContext.DataBaseSetting[0].DBtype, ODAContext.DataBaseSetting[0].ConnectionString).GetDBDateTime() - DateTime.Now).TotalSeconds;
+                            }
                         }
                     }
                     else
+                    {
+                        _DBTimeDiff = (ODAContext.NewDBConnect(this.dbType,this.dbConn).GetDBDateTime() - DateTime.Now).TotalSeconds;
+                    }
+                    if(_DBTimeDiff== null)
                     {
                         _DBTimeDiff = 0d;
                     }
@@ -236,8 +249,8 @@ namespace NYear.ODA
         /// <returns></returns>
         public virtual void BeginTransaction(int TimeOut)
         {
-            _Tran = new ODATransaction(TimeOut);
-            _Tran.RollBacking += RollBack;///超时自动RollBack
+            _Tran = new ODATransaction(TimeOut); 
+            _Tran.TransactionTimeOut = this.RollBack;
         }
         /// <summary>
         /// 提交事务
@@ -299,9 +312,6 @@ namespace NYear.ODA
         /// <returns></returns>
         private DataBaseSetting RoutToDatabase(SQLType SqlType, IDBScriptGenerator Cmd)
         {
-            if (ODAContext.DataBaseSetting == null || ODAContext.DataBaseSetting.Count == 0)
-                throw new ODAException(30001, "没有配置数据库连接");
-
             if (ODAContext.DataBaseSetting.Count == 1)
             {
                 return ODAContext.DataBaseSetting[0];
@@ -328,11 +338,38 @@ namespace NYear.ODA
         protected virtual IDBAccess DatabaseRouting(SQLType SqlType, IDBScriptGenerator Cmd)
         {
             IDBAccess DBA = null;
+            if (ODAContext.SystemTableGroups == null && string.IsNullOrWhiteSpace(this.dbConn))
+                throw new ODAException(30000, "没有找到可用的数据库连接设定");
+
+            if (!string.IsNullOrWhiteSpace(this.dbConn))
+            {
+                if (_Tran != null)
+                {
+                    this.CheckTransaction(Cmd);
+                    if (_TransDataBase.ContainsKey(this.dbConn))
+                    {
+                        return _TransDataBase[this.dbConn];
+                    }
+                    else
+                    {
+                        DBA = ODAContext.NewDBConnect(this.dbType, this.dbConn);
+                        DBA.BeginTransaction();
+                        _Tran.DoCommit += DBA.Commit;
+                        _Tran.RollBacking += DBA.RollBack;
+                        _TransDataBase.Add(this.dbConn, DBA);
+                    }
+                }
+                else
+                {
+                    DBA = ODAContext.NewDBConnect(this.dbType, this.dbConn);
+                }
+            }
+
             DataBaseSetting DB = RoutToDatabase(SqlType, Cmd);
             if (_Tran != null)
             {
                 this.CheckTransaction(Cmd);
-                if (_TransDataBase != null && _TransDataBase.ContainsKey(DB.ConnectionString))
+                if (_TransDataBase.ContainsKey(DB.ConnectionString))
                 {
                     return _TransDataBase[DB.ConnectionString];
                 }
@@ -344,7 +381,7 @@ namespace NYear.ODA
                 DBA = ODAContext.NewDBConnect(DB.DBtype, DB.ConnectionString);
                 DBA.BeginTransaction();
                 _Tran.DoCommit += DBA.Commit;
-                _Tran.RollBacking += DBA.RollBack;
+                _Tran.RollBacking += DBA.RollBack; 
                 _TransDataBase.Add(DB.ConnectionString,DBA);
             }
             else

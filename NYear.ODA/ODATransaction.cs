@@ -11,16 +11,16 @@ namespace NYear.ODA
     /// <summary>
     /// ODA事务
     /// </summary>
-    public class ODATransaction
+    internal class ODATransaction
     {
         private System.Timers.Timer Tim = null;
         private string _TransactionId = null;
         private event ODATransactionEventHandler _DoCommit;
         private event ODATransactionEventHandler _DoRollBack;
 
-        internal event ODATransactionEventHandler CanCommit;
-        internal event ODATransactionEventHandler PreCommit;
-        internal event ODATransactionEventHandler DoCommit
+        public event ODATransactionEventHandler CanCommit;
+        public event ODATransactionEventHandler PreCommit;
+        public event ODATransactionEventHandler DoCommit
         {
             add
             {
@@ -39,7 +39,7 @@ namespace NYear.ODA
                     _DoCommit -= value;
             }
         }
-        internal event ODATransactionEventHandler RollBacking
+        public event ODATransactionEventHandler RollBacking
         {
             add
             {
@@ -58,7 +58,12 @@ namespace NYear.ODA
                     _DoRollBack -= value;
             }
         }
+
+        public Action TransactionTimeOut;
+
         public string TransactionId { get { return _TransactionId; } }
+        private bool _IsTimeout = false;
+        public bool IsTimeout { get { return _IsTimeout; } }
         internal ODATransaction(int TimeOut)
         {
             _TransactionId = Guid.NewGuid().ToString("N");
@@ -68,10 +73,10 @@ namespace NYear.ODA
         }
         private void Tim_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
-            RollBack();
+            _IsTimeout = true;
+            TransactionTimeOut?.Invoke();
         }
         
-       
         /// <summary>
         /// 提交事务
         /// </summary>

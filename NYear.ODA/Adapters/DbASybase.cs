@@ -23,14 +23,9 @@ namespace NYear.ODA.Adapter
             if (_DBConn == null)
                 _DBConn = new AseConnection(ConnString);
             if (_DBConn.State == ConnectionState.Closed)
-                _DBConn.Open();
-            _DBConn.Disposed += _DBConn_Disposed;
+                _DBConn.Open(); 
             return _DBConn;
-        }
-        private void _DBConn_Disposed(object sender, EventArgs e)
-        {
-            _DBConn = null;
-        }
+        } 
 
         protected override DbDataAdapter GetDataAdapter(IDbCommand SelectCmd)
         {

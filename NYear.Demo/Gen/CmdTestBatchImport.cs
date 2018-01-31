@@ -14,7 +14,7 @@ namespace NYear.ODA.Cmd
 
         public ODAColumns ColTest { get { return new ODAColumns(this, "COL_TEST", ODAdbType.OVarchar, 2000); } }
 
-        public override string CmdName { get { return "TEST_BATCH_IMPORT"; } }
+        public override string CmdName { get { return "SFC_WIP_LOG"; } }
 
         public override List<ODAColumns> GetColumnList()
         {
