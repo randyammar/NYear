@@ -170,8 +170,10 @@ namespace NYear.ODA
         Other = 1,
         Insert = 2,
         Delete = 3,
-        Select = 4,
+        Select = 4, 
         Update = 5,
+        Commit = 6,
+        Rollback = 7, 
     }
 
     /// <summary>

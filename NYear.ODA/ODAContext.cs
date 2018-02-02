@@ -264,7 +264,7 @@ namespace NYear.ODA
                     _Tran.Commit();
                     FireExecutingSqlEvent(new ExecuteEventArgs()
                     {
-                        Operation = SQLType.Other,
+                        Operation = SQLType.Commit,
                         SQL = "Commit"
                     });
 
@@ -288,8 +288,8 @@ namespace NYear.ODA
                     _Tran.RollBack();
                     FireExecutingSqlEvent(new ExecuteEventArgs()
                     {
-                        Operation = SQLType.Other,
-                        SQL = "RollBack"
+                        Operation = SQLType.Rollback,
+                        SQL = "Rollback"
                     });
                 }
             }
