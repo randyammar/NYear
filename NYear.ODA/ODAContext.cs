@@ -251,6 +251,11 @@ namespace NYear.ODA
         {
             _Tran = new ODATransaction(TimeOut); 
             _Tran.TransactionTimeOut = this.RollBack;
+            FireExecutingSqlEvent(new ExecuteEventArgs()
+            {
+                Operation = SQLType.Other,
+                SQL = "BeginTransaction"
+            });
         }
         /// <summary>
         /// 提交事务
