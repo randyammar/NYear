@@ -272,7 +272,6 @@ namespace NYear.ODA
             }
             finally
             {
-                _Tran = null;
                 if (_TransDataBase != null)
                     _TransDataBase.Clear();
             }
@@ -296,7 +295,6 @@ namespace NYear.ODA
             }
             finally
             {
-                _Tran = null;
                 if (_TransDataBase != null)
                     _TransDataBase.Clear();
             }      
@@ -345,6 +343,8 @@ namespace NYear.ODA
             {
                 if (_Tran != null)
                 {
+                    if(_Tran.IsTimeout)
+                        throw new ODAException(30000, "事务已超时");
                     this.CheckTransaction(Cmd);
                     if (_TransDataBase.ContainsKey(this.dbConn))
                     {
@@ -368,6 +368,9 @@ namespace NYear.ODA
             DataBaseSetting DB = RoutToDatabase(SqlType, Cmd);
             if (_Tran != null)
             {
+                if (_Tran.IsTimeout)
+                    throw new ODAException(30000, "事务已超时");
+
                 this.CheckTransaction(Cmd);
                 if (_TransDataBase.ContainsKey(DB.ConnectionString))
                 {
