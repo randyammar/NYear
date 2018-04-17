@@ -47,7 +47,7 @@ namespace NYear.Demo
             //});
             ODAContext.DataBaseSetting.Add(new DataBaseSetting()
             {
-                ConnectionString = @"server = localhost; database = MES_LK; uid = sa; pwd = 123;",
+                ConnectionString = @"server = localhost; database = MES; uid = sa; pwd = 123;",
                 DBtype = ODA.DbAType.MsSQL,
             }); 
             //ODAContext.DataBaseSetting.Add(new DataBaseSetting()

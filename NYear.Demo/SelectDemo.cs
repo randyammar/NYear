@@ -56,7 +56,8 @@ namespace NYear.Demo
         public static object SelectM()
         {
             ODAContext ctx = new ODAContext();
-            List<PRM_ROLE> rlt = ctx.GetCmd<CmdPrmRole>().SelectM();
+            int total = 0; 
+            List<PRM_ROLE> rlt = ctx.GetCmd<CmdPrmRole>().SelectM(0,20,out total);
             return rlt;
         }
         [Demo(Demo = FuncType.Select, MethodName = "SelectM_1", MethodDescript = "简单查询并返回数据模型")]

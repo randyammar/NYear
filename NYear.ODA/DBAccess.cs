@@ -473,12 +473,9 @@ namespace NYear.ODA
                     {
                         if (Dr.Read())
                         {
-                            DataRow row = dt.NewRow();
-                            for (int num = 0; num < Dr.FieldCount; num++)
-                            {
-                                row[num] = Dr[num];
-                            }
-                            dt.Rows.Add(row);
+                            object[] rVal = new object[Dr.FieldCount];
+                            Dr.GetValues(rVal);
+                            dt.Rows.Add(rVal); 
                             ReadRecord--;
                             TotalRecord++;
                         }
@@ -532,12 +529,9 @@ namespace NYear.ODA
                     {
                         if (Dr.Read())
                         {
-                            DataRow row = dt.NewRow();
-                            for (int num = 0; num < Dr.FieldCount; num++)
-                            {
-                                row[num] = Dr[num];
-                            }
-                            dt.Rows.Add(row);
+                            object[] rVal = new object[Dr.FieldCount];
+                            Dr.GetValues(rVal);
+                            dt.Rows.Add(rVal);
                             ReadRecord--;
                         }
                         else

@@ -308,41 +308,22 @@ DISTINCT
         }
 
         public override DataTable Select(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord)
-        {
-            int sidx = SQL.IndexOf("SELECT ", 0, StringComparison.InvariantCultureIgnoreCase);
-            int distinct = SQL.IndexOf(" DISTINCT ", 0, StringComparison.InvariantCultureIgnoreCase);
-
-            SQL = SQL.Remove(sidx, "SELECT ".Length);
-
-            if (distinct < 0 || distinct > "SELECT * FROM ".Length)
+        { 
+            IDbCommand Cmd = OpenCommand();
+            try
             {
-                SQL = SQL.Insert(sidx, "SELECT TOP 999999999 row_number() over(order by GETDATE()) AS R_ID_1, ");
+                Cmd.CommandType = CommandType.Text;
+                SetCmdParameters(ref Cmd, SQL, ParamList);
+                DbDataAdapter Da = GetDataAdapter(Cmd);
+                DataTable dt = new DataTable();
+                Da.Fill(StartIndex, MaxRecord, dt);
+                Da.Dispose();
+                return dt;
             }
-            else
+            finally
             {
-                SQL = "SELECT TOP 999999999 ROW_NUMBER() OVER(ORDER BY GETDATE()) AS R_ID_1,DISTINCT_TMP.* FROM ( SELECT  " + SQL + ") DISTINCT_TMP";
+                CloseCommand(Cmd);
             }
-            DataTable dt = Select("SELECT a_b_1.* FROM ( " + SQL + " ) as a_b_1 WHERE a_b_1.R_ID_1 > " + StartIndex.ToString() + " AND a_b_1.R_ID_1 <= " + (StartIndex + MaxRecord).ToString(), ParamList);
-            dt.Columns.Remove("R_ID_1");
-            return dt;
-
-            //IDbCommand Cmd = OpenCommand();
-            //try
-            //{
-            //    Cmd.CommandType = CommandType.Text;
-            //    SetCmdParameters(ref Cmd, SQL, ParamList);
-            //    DbDataAdapter Da = GetDataAdapter(Cmd);
-            //    DataTable dt = new DataTable();
-            //    Da.Fill(StartIndex, MaxRecord,dt);
-            //    Da.Dispose();
-            //    return dt;
-            //}
-            //finally
-            //{
-            //    CloseCommand(Cmd);
-            //}
-
-
         }
         public override bool Import(string DbTable, ODAParameter[] prms, DataTable FormTable)
         {
