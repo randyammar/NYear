@@ -588,9 +588,11 @@ namespace NYear.ODA
         public ODAColumns SetCondition(CmdConditionSymbol Symbol, object CompareValue)
         {
             if (Symbol == CmdConditionSymbol.NONE)
-                throw new ODAException(20007, string.IsNullOrEmpty(_ColumnComment) ? _ColumnName : _ColumnComment + "CmdConditionSymbol Should not be NONE");
+                throw new ODAException(20007, (string.IsNullOrEmpty(_ColumnComment) ? _ColumnName : _ColumnComment) + "Condition Symbol Should not be NONE");
             if (_Symbol != CmdConditionSymbol.NONE)
-                throw new ODAException(20008, string.IsNullOrEmpty(_ColumnComment) ? _ColumnName : _ColumnComment + "CmdConditionSymbol was setted");
+                throw new ODAException(20008, (string.IsNullOrEmpty(_ColumnComment) ? _ColumnName : _ColumnComment) + "Condition Symbol was setted");
+            if (this.Equals(CompareValue))
+                throw new ODAException(200081, (string.IsNullOrEmpty(_ColumnComment) ? _ColumnName : _ColumnComment) + "Condition can't be  itself");
             _Symbol = Symbol;
             _CompareValue = CompareValue == null ? System.DBNull.Value : CompareValue;
             return this;

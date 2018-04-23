@@ -426,8 +426,7 @@ namespace NYear.ODA
             {
                 if (Cmd.Transaction == null)
                 {
-                    Cmd.Connection.Close();
-                    Cmd.Connection.Dispose();
+                    Cmd.Connection.Close(); 
                     Cmd.Dispose();
                 }
                 else
