@@ -154,7 +154,7 @@ namespace NYear.ODA
         public virtual ODACmd LeftJoin(ODACmd JoinCmd, params ODAColumns[] ONCols)
         {
             if (JoinCmd == this)
-                throw new ODAException(10001, "LeftJoin 对象不能是本身");
+                throw new ODAException(10001, "Left Join Instance Can't be itselft");
 
             int Tcount = _ListCmd.Count + _JoinCmd.Count;
             if (string.IsNullOrWhiteSpace(JoinCmd.Alias))
@@ -172,7 +172,7 @@ namespace NYear.ODA
         public virtual ODACmd InnerJoin(ODACmd JoinCmd, params ODAColumns[] ONCols)
         {
             if (JoinCmd == this)
-                throw new ODAException(10002, "LeftJoin 对象不能是本身");
+                throw new ODAException(10002, "Inner Join Instance Can't be itselft");
 
             int Tcount = _ListCmd.Count + _JoinCmd.Count;
             if (string.IsNullOrWhiteSpace(JoinCmd.Alias))
@@ -278,7 +278,7 @@ namespace NYear.ODA
         protected virtual ODAParameter[] GetFromSubString(out string SubSql)
         {
             List<ODAParameter> ParamList = new List<ODAParameter>();
-            string AliasSql = String.IsNullOrWhiteSpace(_Alias) ? "" : " " + _Alias;
+            string AliasSql = String.IsNullOrWhiteSpace(Alias) ? "" : " " + Alias;
             string SelSql = null;
             ParamList.AddRange(GetCmdSql(out SelSql));
             SelSql = " FROM " + SelSql + AliasSql;
@@ -389,8 +389,8 @@ namespace NYear.ODA
             if (_Groupby.Count > 0 || _Having.Count > 0)
                 throw new ODAException(10006, "Do not count the [Group by] cmd,You should probably use [ ToView(Columns).Count()] instead.");
 
-            if (string.IsNullOrWhiteSpace(_Alias))
-                _Alias = "T";
+            if (string.IsNullOrWhiteSpace(Alias))
+                Alias = "T";
 
             List<ODAParameter> ParamList = new List<ODAParameter>();
             string SelSql = "";
@@ -429,8 +429,8 @@ namespace NYear.ODA
         /// <returns>变量列表</returns>
         protected virtual ODAParameter[] GetSelectSql(out string SelectSql, params ODAColumns[] Cols)
         {
-            if (string.IsNullOrWhiteSpace(_Alias))
-                _Alias = "T";
+            if (string.IsNullOrWhiteSpace(Alias))
+                Alias = "T";
 
             List<ODAParameter> ParamList = new List<ODAParameter>();
             string SelSql = _Distinct ? "SELECT DISTINCT " : "SELECT ";
@@ -486,7 +486,7 @@ namespace NYear.ODA
             ParamList.AddRange(GetWhereSubSql(_OrList, " OR ", out OrSql));
             SubSql = String.IsNullOrEmpty(WhereSql) ? String.IsNullOrEmpty(OrSql) ? "" : " WHERE " + OrSql : String.IsNullOrEmpty(OrSql) ? " WHERE " + WhereSql : " WHERE " + WhereSql + " OR " + OrSql;
 
-            string AliasSql = String.IsNullOrEmpty(_Alias) ? "" : " " + _Alias;
+            string AliasSql = String.IsNullOrEmpty(Alias) ? "" : " " + Alias;
             Sql = "DELETE FROM " + this.DBObjectMap + AliasSql + SubSql;
             return ParamList.ToArray();
         }

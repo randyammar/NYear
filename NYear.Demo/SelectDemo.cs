@@ -124,10 +124,8 @@ namespace NYear.Demo
         public static object SelectDynamic()
         {
             ODAContext ctx = new ODAContext();
-
             CmdPrmRole pr = ctx.GetCmd<CmdPrmRole>();
             CmdPrmRoleAuthorize pra = ctx.GetCmd<CmdPrmRoleAuthorize>();
-
             try
             {
                 var rlt = pr
@@ -516,24 +514,35 @@ namespace NYear.Demo
         public static object SubQuery()
         {
             ODAContext ctx = new ODAContext();
-            CmdPrmRole rl = ctx.GetCmd<CmdPrmRole>();
-            rl.Alias = "V0";
-            CmdPrmRoleAuthorize rla = ctx.GetCmd<CmdPrmRoleAuthorize>();
-            rla.Alias = "V1";
-            CmdPrmUserRole ur = ctx.GetCmd<CmdPrmUserRole>();
-            ur.Alias = "VV";
+            CmdPrmRole rl = ctx.GetCmd<CmdPrmRole>();  
+            CmdPrmUserRole ur = ctx.GetCmd<CmdPrmUserRole>();　
 
-            var vwCmd = ur.InnerJoin(rl, rl.ColRoleName == rla.ColRoleName, rl.ColRoleName == "Admin")
-                .InnerJoin(rla, rl.ColRoleName == ur.ColRoleName, rla.ColIsForbidden == "N")
+            var vwCmd = ur.InnerJoin(rl, rl.ColRoleName == "Admin",ur.ColRoleName == rl.ColRoleName)　
                 .Where(ur.ColUserName == "MyUserName")
-                .ToView(rla.ColResourceName, rla.ColOperateName, rla.ColIsForbidden, rla.ColRoleName, ur.ColUserId, ur.ColUserName);
+                .ToView(rl.ColRoleName, rl.ColIsSupperAdmin , rl.ColDescript,rl.ColIsSupperAdmin, ur.ColUserId, ur.ColUserName);
+            vwCmd.Alias = "V1";
+
+
+            CmdPrmRole rl1 = ctx.GetCmd<CmdPrmRole>();
+            CmdPrmRoleAuthorize rla = ctx.GetCmd<CmdPrmRoleAuthorize>();
+
+           var vwCmd1 = rl1.InnerJoin(rla, rl1.ColRoleName == rla.ColRoleName, rl1.ColRoleName == "Admin")
+               .InnerJoin(rla, rl1.ColRoleName == ur.ColRoleName, rla.ColIsForbidden == "N")
+               .Where(ur.ColUserName == "MyUserName")
+               .ToView(rla.ColResourceName, rla.ColOperateName, rla.ColIsForbidden, rla.ColRoleName);
+            vwCmd1.Alias = "V2";
+
 
             CmdPrmPermission p = ctx.GetCmd<CmdPrmPermission>();
 
             var rlt = p.InnerJoin(vwCmd,
                   p.ColResourceName == vwCmd.CreateColumn(rla.ColResourceName.ColumnName),
                   p.ColOperateName == vwCmd.CreateColumn(rla.ColOperateName.ColumnName)
-                  )
+                  ).
+                  InnerJoin(vwCmd1,
+                  p.ColResourceName == vwCmd1.CreateColumn(rla.ColResourceName.ColumnName),
+                  p.ColOperateName == vwCmd1.CreateColumn(rla.ColOperateName.ColumnName)
+                  ) 
                   .Where(p.ColResourceName == "MyResource", p.ColCreateBy == "Admin", p.ColCreateDate > ctx.DBDatetime.AddDays(-300))
                   .Select(p.ColResourceName,
                   p.ColOperateName,
