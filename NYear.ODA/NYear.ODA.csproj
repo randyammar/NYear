@@ -8,8 +8,8 @@
     <ProjectGuid>{1189DDDA-5DC7-4C81-B746-7F00675129C7}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Creative.ODA</RootNamespace>
-    <AssemblyName>Creative.ODA</AssemblyName>
+    <RootNamespace>NYear.ODA</RootNamespace>
+    <AssemblyName>NYear.ODA</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <FileUpgradeFlags>
@@ -99,6 +99,7 @@
       <HintPath>..\Reference\System.Data.SQLite.dll</HintPath>
     </Reference>
     <Reference Include="System.Messaging" />
+    <Reference Include="System.Numerics" />
     <Reference Include="System.Runtime.Remoting" />
     <Reference Include="System.Runtime.Serialization">
       <RequiredTargetFramework>3.0</RequiredTargetFramework>

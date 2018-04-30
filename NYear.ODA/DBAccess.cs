@@ -10,133 +10,36 @@ namespace NYear.ODA
     public abstract class DBAccess : IDBAccess //: MarshalByRefObject,
     {
         #region 数据类型转换
-
-
         public static List<T> ConvertToList<T>(DataTable dt)
         {
+            DateTime dt1 = DateTime.Now;
             List<T> list = new List<T>();
-            if (typeof(T).IsValueType || typeof(T) == typeof(string))
+            var creator = ODAReflectionObject<object>.GetConstructor<T>();
+            Dictionary<string, int> cls = new Dictionary<string, int>();
+            PropertyInfo[] SetPropertys = typeof(T).GetProperties();
+            foreach (DataColumn c in dt.Columns)
             {
-                for (int i = 0; i < dt.Rows.Count; i++)
+                foreach (var p in SetPropertys)
                 {
-                    if (dt.Rows[i][0] is T)
-                        list.Add((T)dt.Rows[i][0]);
-                    else
-                        list.Add((T)System.Convert.ChangeType(dt.Rows[i][0], typeof(T), CultureInfo.InvariantCulture));
-                }
-            }
-            else
-            {
-                T t = Activator.CreateInstance<T>();
-                PropertyInfo[] propertypes = t.GetType().GetProperties();
-                for (int i = 0; i < dt.Rows.Count; i++)
-                {
-                    t = Activator.CreateInstance<T>();
-                    foreach (PropertyInfo pro in propertypes)
+                    if (p.Name == c.ColumnName && p.CanWrite)
                     {
-                        if (pro.CanWrite && dt.Columns.Contains(pro.Name))
-                        {
-                            object value = dt.Rows[i][pro.Name];
-                            pro.SetValue(t, DataConvert(value, pro.PropertyType), null);
-                        }
-                    }
-                    list.Add(t);
-                }
-            }
-            return list;
-        }
-
-        public static T ConvertToModel<T>(DataTable dt)
-        {
-            T t = Activator.CreateInstance<T>();
-            PropertyInfo[] propertypes = t.GetType().GetProperties();
-            if (dt.Rows.Count > 0)
-            {
-                foreach (PropertyInfo pro in propertypes)
-                {
-                    if (pro.CanWrite && dt.Columns.Contains(pro.Name))
-                    {
-                        object value = dt.Rows[0][pro.Name];
-                        pro.SetValue(t, DataConvert(value, pro.PropertyType), null);
+                        cls.Add(c.ColumnName, c.Ordinal);
+                        break;
                     }
                 }
-                return t;
             }
-            return default(T);
-        }
-
-        public static T ConvertToModeT<T>(object A) where T : class
-        {
-            T t = default(T);
-            t = Activator.CreateInstance<T>();
-            PropertyInfo[] PList = t.GetType().GetProperties();
-            Type AT = A.GetType();
-            foreach (PropertyInfo P in PList)
+            for (int i = 0; i < dt.Rows.Count; i++)
             {
-                try
+                object[] vals = dt.Rows[i].ItemArray;
+                T model = creator.CreateInstance();
+                foreach (var c in cls)
                 {
-                    object obj = AT.GetProperty(P.Name).GetValue(A, null);
-                    P.SetValue(t, DataConvert(obj, P.PropertyType), null);
+                    if (vals[c.Value] != DBNull.Value && vals[c.Value] != null)
+                        creator.SetValue(model, c.Key, vals[c.Value]);
                 }
-                catch { }
+                list.Add(model);
             }
-            return t;
-        }
-
-        public static object DataConvert(object val, Type targetType)
-        {
-            if (val == null || val == System.DBNull.Value)
-            {
-                if (targetType.IsValueType)
-                    return Activator.CreateInstance(targetType);
-                return null;
-            }
-            if (targetType.IsInstanceOfType(val))
-            {
-                return val;
-            }
-            else
-            {
-                try
-                {
-                    Type baseTargetType = targetType;
-                    if (targetType.IsGenericType && targetType.GetGenericTypeDefinition() == typeof(Nullable<>))
-                        baseTargetType = Nullable.GetUnderlyingType(targetType);
-                    return System.Convert.ChangeType(val, baseTargetType, CultureInfo.InvariantCulture);
-                }
-                catch
-                {
-                    if (targetType.IsValueType)
-                        return Activator.CreateInstance(targetType);
-                    return null;
-                }
-            }
-        }
-        public static T ChangeType<T>(int idx, object[] val) where T : IConvertible
-        {
-            Type TargetType = typeof(T);
-            if (val == null || val.Length <= idx || val[idx] == null || Convert.IsDBNull(val[idx]))
-            {
-                if (TargetType.IsGenericType && TargetType.GetGenericTypeDefinition() == typeof(Nullable<>))
-                    return default(T);
-            }
-            if (val[idx] is T)
-                return (T)val[idx];
-            try
-            {
-                
-                Type baseType = null; ;
-                if (TargetType.IsGenericType && TargetType.GetGenericTypeDefinition() == typeof(Nullable<>))
-                    baseType = Nullable.GetUnderlyingType(TargetType);
-                else
-                    baseType = TargetType;
-
-                return (T)Convert.ChangeType(val[idx], baseType);
-            }
-            catch
-            {
-                return default(T);
-            }
+           return list; 
         }
 
         #endregion
