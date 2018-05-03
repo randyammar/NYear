@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.ServiceModel;
 
@@ -43,7 +44,13 @@ namespace NYear.ODA
         [OperationContract]
         DatabaseColumnInfo ODAColumnToOrigin(string Name, string ColumnType,decimal Length);
         [OperationContract]
-        DataTable GetViewColumns();
+        DataTable GetViewColumns(); 
+        [OperationContract]
+        List<T> Select<T>(string SQL, ODAParameter[] ParamList) where T : class;
+        [OperationContract]
+         List<T> Select<T>(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord) where T : class;
+        [OperationContract]
+        List<T> Select<T>(string SQL, ODAParameter[] ParamList, string StartWithExpress, string ConnectBy, string Prior, string ConnectColumn, string ConnectChar, int MaxLevel) where T : class;
         [OperationContract(Name = "Select")]
         DataTable Select(string SQL, ODAParameter[] ParamList);
         [OperationContract(Name = "SelectBlock")]

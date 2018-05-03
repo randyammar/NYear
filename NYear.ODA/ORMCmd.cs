@@ -31,11 +31,11 @@ namespace NYear.ODA
         }
         public List<T> SelectM(params ODAColumns[] Cols)
         {
-            return base.Select<T>(Cols);
+            return this.Select<T>(Cols); 
         }
         public List<T> SelectM(int StartIndex, int MaxRecord, out int TotalRecord, params ODAColumns[] Cols)
         {
-            return base.Select<T>(StartIndex, MaxRecord, out TotalRecord, Cols);
+           return this.Select<T>(StartIndex, MaxRecord, out TotalRecord, Cols);
         }
         public bool Insert(T Model)
         {

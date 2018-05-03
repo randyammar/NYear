@@ -4,6 +4,7 @@
  * 跨库事务一般都是数据库层面考虑。
 */
 using System;
+using System.Collections.Generic;
 
 namespace NYear.ODA
 {
@@ -18,6 +19,11 @@ namespace NYear.ODA
         private event ODATransactionEventHandler _DoCommit;
         private event ODATransactionEventHandler _DoRollBack;
 
+      
+        /// <summary>
+        /// 启动了事务的DB,为分布式
+        /// </summary>
+        public Dictionary<string,IDBAccess> TransDB { get; } = new Dictionary<string, IDBAccess>();
         public event ODATransactionEventHandler CanCommit;
         public event ODATransactionEventHandler PreCommit;
         public event ODATransactionEventHandler DoCommit

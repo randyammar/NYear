@@ -67,6 +67,7 @@ namespace NYear.ODA
             }
         }
         private static double? _DBTimeDiff = null;
+
         private static IDBAccess NewDBConnect(DbAType dbtype, string Connecting)
         {
             IDBAccess DBA = null;
@@ -98,43 +99,7 @@ namespace NYear.ODA
                     break;
             }
             return DBA;
-        }
-
-        //static ODAContext()
-        //{
-        //    Timer tmr = new Timer();
-        //    tmr.Interval = 1000;
-        //    tmr.Elapsed += Tmr_Elapsed;
-        //}
-        ///// <summary>
-        ///// 从数据库可用性维护
-        ///// </summary>
-        ///// <param name="sender"></param>
-        ///// <param name="e"></param>
-        //private static void Tmr_Elapsed(object sender, ElapsedEventArgs e)
-        //{
-        //    ((Timer)sender).Stop();
-        //    if (_DataBaseSetting != null && _DataBaseSetting.Count > 0)
-        //    {
-        //        Dictionary<string[], DbAType> SlaveDb = new Dictionary<string[], DbAType>();
-        //        lock (_DataBaseSetting)
-        //        {
-        //            foreach (var db in _DataBaseSetting)
-        //            {
-        //                if (db.SlaveConnectionStrings != null && db.SlaveConnectionStrings.Count > 0)
-        //                {
-        //                    SlaveDb.Add(db.SlaveConnectionStrings.ToArray(), db.DBtype);
-        //                }
-        //            }
-        //        }
-
-        //        if (SlaveDb.Count > 0)
-        //        {
-        //            ///
-        //        }
-        //    }
-        //    ((Timer)sender).Start();
-        //}
+        } 
         #endregion
 
         private DbAType dbType = DbAType.MsSQL;
@@ -190,18 +155,8 @@ namespace NYear.ODA
         public virtual U GetCmd<U>(string Alias = "") where U : ODACmd,new()
         {
             U cmd = new U();
+            cmd.GetDBAccess = GetDBAccess;
             cmd.Alias = Alias;
-            cmd.Counting = Count;
-            cmd.Selecting = Select;
-            cmd.SelectPaging = Select;
-            cmd.SelectRecursion = Select;
-            cmd.SelectingFirst = SelectFirst;
-            cmd.Updating = Update;
-            cmd.Inserting = Insert;
-            cmd.InsertScript = Insert;
-            cmd.Deleting = Delete;
-            cmd.ExecutingProcedure = ExecuteProcedure;
-            cmd.Importing = Import;
             return cmd;
         }
 
@@ -225,16 +180,13 @@ namespace NYear.ODA
         /// 检查事务对象的顺序
         /// </summary>
         /// <param name="Cmd"></param>
-        protected void CheckTransaction(IDBScriptGenerator Cmd)
+        protected void CheckTransaction(ODAScript Cmd)
         {
             //this._Tran.TransactionId
             //return;
         }
 
-        /// <summary>
-        /// 启动了事务的数据库
-        /// </summary>
-        private Dictionary<string, IDBAccess> _TransDataBase = new Dictionary<string, IDBAccess>();
+
         /// <summary>
         /// 开启事务，默认30秒超时
         /// </summary>
@@ -249,12 +201,16 @@ namespace NYear.ODA
         /// <returns></returns>
         public virtual void BeginTransaction(int TimeOut)
         {
-            _Tran = new ODATransaction(TimeOut); 
+            _Tran = new ODATransaction(TimeOut);
             _Tran.TransactionTimeOut = this.RollBack;
+            var Sql = new ODAScript()
+            {
+                ScriptType = SQLType.BeginTransation,
+            };
+            Sql.SqlScript.Append("begin tran");
             FireExecutingSqlEvent(new ExecuteEventArgs()
             {
-                Operation = SQLType.Other,
-                SQL = "BeginTransaction"
+                SqlParams = Sql,
             });
         }
         /// <summary>
@@ -262,47 +218,39 @@ namespace NYear.ODA
         /// </summary>
         public void Commit()
         {
-            try
+            if (_Tran != null)
             {
-                if (_Tran != null)
+                _Tran.Commit();
+                var Sql = new ODAScript()
                 {
-                    _Tran.Commit();
-                    FireExecutingSqlEvent(new ExecuteEventArgs()
-                    {
-                        Operation = SQLType.Commit,
-                        SQL = "Commit"
-                    });
+                    ScriptType = SQLType.Commit,
+                };
+                Sql.SqlScript.Append("Commit");
 
-                }
-            }
-            finally
-            {
-                if (_TransDataBase != null)
-                    _TransDataBase.Clear();
-            }
+                FireExecutingSqlEvent(new ExecuteEventArgs()
+                {
+                    SqlParams = Sql,
+                }); 
+            } 
         }
         /// <summary>
         /// 回滚事务
         /// </summary>
         public void RollBack()
         {
-            try
+            if (_Tran != null)
             {
-                if (_Tran != null)
+                _Tran.RollBack();
+                var Sql = new ODAScript()
                 {
-                    _Tran.RollBack();
-                    FireExecutingSqlEvent(new ExecuteEventArgs()
-                    {
-                        Operation = SQLType.Rollback,
-                        SQL = "Rollback"
-                    });
-                }
+                    ScriptType = SQLType.Rollback,
+                };
+                Sql.SqlScript.Append("Rollback");
+                FireExecutingSqlEvent(new ExecuteEventArgs()
+                {
+                    SqlParams = Sql,
+                });
             }
-            finally
-            {
-                if (_TransDataBase != null)
-                    _TransDataBase.Clear();
-            }      
         }
         #endregion
 
@@ -313,7 +261,7 @@ namespace NYear.ODA
         /// <param name="SqlType"></param>
         /// <param name="Cmd"></param>
         /// <returns></returns>
-        private DataBaseSetting RoutToDatabase(SQLType SqlType, IDBScriptGenerator Cmd)
+        private DataBaseSetting RoutToDatabase(ODAScript ODASql)
         {
             if (ODAContext.DataBaseSetting.Count == 1)
             {
@@ -321,24 +269,20 @@ namespace NYear.ODA
             }
             else
             {
-                foreach (var db in ODAContext.DataBaseSetting)
-                {
-                    if ((string.IsNullOrWhiteSpace(db.SystemID) && string.IsNullOrWhiteSpace(Cmd.SystemID))
-                        || db.SystemID == Cmd.SystemID
-                        )
-                        return db;
-                }
+                //分库路由算法
+                ////
+                ////
             }
             throw new ODAException(30001, "没有找到适用的数据库");
         }
 
         /// <summary>
         /// 分库路由器,如果操作存在事务,返回的DB连接已在事务中
+        /// 数据库主从集群
         /// </summary>
-        /// <param name="SqlType"></param>
-        /// <param name="Cmd"></param>
+        /// <param name="ODASql"></param> 
         /// <returns></returns>
-        protected virtual IDBAccess DatabaseRouting(SQLType SqlType, IDBScriptGenerator Cmd)
+        private IDBAccess DatabaseRouting(ODAScript ODASql)
         {
             IDBAccess DBA = null;
             if (ODAContext.SystemTableGroups == null && string.IsNullOrWhiteSpace(this.dbConn))
@@ -348,12 +292,11 @@ namespace NYear.ODA
             {
                 if (_Tran != null)
                 {
-                    if(_Tran.IsTimeout)
-                        throw new ODAException(30000, "事务已超时");
-                    this.CheckTransaction(Cmd);
-                    if (_TransDataBase.ContainsKey(this.dbConn))
+                    if (_Tran.IsTimeout)
+                        throw new ODAException(30000, "事务已超时"); 
+                    if (_Tran.TransDB.ContainsKey(this.dbConn))
                     {
-                        return _TransDataBase[this.dbConn];
+                        return _Tran.TransDB[this.dbConn];
                     }
                     else
                     {
@@ -361,204 +304,54 @@ namespace NYear.ODA
                         DBA.BeginTransaction();
                         _Tran.DoCommit += DBA.Commit;
                         _Tran.RollBacking += DBA.RollBack;
-                        _TransDataBase.Add(this.dbConn, DBA);
-                    }
+                        _Tran.TransDB.Add(this.dbConn, DBA);
+                        return DBA;
+                    } 
                 }
                 else
                 {
-                    DBA = ODAContext.NewDBConnect(this.dbType, this.dbConn);
+                   return ODAContext.NewDBConnect(this.dbType, this.dbConn);
                 }
             }
 
-            DataBaseSetting DB = RoutToDatabase(SqlType, Cmd);
+            DataBaseSetting DB = RoutToDatabase(ODASql);
             if (_Tran != null)
             {
                 if (_Tran.IsTimeout)
-                    throw new ODAException(30000, "事务已超时");
-
-                this.CheckTransaction(Cmd);
-                if (_TransDataBase.ContainsKey(DB.ConnectionString))
+                    throw new ODAException(30000, "事务已超时"); 
+                this.CheckTransaction(ODASql); 
+                if (_Tran.TransDB.ContainsKey(DB.ConnectionString))
                 {
-                    return _TransDataBase[DB.ConnectionString];
+                    return _Tran.TransDB[DB.ConnectionString];
                 }
-                else if (_TransDataBase.Count > 0)
+                else
                 {
-                    throw new ODAException(30008,"不支持跨数据库事务（分布式事务)");
+                    DBA = DBA = ODAContext.NewDBConnect(DB.DBtype, DB.ConnectionString);
+                    DBA.BeginTransaction();
+                    _Tran.DoCommit += DBA.Commit;
+                    _Tran.RollBacking += DBA.RollBack;
+                    _Tran.TransDB.Add(DB.ConnectionString, DBA);
+                    return DBA;
                 }
-
-                DBA = ODAContext.NewDBConnect(DB.DBtype, DB.ConnectionString);
-                DBA.BeginTransaction();
-                _Tran.DoCommit += DBA.Commit;
-                _Tran.RollBacking += DBA.RollBack; 
-                _TransDataBase.Add(DB.ConnectionString,DBA);
             }
             else
             {
                 int curDt = 0;
-                if (SqlType == SQLType.Select && DB.SlaveConnectionStrings != null && DB.SlaveConnectionStrings.Capacity != 0)
+                if (ODASql.ScriptType == SQLType.Select && DB.SlaveConnectionStrings != null && DB.SlaveConnectionStrings.Capacity != 0)
                 {
+                    ///主写从读集群，简单负载均衡
                     int curDate = int.Parse(System.DateTime.Now.ToString("ssfffff"));
                     curDt = curDate % DB.SlaveConnectionStrings.Count;
                     DBA = ODAContext.NewDBConnect(DB.DBtype, DB.SlaveConnectionStrings[curDt]);
                 }
                 else
                 {
-                    DB = RoutToDatabase(SqlType, Cmd); 
                     DBA = ODAContext.NewDBConnect(DB.DBtype, DB.ConnectionString);
                 }
             }
             return DBA;
         }
-
-        /// <summary>
-        /// 分表路由器
-        /// </summary>
-        /// <param name="SqlType"></param>
-        /// <param name="CmdName"></param>
-        /// <param name="ColumnValues"></param>
-        /// <returns></returns>
-        protected virtual string[] TableRouting(SQLType SqlType, IDBScriptGenerator Cmd, params ODAColumns[] ColumnValues)
-        {
-            TableGroup tbl = null;
-            foreach (TableGroup ctbl in SystemTableGroups)
-            {
-                if (ctbl.MainObject == Cmd.CmdName)
-                {
-                    if (ctbl.SystemID == Cmd.SystemID || (string.IsNullOrWhiteSpace(ctbl.SystemID) && string.IsNullOrWhiteSpace(Cmd.SystemID)))
-                    {
-                        tbl = ctbl;
-                        break;
-                    }
-                }
-            }
-            ///没有分表设定
-            if (tbl == null || tbl.SubTable == null || tbl.SubTable.Count == 0)
-                return new string[] { Cmd.CmdName };
-
-            List<string> SubTableList = new List<string>();
-
-            #region 分表路由算法
-            foreach (SplitTable st in tbl.SubTable)
-                SubTableList.Add(st.SubTableName);
-
-            foreach (SplitTable sptbl in tbl.SubTable)
-            {
-                for (int i = 0; i < ColumnValues.Length; i++)
-                {
-                    foreach (SplitTableColumn spc in sptbl.SplitCondition)
-                    {
-                        if (ColumnValues[i].ColumnName == spc.ColumnName)
-                        {
-                            if (!(ColumnValues[i].CompareValue is ODAColumns))
-                            {
-                                if (SubTableList.Contains(sptbl.SubTableName))
-                                    SubTableList.Remove(sptbl.SubTableName);
-                            }
-                            else
-                            {
-                                string CompareValue = "";
-                                switch (spc.ColumnType)
-                                {
-                                    case SplitColumnType.Varchar:
-                                        CompareValue = "";
-                                        if (ColumnValues[i].CompareValue != System.DBNull.Value && ColumnValues[i].CompareValue != null)
-                                            CompareValue = ColumnValues[i].CompareValue.ToString();
-
-                                        MD5CryptoServiceProvider MD5CSP = new MD5CryptoServiceProvider();
-                                        byte[] bytValue = System.Text.Encoding.UTF8.GetBytes(CompareValue);
-                                        byte[] bytHash = MD5CSP.ComputeHash(bytValue);
-
-                                        int intVal = 0;
-                                        for (int j = 0; j < bytHash.Length; j++)
-                                            intVal += bytHash[j];
-
-                                        intVal = intVal % tbl.SubTable.Count;
-                                        int maxInt = tbl.SubTable.Count - 1;
-                                        int minInt = 0;
-                                        if (!int.TryParse(spc.MaxValue.ToString(), out maxInt)
-                                             || !int.TryParse(spc.MinValue.ToString(), out minInt)
-                                             || minInt > intVal
-                                             || intVal > maxInt
-                                            )
-                                        {
-                                            if (SubTableList.Contains(sptbl.SubTableName))
-                                                SubTableList.Remove(sptbl.SubTableName);
-                                        }
-
-                                        break;
-                                    case SplitColumnType.DateTime:
-                                        DateTime valDateTime = DateTime.Now;
-                                        if (ColumnValues[i].CompareValue == System.DBNull.Value || ColumnValues[i].CompareValue == null || !DateTime.TryParse(ColumnValues[i].CompareValue.ToString(), out valDateTime))
-                                        {
-                                            if (SubTableList.Contains(sptbl.SubTableName))
-                                                SubTableList.Remove(sptbl.SubTableName);
-                                            break;
-                                        }
-                                        DateTime maxDateTime = DateTime.MaxValue;
-                                        DateTime minDateTime = DateTime.MinValue;
-
-                                        if (!DateTime.TryParse(spc.MaxValue.ToString(), out maxDateTime)
-                                              || !DateTime.TryParse(spc.MinValue.ToString(), out minDateTime)
-                                              || minDateTime > valDateTime
-                                              || valDateTime > maxDateTime
-                                            )
-                                        {
-                                            if (SubTableList.Contains(sptbl.SubTableName))
-                                                SubTableList.Remove(sptbl.SubTableName);
-                                        }
-                                        break;
-                                    case SplitColumnType.Number:
-                                        decimal valDecimal = 0;
-                                        if (ColumnValues[i].CompareValue == System.DBNull.Value || ColumnValues[i].CompareValue == null || !decimal.TryParse(ColumnValues[i].CompareValue.ToString(), out valDecimal))
-                                        {
-                                            if (SubTableList.Contains(sptbl.SubTableName))
-                                                SubTableList.Remove(sptbl.SubTableName);
-                                            break;
-                                        }
-                                        decimal maxDecimal = decimal.MaxValue;
-                                        decimal minDecimal = decimal.MinValue;
-                                        if (!decimal.TryParse(spc.MaxValue.ToString(), out maxDecimal)
-                                              || !decimal.TryParse(spc.MinValue.ToString(), out minDecimal)
-                                            || minDecimal > valDecimal
-                                            || valDecimal > maxDecimal
-                                            )
-                                        {
-                                            if (SubTableList.Contains(sptbl.SubTableName))
-                                                SubTableList.Remove(sptbl.SubTableName);
-                                        }
-                                        break;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            #endregion
-
-            if (SubTableList.Count == 0)///所有表都没有对应的字段的值
-            {
-                if (SqlType == SQLType.Select)
-                    return new string[] { tbl.MainObject };
-                else
-                    throw new ODAException(30004, "分表路由器找不到需要更改数据的子表");
-            }
-            else if (SubTableList.Count > 1)
-            {
-                if (SqlType == SQLType.Select)
-                {
-                    return new string[] { tbl.MainObject };////如果是分表则，需要建立一个主视图供全表查询
-                }
-                else if (SqlType == SQLType.Insert)
-                {
-                    throw new ODAException(30005, "分表路由器定位不到需要插入数据数的子表，请检查插入的数据是否包含分表字段或分表字段的值与分表规则匹配情况");
-                }
-                else if (SqlType == SQLType.Other)
-                {
-                    return new string[] { tbl.MainObject };
-                }
-            }
-            return SubTableList.ToArray();
-        }
+ 
         #endregion
         #region SQL语句执行。（待扩展：使用消息队列实现多数据实时同步）
         public static event ExecuteSqlEventHandler ExecutingSql;
@@ -568,232 +361,40 @@ namespace NYear.ODA
             ExecutingSql?.Invoke(this, args);
             CurrentExecutingSql?.Invoke(this, args);
         }
-
+        protected IDBAccess GetDBAccess(ODAScript ODASql)
+        {
+            
+            IDBAccess DBA = DatabaseRouting(ODASql); 
+            ExecuteEventArgs earg = new ExecuteEventArgs()
+            {
+                DBA = DBA,
+                SqlParams = ODASql,
+            };
+            this.FireExecutingSqlEvent(earg);
+            return earg.DBA;
+        }
         /// <summary>
         /// 分表查询设定
         /// </summary>
         /// <param name="Cmd"></param>
-        protected virtual void SetSelectSplitTable(IDBScriptGenerator Cmd)
+        protected virtual void SetSelectSplitTable(ODACmd Cmd)
         {
-            if (Cmd.BaseCmd != null)
-            {
-                SetSelectSplitTable(Cmd.BaseCmd);
-            }
-            else
-            {
-                string[] mTbl = TableRouting(SQLType.Select, Cmd, Cmd.WhereColumns.ToArray());
-                Cmd.DBObjectMap = mTbl[0];
-            }
-            foreach (IDBScriptGenerator c in Cmd.ListJoinCmd)
-                SetSelectSplitTable(c);
-            foreach (SqlJoinScript c in Cmd.JoinCmd)
-                SetSelectSplitTable(c.JoinCmd);
-            foreach (ODAColumns c in Cmd.WhereColumns)
-                if (c.InCmd != null)
-                    SetSelectSplitTable(c.InCmd);
-        }
-
-        /// <summary>
-        /// 执行 select count 查询并返回值
-        /// </summary>
-        /// <param name="Cmd"></param>
-        /// <param name="Col"></param>
-        /// <returns></returns>
-        protected virtual int Count(IDBScriptGenerator Cmd, ODAColumns Col)
-        {
-            SetSelectSplitTable(Cmd);
-            IDBAccess DBA = DatabaseRouting(SQLType.Select, Cmd);
-            ExecuteEventArgs EA = new ExecuteEventArgs() { DBA = DBA, Operation = SQLType.Select };
-            string sql;
-            EA.SqlParams = Cmd.GetCountSql(out sql, Col);
-            EA.SQL = sql;
-            this.FireExecutingSqlEvent(EA);
-            DataTable d = EA.DBA.Select(EA.SQL, EA.SqlParams);
-            return int.Parse(d.Rows[0]["TOTAL_RECORD"].ToString());
-        }
-
-        /// <summary>
-        /// 执行查询
-        /// </summary>
-        /// <param name="Cmd">查询命令</param>
-        /// <param name="Cols">查询的字段</param>
-        /// <returns></returns>
-        protected virtual DataTable Select(IDBScriptGenerator Cmd, params ODAColumns[] Cols)
-        {
-            SetSelectSplitTable(Cmd);
-            IDBAccess DBA = DatabaseRouting(SQLType.Select, Cmd);
-            ExecuteEventArgs EA = new ExecuteEventArgs() { DBA = DBA, Operation = SQLType.Select };
-            string sql;
-            EA.SqlParams = Cmd.GetSelectSql(out sql, Cols);
-            EA.SQL = sql;
-            this.FireExecutingSqlEvent(EA);
-            DataTable d = EA.DBA.Select(EA.SQL, EA.SqlParams);
-            return d;
-        }
-        /// <summary>
-        /// 查询分页
-        /// </summary>
-        /// <param name="Cmd">查询脚本</param>
-        /// <param name="StartIndex">起始行数从0开始</param>
-        /// <param name="MaxRecord">读取行数</param>
-        /// <param name="Cols">要求返回的列</param>
-        /// <returns></returns>
-        protected virtual DataTable Select(IDBScriptGenerator Cmd, int StartIndex, int MaxRecord, params ODAColumns[] Cols)
-        {
-            SetSelectSplitTable(Cmd);
-            IDBAccess DBA = DatabaseRouting(SQLType.Select, Cmd);
-            ExecuteEventArgs EA = new ExecuteEventArgs() { DBA = DBA, Operation = SQLType.Select };
-            string sql;
-            EA.SqlParams = Cmd.GetSelectSql(out sql, Cols);
-            EA.SQL = sql;
-            this.FireExecutingSqlEvent(EA);
-            DataTable d = EA.DBA.Select(EA.SQL, EA.SqlParams, StartIndex, MaxRecord);
-            return d;
-        }
-        protected virtual DataTable Select(IDBScriptGenerator Cmd, string StartWithExpress, string ConnectBy, string Prior, string ConnectColumn, string ConnectChar, int MaxLevel, params ODAColumns[] Cols)
-        {
-            SetSelectSplitTable(Cmd);
-            IDBAccess DBA = DatabaseRouting(SQLType.Select, Cmd);
-            ExecuteEventArgs EA = new ExecuteEventArgs() { DBA = DBA, Operation = SQLType.Select };
-            string sql;
-            EA.SqlParams = Cmd.GetSelectSql(out sql, Cols);
-            EA.SQL = sql;
-            this.FireExecutingSqlEvent(EA);
-            DataTable d = EA.DBA.Select(EA.SQL, EA.SqlParams, StartWithExpress, ConnectBy, Prior, ConnectColumn, ConnectChar, MaxLevel);
-            return d;
-        }
-
-        protected virtual object[] SelectFirst(IDBScriptGenerator Cmd, params ODAColumns[] Cols)
-        {
-            SetSelectSplitTable(Cmd);
-            IDBAccess DBA = DatabaseRouting(SQLType.Select, Cmd);
-            ExecuteEventArgs EA = new ExecuteEventArgs() { DBA = DBA, Operation = SQLType.Select };
-           
-            string sql;
-            EA.SqlParams = Cmd.GetSelectSql(out sql, Cols);
-            EA.SQL = sql;
-            this.FireExecutingSqlEvent(EA);
-            object[] o = EA.DBA.SelectFirst(EA.SQL, EA.SqlParams);
-            return o;
-        }
-        protected virtual bool Insert(IDBScriptGenerator Cmd, params ODAColumns[] Cols)
-        {
-            string[] mTbl = TableRouting(SQLType.Insert, Cmd, Cmd.WhereColumns.ToArray());
-            if (mTbl.Length != 1)
-                throw new ODAException(30006, "插入数据分表设定错误");
-            Cmd.DBObjectMap = mTbl[0];
-            Cmd.Alias = "";
-            IDBAccess DBA = DatabaseRouting(SQLType.Insert, Cmd);
-            ExecuteEventArgs EA = new ExecuteEventArgs() { DBA = DBA, Operation = SQLType.Insert };
-            string sql;
-            EA.SqlParams = Cmd.GetInsertSql(out sql, Cols);
-            EA.SQL = sql;
-            this.FireExecutingSqlEvent(EA);
-            return DBA.ExecuteSQL(EA.SQL, EA.SqlParams) > 0;
-        }
-        protected virtual bool Insert(IDBScriptGenerator InsertCmd, IDBScriptGenerator SelectCmdparams, ODAColumns[] Cols)
-        {
-            IDBAccess DBA = DatabaseRouting(SQLType.Insert, InsertCmd);
-            ExecuteEventArgs EA = new ExecuteEventArgs() { DBA = DBA, Operation = SQLType.Insert };
-            string slct = "";
-            EA.SqlParams = SelectCmdparams.GetSelectSql(out slct, Cols);
-            string Column = "";
-            for (int i = 0; i < Cols.Length; i++)
-                Column += Cols[i].ColumnName + ",";
-            EA.SQL = "INSERT INTO " + InsertCmd.CmdName + "(" + Column.Remove(Column.Length - 1, 1) + ") " + slct;
-            this.FireExecutingSqlEvent(EA);
-            return DBA.ExecuteSQL(EA.SQL, EA.SqlParams) > 0;
-        }
-        protected virtual bool Update(IDBScriptGenerator Cmd, params ODAColumns[] Cols)
-        {
-            string[] mTbl = TableRouting(SQLType.Update, Cmd, Cmd.WhereColumns.ToArray());
-            foreach (ODAColumns c in Cmd.WhereColumns)
-                if (c.InCmd != null)
-                    SetSelectSplitTable(c.InCmd);
-
-            ////如果有分表,而且命令涉及到两个表以上,及单表操作,则启动事务
-            bool LocalTranstion = false;
-            if (_Tran == null && mTbl.Length > 1)
-            {
-                this.BeginTransaction(30);
-                LocalTranstion = true;
-            }
-            foreach (string subTable in mTbl)
-            {
-                Cmd.DBObjectMap = subTable;
-                Cmd.Alias = "";
-                IDBAccess DBA = DatabaseRouting(SQLType.Update, Cmd);
-                ExecuteEventArgs EA = new ExecuteEventArgs() { DBA = DBA, Operation = SQLType.Update };
-                string sql;
-                EA.SqlParams = Cmd.GetUpdateSql(out sql, Cols);
-                EA.SQL = sql;
-                this.FireExecutingSqlEvent(EA);
-                EA.DBA.ExecuteSQL(EA.SQL, EA.SqlParams);
-            }
-            if (LocalTranstion)
-                _Tran.Commit();
-            return true;
-        }
-        protected virtual bool Delete(IDBScriptGenerator Cmd)
-        {
-            string[] mTbl = TableRouting(SQLType.Insert, Cmd, Cmd.WhereColumns.ToArray());
-            foreach (ODAColumns c in Cmd.WhereColumns)
-                if (c.InCmd != null)
-                    SetSelectSplitTable(c.InCmd);
-
-            ////如果有分表,而且命令涉及到两个表以上,及单表操作,则启动事务
-            bool LocalTranstion = false;
-            if (_Tran == null && mTbl.Length > 1)
-            {
-                this.BeginTransaction(30);
-                LocalTranstion = true;
-            }
-            foreach (string subTable in mTbl)
-            {
-                Cmd.DBObjectMap = subTable;
-                Cmd.Alias = "";
-                IDBAccess DBA = DatabaseRouting(SQLType.Delete, Cmd);
-                ExecuteEventArgs EA = new ExecuteEventArgs() { DBA = DBA, Operation = SQLType.Delete };
-                string sql;
-                EA.SqlParams = Cmd.GetDeleteSql(out sql);
-                EA.SQL = sql;
-                this.FireExecutingSqlEvent(EA);
-                EA.DBA.ExecuteSQL(EA.SQL, EA.SqlParams);
-            }
-            if (LocalTranstion)
-                _Tran.Commit();
-            return true;
-        }
-        protected virtual DataSet ExecuteProcedure(IDBScriptGenerator Cmd, params ODAColumns[] Cols)
-        {
-            string[] mTbl = TableRouting(SQLType.Other, Cmd, Cols);
-            if (mTbl.Length != 1)
-                throw new ODAException(30007, "存储过程分表设定错误");
-            Cmd.DBObjectMap = mTbl[0];
-
-            Cmd.Alias = "";
-            IDBAccess DBA = DatabaseRouting(SQLType.Other, Cmd);
-            ExecuteEventArgs EA = new ExecuteEventArgs() { DBA = DBA, Operation = SQLType.Other };
-            string Sql = "";
-            EA.SqlParams = Cmd.GetProcedureSql(out Sql, Cols);
-            EA.SQL = Sql;
-            this.FireExecutingSqlEvent(EA);
-            return EA.DBA.ExecuteProcedure(EA.SQL, EA.SqlParams);
-        }
-        protected virtual bool Import(IDBScriptGenerator Cmd, ODAParameter[] Prms, DataTable Data)
-        {
-            string[] mTbl = TableRouting(SQLType.Other, Cmd);
-            if (mTbl.Length != 1)
-                throw new ODAException(30008, "存储过程分表设定错误");
-            Cmd.DBObjectMap = mTbl[0];
-
-            Cmd.Alias = "";
-            IDBAccess DBA = DatabaseRouting(SQLType.Other, Cmd);
-            ExecuteEventArgs EA = new ExecuteEventArgs() { DBA = DBA, Operation = SQLType.Insert };
-            EA.SqlParams = new ODAParameter[] { new ODAParameter() { ParamsName = "value", ParamsValue = Data } };
-            EA.SqlParams = Prms;
-            this.FireExecutingSqlEvent(EA);
-            return EA.DBA.Import(Cmd.CmdName, Prms, Data);
+            //if (Cmd.BaseCmd != null)
+            //{
+            //    SetSelectSplitTable(Cmd.BaseCmd);
+            //}
+            //else
+            //{
+            //    string[] mTbl = TableRouting(SQLType.Select, Cmd, Cmd.WhereColumns.ToArray());
+            //    Cmd.DBObjectMap = mTbl[0];
+            //}
+            //foreach (IDBScriptGenerator c in Cmd.ListJoinCmd)
+            //    SetSelectSplitTable(c);
+            //foreach (SqlJoinScript c in Cmd.JoinCmd)
+            //    SetSelectSplitTable(c.JoinCmd);
+            //foreach (ODAColumns c in Cmd.WhereColumns)
+            //    if (c.InCmd != null)
+            //        SetSelectSplitTable(c.InCmd);
         }
         #endregion
     }

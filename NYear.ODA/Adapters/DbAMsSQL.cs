@@ -12,8 +12,6 @@ namespace NYear.ODA.Adapter
             : base(ConnectionString)
         {
         }
-
-
         private SqlConnection _DBConn = null;
         protected override IDbConnection GetConnection()
         {
@@ -325,6 +323,22 @@ DISTINCT
                 CloseCommand(Cmd);
             }
         }
+        public override List<T> Select<T>(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord)
+        {
+            IDbCommand Cmd = OpenCommand();
+            try
+            {
+                Cmd.CommandType = CommandType.Text;
+                SetCmdParameters(ref Cmd, SQL, ParamList);
+                IDataReader Dr = Cmd.ExecuteReader();
+                return GetList<T>(Dr, StartIndex, MaxRecord);
+            }
+            finally
+            {
+                CloseCommand(Cmd);
+            }
+        }
+
         public override bool Import(string DbTable, ODAParameter[] prms, DataTable FormTable)
         {
             SqlBulkCopy sqlbulkcopy = null;

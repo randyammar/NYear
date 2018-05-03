@@ -124,6 +124,23 @@ namespace NYear.ODA.Adapter
             string BlockStr = SQL + " limit " + MaxRecord.ToString() + " offset " + StartIndex.ToString();
             return Select(BlockStr, ParamList);
         }
+
+        public override List<T> Select<T>(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord)  
+        {
+            IDbCommand Cmd = OpenCommand();
+            try
+            {
+                string BlockStr = SQL + " limit " + MaxRecord.ToString() + " offset " + StartIndex.ToString();
+                Cmd.CommandType = CommandType.Text;
+                SetCmdParameters(ref Cmd, BlockStr, ParamList);
+                IDataReader Dr = Cmd.ExecuteReader();
+                return GetList<T>(Dr);
+            }
+            finally
+            {
+                CloseCommand(Cmd);
+            }
+        }
         public override bool Import(string DbTable, ODAParameter[] prms, DataTable FormTable)
         {
             int ImportCount = 0;

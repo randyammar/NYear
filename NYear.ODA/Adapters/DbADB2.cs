@@ -1,5 +1,6 @@
 ﻿using IBM.Data.DB2;
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 
@@ -164,6 +165,25 @@ AND UNIQUERULE = 'P'";
             DataTable dt = Select(BlockStr, ParamList);
             dt.Columns.Remove("r_id_1");
             return dt;
+        }
+
+        public override List<T> Select<T>(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord)
+        {
+            IDbCommand Cmd = OpenCommand();
+            try
+            {
+                string BlockStr = "select * from (select row_number() over() as r_id_1,t_1.* from ( ";
+                BlockStr += SQL;
+                BlockStr += ") t_1 ) t_t_1 where t_t_1.r_id_1 > " + StartIndex.ToString() + " and t_t_1.r_id_1  <= " + (StartIndex + MaxRecord).ToString();
+                Cmd.CommandType = CommandType.Text;
+                SetCmdParameters(ref Cmd, BlockStr, ParamList);
+                IDataReader Dr = Cmd.ExecuteReader();
+                return GetList<T>(Dr);
+            }
+            finally
+            {
+                CloseCommand(Cmd);
+            }
         }
         public override bool Import(string DbTable, ODAParameter[] prms, DataTable FormTable)
         {

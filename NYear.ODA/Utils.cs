@@ -5,7 +5,7 @@ using System.Globalization;
 using System.Reflection;
 using System.Runtime;
 using System.Runtime.Serialization;
-
+using System.Text;
 
 namespace NYear.ODA
 {
@@ -119,7 +119,8 @@ namespace NYear.ODA
     public class ODAParameter
     {
         public static char ODAParamsMark { get { return '@'; } }
-
+        [DataMember]
+        public string ColumnName { get; set; }
         [DataMember(IsRequired = true)]
         public string ParamsName { get; set; }
         [DataMember(IsRequired = true)]
@@ -131,13 +132,42 @@ namespace NYear.ODA
         [DataMember]
         public object ParamsValue { get; set; }
     }
+    [Serializable()]
+    [DataContract]
+    public class ODAScript
+    {
+        [DataMember]
+        public SQLType ScriptType { get; set; } = SQLType.Other;
+        [DataMember]
+        public StringBuilder SqlScript { get; set; } = new StringBuilder();
+        [DataMember]
+        public List<ODAParameter> WhereList { get; set; } = new List<ODAParameter>();
+        [DataMember]
+        public List<ODAParameter> ValueList { get; set; } = new List<ODAParameter>();
+        [DataMember]
+        public List<string> TableList { get; set; } = new List<string>();
+        [DataMember]
+        public string OrderBy  { get; set; }  
 
+        public ODAScript Merge(ODAScript Child)
+        {
+            if (Child.SqlScript.Length > 0)
+                SqlScript.Append(Child.SqlScript.ToString()); 
+            if (Child.TableList.Count > 0)
+                TableList.AddRange(Child.TableList.ToArray());
+            if (Child.ValueList.Count > 0)
+                ValueList.AddRange(Child.ValueList.ToArray());
+            if (Child.WhereList.Count > 0)
+                WhereList.AddRange(Child.WhereList.ToArray()); 
+            return this;
+        }
+    }
     [Serializable()]
     [DataContract]
     public class ValuesCollection
     {
         [DataMember]
-        public object ParamName { get; set; }
+        public string ParamName { get; set; }
         [DataMember]
         public object ReturnValue { get; set; }
     }
@@ -168,12 +198,15 @@ namespace NYear.ODA
     public enum SQLType
     {
         Other = 1,
-        Insert = 2,
+        Insert = 2, 
         Delete = 3,
         Select = 4, 
         Update = 5,
-        Commit = 6,
-        Rollback = 7, 
+        BeginTransation = 6,
+        Commit = 7,
+        Rollback = 8,
+        Import = 9,
+        Procedure = 10,
     }
 
     /// <summary>
@@ -229,35 +262,37 @@ namespace NYear.ODA
         DateTime,
     }
 
-    public delegate int CountEventHandler(ODACmd Cmd, ODAColumns Col); 
-    public delegate DataTable SelectEventHandler(ODACmd Cmd, params ODAColumns[] Cols);
-    public delegate DataTable SelectPagingEventHandler(ODACmd Cmd, int StartIndex, int MaxRecord, params ODAColumns[] Cols);
-    public delegate object[] SelectFirstEventHandler(ODACmd Cmd, params ODAColumns[] Cols);
-    public delegate DataTable SelectRecursionEventHandler(ODACmd Cmd, string StartWithExpress, string ConnectBy, string Prior, string ConnectColumn, string ConnectChar, int MaxLevel, params ODAColumns[] Cols);
-    public delegate bool UpdateEventHandler(ODACmd Cmd, params ODAColumns[] Cols);
-    public delegate bool InsertEventHandler(ODACmd Cmd, params ODAColumns[] Cols);
-    public delegate bool InsertScriptEventHandler(ODACmd InsertCmd, ODACmd SelectCmd, ODAColumns[] Cols);
-    public delegate bool ImportEventHandler(ODACmd Cmd, ODAParameter[] Prms, DataTable Data);
-    public delegate bool DeleteEventHandler(ODACmd Cmd);
-    public delegate DataSet ExecuteProcedureEventHandler(ODACmd Cmd, params ODAColumns[] Cols);
+    public delegate IDBAccess GetDBAccessHandler(ODAScript ODASql );
+    //public delegate int CountEventHandler(ODACmd Cmd, ODAColumns Col); 
+    //public delegate DataTable SelectEventHandler(ODACmd Cmd, params ODAColumns[] Cols); 
+    //public delegate DataTable SelectPagingEventHandler(ODACmd Cmd, int StartIndex, int MaxRecord, params ODAColumns[] Cols); 
+    //public delegate object[] SelectFirstEventHandler(ODACmd Cmd, params ODAColumns[] Cols);
+    //public delegate DataTable SelectRecursionEventHandler(ODACmd Cmd, string StartWithExpress, string ConnectBy, string Prior, string ConnectColumn, string ConnectChar, int MaxLevel, params ODAColumns[] Cols);
+    //public delegate bool UpdateEventHandler(ODACmd Cmd, params ODAColumns[] Cols);
+    //public delegate bool InsertEventHandler(ODACmd Cmd, params ODAColumns[] Cols);
+    //public delegate bool InsertScriptEventHandler(ODACmd InsertCmd, ODACmd SelectCmd, ODAColumns[] Cols);
+    //public delegate bool ImportEventHandler(ODACmd Cmd, ODAParameter[] Prms, DataTable Data);
+    //public delegate bool DeleteEventHandler(ODACmd Cmd);
+    //public delegate DataSet ExecuteProcedureEventHandler(ODACmd Cmd, params ODAColumns[] Cols);
     public delegate void ExecuteSqlEventHandler(object source, ExecuteEventArgs args);
 
     public class ExecuteEventArgs : EventArgs
     {
-        public ODA.IDBAccess DBA { get; set; }
-        public string SQL { get; set; }
-
-        public SQLType Operation { get; set; }
-
-        public ODAParameter[] SqlParams { get; set; }
+        public IDBAccess DBA { get; set; } 
+        public ODAScript SqlParams { get; set; }
 
         public string DebugSQL
         {
             get
             {
-                if (this.DBA == null || string.IsNullOrWhiteSpace(this.SQL))
-                    return string.Empty;
-                return this.GetDebugSql(this.SQL, this.SqlParams);
+                var prms = new ODAParameter[0];
+                if (SqlParams != null)
+                {
+                    prms = new ODAParameter[SqlParams.ValueList.Count + SqlParams.WhereList.Count];
+                    SqlParams.ValueList.CopyTo(prms, 0);
+                    SqlParams.WhereList.CopyTo(prms, SqlParams.ValueList.Count);
+                } 
+                return this.GetDebugSql(SqlParams.SqlScript.ToString(), prms);
             }
         }
         private string GetDebugSql(string Sql, params ODAParameter[] prms)
@@ -291,123 +326,5 @@ namespace NYear.ODA
         }
     }
 
-
-    //public static class DataConvert
-    //{
-    //    public static List<T> ConvertToList<T>(DataTable dt) where T:new()
-    //    {
-    //        List<T> list = new List<T>();
-    //        if (typeof(T).IsValueType || typeof(T) == typeof(string))
-    //        {
-    //            for (int i = 0; i < dt.Rows.Count; i++)
-    //            {
-    //                if (dt.Rows[i][0] is T)
-    //                    list.Add((T)dt.Rows[i][0]);
-    //                else
-    //                    list.Add((T)System.Convert.ChangeType(dt.Rows[i][0], typeof(T), CultureInfo.InvariantCulture));
-    //            }
-    //        }
-    //        else
-    //        {
-    //            T t = new T();
-    //            PropertyInfo[] propertypes = t.GetType().GetProperties();
-    //            for (int i = 0; i < dt.Rows.Count; i++)
-    //            {
-    //                foreach (PropertyInfo pro in propertypes)
-    //                {
-    //                    if (pro.CanWrite && dt.Columns.Contains(pro.Name))
-    //                    {
-    //                        object value = dt.Rows[i][pro.Name];
-    //                        pro.SetValue(t, DataConvert(value, pro.PropertyType), null);
-    //                    }
-    //                }
-    //                list.Add(t);
-    //            }
-    //        }
-    //        return list;
-    //    }
-
-    //    public static T ConvertToModel<T>(DataTable dt)
-    //    {
-    //        T t = Activator.CreateInstance<T>();
-    //        PropertyInfo[] propertypes = t.GetType().GetProperties();
-    //        if (dt.Rows.Count > 0)
-    //        {
-    //            foreach (PropertyInfo pro in propertypes)
-    //            {
-    //                if (pro.CanWrite && dt.Columns.Contains(pro.Name))
-    //                {
-    //                    object value = dt.Rows[0][pro.Name];
-    //                    pro.SetValue(t, DataConvert(value, pro.PropertyType), null);
-    //                }
-    //            }
-    //            return t;
-    //        }
-    //        return default(T);
-    //    }
-
-    //    public static T ConvertToModeT<T>(object A) where T : class
-    //    {
-    //        T t = default(T);
-    //        t = Activator.CreateInstance<T>();
-    //        PropertyInfo[] PList = t.GetType().GetProperties();
-    //        Type AT = A.GetType();
-    //        foreach (PropertyInfo P in PList)
-    //        {
-    //            try
-    //            {
-    //                object obj = AT.GetProperty(P.Name).GetValue(A, null);
-    //                P.SetValue(t, DataConvert(obj, P.PropertyType), null);
-    //            }
-    //            catch { }
-    //        }
-    //        return t;
-    //    }
-
-    //    public static object DataConvert(object val, Type targetType)
-    //    {
-    //        if (val == null || val == System.DBNull.Value)
-    //        {
-    //            if (targetType.GetGenericTypeDefinition() == typeof(Nullable<>))
-    //                return null;
-    //            return Activator.CreateInstance(targetType);
-    //        }
-    //        if (targetType.IsInstanceOfType(val))
-    //        {
-    //            return val;
-    //        }
-    //        else
-    //        {
-    //            try
-    //            {
-    //                Type baseTargetType = targetType;
-    //                if (targetType.IsGenericType && targetType.GetGenericTypeDefinition() == typeof(Nullable<>))
-    //                    baseTargetType = Nullable.GetUnderlyingType(targetType);
-    //                return System.Convert.ChangeType(val, baseTargetType, CultureInfo.InvariantCulture);
-    //            }
-    //            catch
-    //            {
-    //                if (targetType.IsValueType)
-    //                    return Activator.CreateInstance(targetType);
-    //                return null;
-    //            }
-    //        }
-    //    }
-         
-    //    public static T ChangeType<T>(int idx, object[] val) where T : IConvertible
-    //    {
-    //        if (val == null || val.Length <= idx || val[idx] == null || Convert.IsDBNull(val[idx]))
-    //            return default(T);
-    //        if (val[idx] is T)
-    //            return (T)val[idx];
-    //        try
-    //        {
-    //            return (T)Convert.ChangeType(val[idx], typeof(T));
-    //        }
-    //        catch
-    //        {
-    //            return default(T);
-    //        }
-    //    }
-    //}
+     
 }

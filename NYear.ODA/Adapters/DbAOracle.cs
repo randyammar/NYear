@@ -284,6 +284,24 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
             dt.Columns.Remove("R_ID_1");
             return dt;
         }
+        public override List<T> Select<T>(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord)
+        {
+            IDbCommand Cmd = OpenCommand();
+            try
+            {
+                string BlockStr = "SELECT * FROM (SELECT ROWNUM AS R_ID_1 ,T_T_1.* FROM ( ";
+                BlockStr += SQL;
+                BlockStr += ") T_T_1 ) WHERE R_ID_1 > " + StartIndex.ToString() + " AND R_ID_1 <= " + (StartIndex + MaxRecord).ToString();  ///取出MaxRecord条记录
+                Cmd.CommandType = CommandType.Text;
+                SetCmdParameters(ref Cmd, BlockStr, ParamList);
+                IDataReader Dr = Cmd.ExecuteReader();
+                return GetList<T>(Dr);
+            }
+            finally
+            {
+                CloseCommand(Cmd);
+            }
+        }
         public override bool Import(string DbTable, ODAParameter[] prms, DataTable FormTable)
         {
             string Sqlcols = "";

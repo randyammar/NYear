@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Data.Odbc;
@@ -155,7 +156,22 @@ namespace NYear.ODA.Adapter
             BlockStr += SQL.Trim().Substring(6);
             return Select(BlockStr, ParamList);
         }
-
+        public override List<T> Select<T>(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord)
+        {
+            IDbCommand Cmd = OpenCommand();
+            try
+            {
+                string BlockStr = BlockStr = "SELECT SKIP " + StartIndex.ToString() + " FIRST " + MaxRecord.ToString() + " "; ////取出MaxRecord记录
+                Cmd.CommandType = CommandType.Text;
+                SetCmdParameters(ref Cmd, BlockStr, ParamList);
+                IDataReader Dr = Cmd.ExecuteReader();
+                return GetList<T>(Dr);
+            }
+            finally
+            {
+                CloseCommand(Cmd);
+            }
+        }
         public override object GetExpressResult(string ExpressionString)
         {
             IDbCommand Cmd = OpenCommand();

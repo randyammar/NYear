@@ -32,37 +32,34 @@ namespace NYear.ODA
             }
         }
 
-        protected override string DBObjectMap
+        public override string DBObjectMap
         {
             get
             {
-                return ((IDBScriptGenerator)_CmdView).DBObjectMap;
+                return ((ODACmd)_CmdView).DBObjectMap;
             }
             set
             {
-                ((IDBScriptGenerator)_CmdView).DBObjectMap = value;
+                ((ODACmd)_CmdView).DBObjectMap = value;
             }
         }
 
-        protected override ODAParameter[] GetCmdSql(out string DBObject)
+        protected override ODAScript GetCmdSql()
         {
-            string View = null;
-            ODAParameter[] prms = ((IDBScriptGenerator)_CmdView).GetSelectSql(out View, SelectCols);
-            DBObject = "(" + View + ")";
-            return prms;
-        }
-
+            var view =  ((ODACmd)_CmdView).GetSelectSql(SelectCols);
+            view.SqlScript.Insert(0, "(").Append(")");
+            return view; 
+        } 
         public ODAColumns CreateColumn(string ColName, ODAdbType ColType = ODAdbType.OVarchar, int size = 2000)
         {
             return new ODAColumns(this, ColName, ColType, size);
         }
 
         internal ODACmdView(ODACmd Cmd, params ODAColumns[] Cols)
-        {
+        { 
             _CmdView = Cmd;
             Alias = Cmd.Alias + "V";
             SelectCols = Cols; 
         }
-      
     }
 }

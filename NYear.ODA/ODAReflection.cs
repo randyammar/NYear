@@ -1,59 +1,55 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Numerics;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.Serialization;
-using System.Text;
 
 namespace NYear.ODA
 {
-    internal class ODAReflectionObject<T>
+    internal sealed class ODAReflectionFactory : ODAReflectionObject<object>
     {
         private static SafeDictionary<Type, object> _constrcache = new SafeDictionary<Type, object>();
-        private ODAReflectionObject()
+        public static ODAReflectionObject<T> GetConstructor<T>()
         {
-        }
-        public static ODAReflectionObject<A> GetConstructor<A>()
-        { 
             object RflOject;
-            Type dType = typeof(A);
+            Type dType = typeof(T);
             if (!_constrcache.TryGetValue(dType, out RflOject))
             {
-                Func<A> creator = ODAReflection.CreateDefaultConstructor<A>();
-                RflOject = new ODAReflectionObject<A>();
-                ((ODAReflectionObject<A>)RflOject)._creator = creator;
+                Func<T> creator = ODAReflection.CreateDefaultConstructor<T>();
+                RflOject = new ODAReflectionObject<T>();
+                ((ODAReflectionObject<T>)RflOject).Creator = creator;
                 PropertyInfo[] prptys = dType.GetProperties(BindingFlags.Instance | BindingFlags.Public);
                 foreach (var pi in prptys)
                 {
                     if (pi.CanWrite)
                     {
-                        var settor = ODAReflection.CreateSet<A>(pi);
-                        ((ODAReflectionObject<A>)RflOject)._setters.Add(pi.Name, settor);
-                        ((ODAReflectionObject<A>)RflOject).GetPropertys.Add(pi.Name, new ODADataType(pi.PropertyType));
+                        var settor = ODAReflection.CreateSet<T>(pi);
+                        ((ODAReflectionObject<T>)RflOject).Setters.Add(pi.Name, settor);
+                        ((ODAReflectionObject<T>)RflOject).GetPropertys.Add(new ODAProperty(pi));
                     }
                     if (pi.CanRead)
                     {
-                        var gettor = ODAReflection.CreateGet<A>(pi);
-                        ((ODAReflectionObject<A>)RflOject)._getters.Add(pi.Name, gettor);
-                        ((ODAReflectionObject<A>)RflOject).SetPropertys.Add(pi.Name, new ODADataType(pi.PropertyType));
+                        var gettor = ODAReflection.CreateGet<T>(pi);
+                        ((ODAReflectionObject<T>)RflOject).Getters.Add(pi.Name, gettor);
+                        ((ODAReflectionObject<T>)RflOject).SetPropertys.Add(new ODAProperty(pi));
                     }
                 }
             }
-            return (ODAReflectionObject<A>)RflOject;
+            return (ODAReflectionObject<T>)RflOject;
         }
-
-        private Func<T> _creator { get; set; } 
-        private Dictionary<string, Action<T, object>> _setters = new Dictionary<string, Action<T, object>>();
-        private Dictionary<string, Func<T, object>> _getters = new Dictionary<string, Func<T, object>>(); 
-        private Dictionary<string, ODADataType> GetPropertys { get; } = new Dictionary<string, ODADataType>(); 
-        private Dictionary<string, ODADataType> SetPropertys { get; } = new Dictionary<string, ODADataType>();
+    }
+    internal class ODAReflectionObject<T>
+    {
+        public Func<T> Creator { get; set; }
+        public Dictionary<string, Action<T, object>> Setters { get; } = new Dictionary<string, Action<T, object>>();
+        public Dictionary<string, Func<T, object>> Getters { get; } = new Dictionary<string, Func<T, object>>(); 
+        public List<ODAProperty> GetPropertys { get; } = new List<ODAProperty>(); 
+        public List<ODAProperty> SetPropertys { get; } = new List<ODAProperty>();
 
         public T CreateInstance()
         {
-            return _creator();
+            return Creator();
         }
 
         public object GetValue(T target, PropertyInfo property)
@@ -63,8 +59,8 @@ namespace NYear.ODA
 
         public object GetValue(T target, string property)
         {
-            if (_getters.ContainsKey(property)) 
-                return _getters[property](target); 
+            if (Getters.ContainsKey(property)) 
+                return Getters[property](target); 
             throw new Exception();
         }
 
@@ -75,17 +71,19 @@ namespace NYear.ODA
 
         public void SetValue(T target, string property, object value)
         {
-            if (_setters.ContainsKey(property))
-            {
-                object safeVal = ODAReflection.ChangeType(value, SetPropertys[property]);
-                _setters[property](target, safeVal);
-            }
+            if (Setters.ContainsKey(property))
+                Setters[property](target, value);
         }
     }
 
-    internal class ODADataType
+    internal class ODAProperty
     {
         public Type OriginType
+        {
+            get;
+            private set;
+        }
+        public string PropertyName
         {
             get;
             private set;
@@ -96,17 +94,18 @@ namespace NYear.ODA
             get
             {
                 if (_NonNullableUnderlyingType != null)
-                    return _NonNullableUnderlyingType;
-                _NonNullableUnderlyingType = OriginType.UnderlyingSystemType;
-                _NonNullableUnderlyingType = (ODAReflection.IsNullable(_NonNullableUnderlyingType) && ODAReflection.IsNullableType(_NonNullableUnderlyingType)) ? Nullable.GetUnderlyingType(_NonNullableUnderlyingType) : _NonNullableUnderlyingType;
-
+                    return _NonNullableUnderlyingType; 
+                _NonNullableUnderlyingType = (ODAReflection.IsNullable(OriginType.UnderlyingSystemType) && ODAReflection.IsNullableType(OriginType.UnderlyingSystemType)) ? Nullable.GetUnderlyingType(OriginType.UnderlyingSystemType) : OriginType.UnderlyingSystemType;
                 return _NonNullableUnderlyingType;
             }
         }
          
-        public ODADataType(Type type)
+        public ODAProperty(PropertyInfo Property)
         {
-            OriginType = type ?? throw new ArgumentNullException(nameof(type));
+            if(Property == null)
+                throw new ArgumentNullException(nameof(Property));
+            OriginType = Property.PropertyType;
+            PropertyName = Property.Name;
         }
     }
 
@@ -232,22 +231,39 @@ namespace NYear.ODA
             return (Action<T, object>)dynamicMethod.CreateDelegate(typeof(Action<T, object>));
         }
 
+
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="Val"></param>
         /// <param name="TargetType">Non Nullable Underlying Type</param>
         /// <returns></returns>
-        public static object ChangeType(object Val, ODADataType TargetType)
+        public static object ChangeType(object Val, ODAProperty TargetType)
         {
-            if (TargetType == null || TargetType.OriginType.IsInstanceOfType(Val))
+            if (TargetType.OriginType.IsInstanceOfType(Val))
                 return Val;
+
             if (Val == null || Val == DBNull.Value)
             {
                 if (IsNullable(TargetType.OriginType))
-                    return null;
-                return DefaultValue(TargetType.OriginType);
+                {
+                    return Val;
+                }
+                else
+                {
+                    return DefaultValue(TargetType.NonNullableUnderlyingType);
+                }
             }
+
+
+            //decimal.Parse(
+
+          //  TargetType.NonNullableUnderlyingType.GetMethod("Parse", BindingFlags.Public| BindingFlags.Static,
+
+
+
+
             if (TargetType.OriginType.IsEnum)
             {
                 if (Val is string)
@@ -255,56 +271,19 @@ namespace NYear.ODA
                 else
                     return Enum.ToObject(TargetType.OriginType, Val);
             }
- 
-            if (Val is BigInteger integer)
-            {
-                return FromBigInteger(integer, TargetType.NonNullableUnderlyingType);
-            }
             return Convert.ChangeType(Val, TargetType.NonNullableUnderlyingType, CultureInfo.CurrentCulture);
         }
-
-        public static object FromBigInteger(BigInteger i, Type targetType)
-        {
-            if (targetType == typeof(decimal))
-            {
-                return (decimal)i;
-            }
-            if (targetType == typeof(double))
-            {
-                return (double)i;
-            }
-            if (targetType == typeof(float))
-            {
-                return (float)i;
-            }
-            if (targetType == typeof(ulong))
-            {
-                return (ulong)i;
-            }
-            if (targetType == typeof(bool))
-            {
-                return i != 0;
-            }
-
-            try
-            {
-                return System.Convert.ChangeType((long)i, targetType, CultureInfo.InvariantCulture);
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException(string.Format("Can not convert from BigInteger to {0}.", targetType), ex);
-            }
-        }
-
         /// <summary>
         /// 
         /// </summary>
         /// <param name="TargetType"></param>
         /// <returns></returns>
         public static object DefaultValue(Type TargetType)
-        {
+        { 
             if (TargetType == typeof(DateTime))
-                return new DateTime(1900, 1, 1, 0, 0, 1);
+                return new DateTime(1900, 1, 1, 0, 0, 0);
+            if (TargetType == typeof(Guid))
+                return new Guid(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
             if (TargetType == typeof(bool))
                 return false;
             if (TargetType == typeof(byte))
@@ -330,7 +309,7 @@ namespace NYear.ODA
             if (TargetType == typeof(ulong))
                 return 0UL;
             if (TargetType == typeof(ushort))
-                return (ushort)0;
+                return (ushort)0; 
             if (TargetType.IsEnum)
                 return Enum.ToObject(TargetType, 1);
            return  FormatterServices.GetUninitializedObject(TargetType);

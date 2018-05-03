@@ -12,34 +12,40 @@ namespace NYear.ODA
         #region 数据类型转换
         public static List<T> ConvertToList<T>(DataTable dt)
         {
-            DateTime dt1 = DateTime.Now;
             List<T> list = new List<T>();
-            var creator = ODAReflectionObject<object>.GetConstructor<T>();
-            Dictionary<string, int> cls = new Dictionary<string, int>();
-            PropertyInfo[] SetPropertys = typeof(T).GetProperties();
+            var creator = ODAReflectionFactory.GetConstructor<T>();
+            Dictionary<ODAProperty, int> NonMatchs = new Dictionary<ODAProperty, int>();
+            Dictionary<string, int> Matchs = new Dictionary<string, int>();
             foreach (DataColumn c in dt.Columns)
             {
-                foreach (var p in SetPropertys)
+                foreach (var p in creator.SetPropertys)
                 {
-                    if (p.Name == c.ColumnName && p.CanWrite)
+                    if (p.PropertyName == c.ColumnName)
                     {
-                        cls.Add(c.ColumnName, c.Ordinal);
+                        if (p.NonNullableUnderlyingType == c.DataType)
+                            Matchs.Add(p.PropertyName, c.Ordinal);
+                        else
+                            NonMatchs.Add(p, c.Ordinal);
                         break;
                     }
                 }
             }
             for (int i = 0; i < dt.Rows.Count; i++)
             {
-                object[] vals = dt.Rows[i].ItemArray;
                 T model = creator.CreateInstance();
-                foreach (var c in cls)
+                foreach (var c in NonMatchs)
                 {
-                    if (vals[c.Value] != DBNull.Value && vals[c.Value] != null)
-                        creator.SetValue(model, c.Key, vals[c.Value]);
+                    if (dt.Rows[i][c.Value] != DBNull.Value && dt.Rows[i][c.Value] != null)
+                        creator.SetValue(model, c.Key.PropertyName, ODAReflection.ChangeType(dt.Rows[i][c.Value], c.Key));
+                }
+                foreach (var c in Matchs)
+                {
+                    if (dt.Rows[i][c.Value] != DBNull.Value && dt.Rows[i][c.Value] != null)
+                        creator.SetValue(model, c.Key, dt.Rows[i][c.Value]);
                 }
                 list.Add(model);
             }
-           return list; 
+            return list;
         }
 
         #endregion
@@ -340,6 +346,263 @@ namespace NYear.ODA
         }
 
         protected abstract void SetCmdParameters(ref IDbCommand Cmd, string SQL, params ODAParameter[] ParamList);
+
+        private object ReadData(IDataReader Reader, Type DataType, int Index)
+        {
+            if (Reader.IsDBNull(Index))
+                return null;
+            if (DataType == typeof(bool))
+                return Reader.GetBoolean(Index);
+            if (DataType == typeof(byte))
+                return Reader.GetByte(Index);
+            if (DataType == typeof(byte[]))
+                return Reader.GetValue(Index);
+            if (DataType == typeof(char))
+                return Reader.GetChar(Index);
+            if (DataType == typeof(char[]))
+                return Reader.GetValue(Index);
+            if (DataType == typeof(DateTime))
+                return Reader.GetDateTime(Index);
+            if (DataType == typeof(decimal))
+                return Reader.GetDecimal(Index);
+            if (DataType == typeof(double))
+                return Reader.GetDouble(Index);
+            if (DataType == typeof(float))
+                return Reader.GetFloat(Index);
+            if (DataType == typeof(Guid))
+                return Reader.GetGuid(Index);
+            if (DataType == typeof(short))
+                return Reader.GetInt16(Index);
+            if (DataType == typeof(int))
+                return Reader.GetInt32(Index);
+            if (DataType == typeof(long))
+                return Reader.GetInt64(Index);
+            if (DataType == typeof(string))
+                return Reader.GetString(Index);
+            return null;
+        }
+
+        protected List<T> GetList<T>(IDataReader reader)
+        {
+            if (reader == null)
+                throw new ArgumentNullException(nameof(reader));
+            List<T> list = new List<T>();
+            IDataReader Dr = reader;
+            try
+            {
+                if (Dr.FieldCount > 0)
+                {
+                    var creator = ODAReflectionFactory.GetConstructor<T>();
+                    Dictionary<int, ODAProperty> GetPptys = new Dictionary<int, ODAProperty>();
+                    for (int num = 0; num < Dr.FieldCount; num++)
+                    {
+                        foreach (var p in creator.SetPropertys)
+                        {
+                            if (p.PropertyName == Dr.GetName(num))
+                            {
+                                GetPptys.Add(num, p);
+                                break;
+                            }
+                        }
+                    }
+                    while (Dr.Read())
+                    {
+                        T inst = creator.CreateInstance();
+                        foreach (var p in GetPptys)
+                        {
+                            object val = this.ReadData(Dr, p.Value.NonNullableUnderlyingType, p.Key);
+                            if (val != null)
+                                creator.SetValue(inst, p.Value.PropertyName, val);
+                        }
+                        list.Add(inst);
+                    }
+                }
+            }
+            finally
+            {
+                Dr.Close();
+                Dr.Dispose();
+            }
+            return list;
+        }
+
+        protected List<T> GetList<T>(IDataReader reader, int StartIndex, int MaxRecord)
+        {
+            if (reader == null)
+                throw new ArgumentNullException(nameof(reader));
+            List<T> list = new List<T>();
+            IDataReader Dr = reader;
+            try
+            {
+                if (Dr.FieldCount > 0)
+                {
+                    while (StartIndex > 0)
+                    {
+                        if (!Dr.Read())
+                            return list;
+                        StartIndex--;
+                    }
+                    var creator = ODAReflectionFactory.GetConstructor<T>();
+                    Dictionary<int, ODAProperty> GetPptys = new Dictionary<int, ODAProperty>();
+                    for (int num = 0; num < Dr.FieldCount; num++)
+                    {
+                        foreach (var p in creator.SetPropertys)
+                        {
+                            if (p.PropertyName == Dr.GetName(num))
+                            {
+                                GetPptys.Add(num, p);
+                                break;
+                            }
+                        }
+                    }
+                    while (Dr.Read() && MaxRecord > 0)
+                    {
+                        T inst = creator.CreateInstance();
+                        foreach (var p in GetPptys)
+                        {
+                            object val = this.ReadData(Dr, p.Value.NonNullableUnderlyingType, p.Key);
+                            if (val != null)
+                                creator.SetValue(inst, p.Value.PropertyName, val);
+                        }
+                        list.Add(inst);
+                        MaxRecord--;
+                    }
+                }
+            }
+            finally
+            {
+                Dr.Close();
+                Dr.Dispose();
+            }
+            return list;
+        }
+
+        protected List<T> GetList<T>(IDataReader reader, int StartIndex, int MaxRecord, out int TotalRecord)
+        {
+            if (reader == null)
+                throw new ArgumentNullException(nameof(reader));
+            List<T> list = new List<T>();
+            TotalRecord = 0;
+            IDataReader Dr = reader;
+            try
+            {
+                if (Dr.FieldCount > 0)
+                {
+                    while (StartIndex > 0)
+                    {
+                        if (!Dr.Read())
+                            return list;
+                        StartIndex--;
+                        TotalRecord++;
+                    }
+                    var creator = ODAReflectionFactory.GetConstructor<T>();
+                    Dictionary<int, ODAProperty> GetPptys = new Dictionary<int, ODAProperty>();
+                    for (int num = 0; num < Dr.FieldCount; num++)
+                    {
+                        foreach (var p in creator.SetPropertys)
+                        {
+                            if (p.PropertyName == Dr.GetName(num))
+                            {
+                                GetPptys.Add(num, p);
+                                break;
+                            }
+                        }
+                    }
+                    while (Dr.Read() && MaxRecord > 0)
+                    {
+                        T inst = creator.CreateInstance();
+                        foreach (var p in GetPptys)
+                        {
+                            object val = this.ReadData(Dr, p.Value.NonNullableUnderlyingType, p.Key);
+                            if (val != null)
+                                creator.SetValue(inst, p.Value.PropertyName, val);
+                        }
+                        list.Add(inst);
+                        MaxRecord--;
+                        TotalRecord++;
+                    }
+                    while (Dr.Read())
+                    {
+                        TotalRecord++;
+                    }
+                }
+            }
+            finally
+            {
+                Dr.Close();
+                Dr.Dispose();
+            }
+            return list;
+        }
+
+        public virtual DataTable Select(string SQL, ODAParameter[] ParamList)
+        {
+            IDbCommand Cmd = OpenCommand();
+            try
+            {
+                Cmd.CommandType = CommandType.Text;
+                SetCmdParameters(ref Cmd, SQL, ParamList);
+                DbDataAdapter Da = GetDataAdapter(Cmd);
+                DataTable dt = new DataTable();
+                Da.Fill(dt);
+                Da.Dispose();
+                return dt;
+            }
+            finally
+            {
+                CloseCommand(Cmd);
+            }
+        }
+        public virtual DataTable Select(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord)
+        {
+            IDbCommand Cmd = OpenCommand();
+            try
+            {
+                Cmd.CommandType = CommandType.Text;
+                SetCmdParameters(ref Cmd, SQL, ParamList);
+                IDataReader Dr = Cmd.ExecuteReader();
+                DataTable dt = new DataTable("RECORDSET");
+                if (Dr.FieldCount > 0)
+                {
+                    for (int num = 0; num < Dr.FieldCount; num++)
+                    {
+                        DataColumn column = new DataColumn();
+                        if (dt.Columns.Contains(Dr.GetName(num)))
+                            column.ColumnName = Dr.GetName(num) + num.ToString();
+                        else
+                            column.ColumnName = Dr.GetName(num);
+                        column.DataType = Dr.GetFieldType(num);
+                        dt.Columns.Add(column);
+                    }
+                    while (StartIndex > 0)
+                    {
+                        if (!Dr.Read())
+                            return dt;
+                        StartIndex--;
+                    }
+                    int ReadRecord = MaxRecord;
+                    while (ReadRecord > 0 || MaxRecord == -1)
+                    {
+                        if (Dr.Read())
+                        {
+                            object[] rVal = new object[Dr.FieldCount];
+                            Dr.GetValues(rVal);
+                            dt.Rows.Add(rVal);
+                            ReadRecord--;
+                        }
+                        else
+                            break;
+                    }
+                }
+                Dr.Close();
+                Dr.Dispose();
+                return dt;
+            }
+            finally
+            {
+                CloseCommand(Cmd);
+            }
+        }
         public virtual DataTable Select(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord, out int TotalRecord)
         {
             IDbCommand Cmd = OpenCommand();
@@ -398,76 +661,6 @@ namespace NYear.ODA
                 CloseCommand(Cmd);
             }
         }
-        public virtual DataTable Select(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord)
-        {
-            IDbCommand Cmd = OpenCommand();
-            try
-            {
-                Cmd.CommandType = CommandType.Text;
-                SetCmdParameters(ref Cmd, SQL, ParamList);
-                IDataReader Dr = Cmd.ExecuteReader();
-                DataTable dt = new DataTable("RECORDSET");
-                if (Dr.FieldCount > 0)
-                {
-                    for (int num = 0; num < Dr.FieldCount; num++)
-                    {
-                        DataColumn column = new DataColumn();
-                        if (dt.Columns.Contains(Dr.GetName(num)))
-                            column.ColumnName = Dr.GetName(num) + num.ToString();
-                        else
-                            column.ColumnName = Dr.GetName(num);
-                        column.DataType = Dr.GetFieldType(num);
-                        dt.Columns.Add(column);
-                    }
-                    while (StartIndex > 0)
-                    {
-                        if (!Dr.Read())
-                            return dt;
-                        StartIndex--;
-                    }
-
-                    int ReadRecord = MaxRecord;
-                    while (ReadRecord > 0 || MaxRecord == -1)
-                    {
-                        if (Dr.Read())
-                        {
-                            object[] rVal = new object[Dr.FieldCount];
-                            Dr.GetValues(rVal);
-                            dt.Rows.Add(rVal);
-                            ReadRecord--;
-                        }
-                        else
-                            break;
-                    }
-                }
-                Dr.Close();
-                Dr.Dispose();
-                return dt;
-            }
-            finally
-            {
-                CloseCommand(Cmd);
-            }
-        }
-        public virtual DataTable Select(string SQL, ODAParameter[] ParamList)
-        {
-            IDbCommand Cmd = OpenCommand();
-            try
-            {
-                Cmd.CommandType = CommandType.Text;
-                SetCmdParameters(ref Cmd, SQL, ParamList);
-                DbDataAdapter Da = GetDataAdapter(Cmd);
-                DataTable dt = new DataTable();
-                Da.Fill(dt);
-                Da.Dispose();
-                return dt;
-            }
-            finally
-            {
-                CloseCommand(Cmd);
-            }
-        }
-
         public object[] SelectFirst(string SQL, ODAParameter[] ParamList)
         {
             IDbCommand Cmd = OpenCommand();
@@ -479,8 +672,7 @@ namespace NYear.ODA
                 object[] rtl = new object[Dr.FieldCount];
                 if (Dr.Read())
                 {
-                    for (int i = 0; i < rtl.Length; i++)
-                        rtl[i] = Dr[i];
+                    Dr.GetValues(rtl);  
                     Dr.Close();
                     Dr.Dispose();
                     return rtl;
@@ -518,29 +710,47 @@ namespace NYear.ODA
                     Model.Columns[ConnectColumn].DataType = typeof(string);
                 else
                     throw new ODAException(103, "DataModel not contain Column:" + ConnectColumn);
-            }
-
-            if ( !Model.Columns.Contains(ConnectBy) || !Model.Columns.Contains(Prior))
+            } 
+            if (!Model.Columns.Contains(ConnectBy) || !Model.Columns.Contains(Prior))
                 throw new ODAException(104, "DataModel not contain ConnectBy or Prior Column");
 
             DataTable dtRtl = this.Recursion(Model, StartWithExpress, ConnectBy, Prior, ConnectColumn, ConnectChar, "", 0, MaxLevel);
             return dtRtl;
         }
-
         public List<T> Select<T>(string SQL, ODAParameter[] ParamList) where T : class
         {
-            return ConvertToList<T>(Select(SQL, ParamList));
+            IDbCommand Cmd = OpenCommand();
+            try
+            {
+                Cmd.CommandType = CommandType.Text;
+                SetCmdParameters(ref Cmd, SQL, ParamList);
+                IDataReader Dr = Cmd.ExecuteReader(); 
+                return GetList<T>(Dr); 
+            }
+            finally
+            {
+                CloseCommand(Cmd);
+            }
         }
-
+        public virtual List<T> Select<T>(string SQL, ODAParameter[] ParamList,int StartIndex, int MaxRecord) where T : class
+        {
+            IDbCommand Cmd = OpenCommand();
+            try
+            {
+                Cmd.CommandType = CommandType.Text;
+                SetCmdParameters(ref Cmd, SQL, ParamList);
+                IDataReader Dr = Cmd.ExecuteReader();
+                return GetList<T>(Dr, StartIndex, MaxRecord);
+            }
+            finally
+            {
+                CloseCommand(Cmd);
+            }
+        }
         public List<T> Select<T>(string SQL, ODAParameter[] ParamList, string StartWithExpress, string ConnectBy, string Prior, string ConnectColumn, string ConnectChar, int MaxLevel) where T : class
         {
             return ConvertToList<T>(Select(SQL, ParamList, StartWithExpress, ConnectBy, Prior, ConnectColumn, ConnectChar, MaxLevel));
         }
-        public List<T> Select<T>(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord, out int TotalRecord) where T : class
-        {
-            return ConvertToList<T>(Select(SQL, ParamList, StartIndex, MaxRecord, out TotalRecord));
-        }
-
         /// <summary>
         /// 数据库树状结构递归，先把所有符合条件的数据读进内存然后递归筛选
         /// </summary>
@@ -579,7 +789,6 @@ namespace NYear.ODA
             }
             return Rtldt;
         }
-
         /// <summary>
         /// 执行SQL,返回影响行数
         /// </summary>
@@ -603,17 +812,53 @@ namespace NYear.ODA
 
         public virtual List<T> ExecuteProcedureGetList<T>(string SQL, ODAParameter[] ParamList, int RecordIndex) where T : class
         {
-            DataSet Ds = ExecuteProcedure(SQL, ParamList);
-            DataTable Dt = new DataTable();
-            if (Ds.Tables.Count > RecordIndex)
-                Dt = Ds.Tables[RecordIndex];
-            return ConvertToList<T>(Dt);
+            IDbCommand Cmd = OpenCommand();
+            IDataReader datareader = null;
+            try
+            {
+                Cmd.CommandType = CommandType.StoredProcedure;
+                SetCmdParameters(ref Cmd, SQL, ParamList);
+                datareader = Cmd.ExecuteReader();
+
+                int rtlcount = 0; 
+                while (rtlcount < RecordIndex)
+                {
+                    datareader.NextResult();
+                    rtlcount++;
+                }
+                return GetList<T>(datareader); 
+            }
+            finally
+            {
+                CloseCommand(Cmd);
+            } 
         }
 
         public virtual List<ValuesCollection> ExecuteProcedureGetValues(string SQL, ODAParameter[] ParamList)
         {
-            DataSet Ds = ExecuteProcedure(SQL, ParamList);
-            return ConvertToList<ValuesCollection>(Ds.Tables["ValuesCollection"]);
+            IDbCommand Cmd = OpenCommand(); 
+            try
+            {
+                List<ValuesCollection> list = new List<ValuesCollection>();
+                Cmd.CommandType = CommandType.StoredProcedure;
+                SetCmdParameters(ref Cmd, SQL, ParamList);
+                Cmd.ExecuteNonQuery(); 
+                foreach (DbParameter param in Cmd.Parameters)
+                {
+                    if (param.Direction == System.Data.ParameterDirection.InputOutput || param.Direction == System.Data.ParameterDirection.Output)
+                    {
+                        var pv = new ValuesCollection();
+                        pv.ParamName = param.ParameterName;
+                        pv.ReturnValue = param.Value;
+                        list.Add(pv);
+                    }
+                }
+                return list;
+            }
+            finally
+            {
+                CloseCommand(Cmd);
+            }
         }
 
         public virtual DataSet ExecuteProcedure(string SQL, ODAParameter[] ParamList)
