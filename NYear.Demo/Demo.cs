@@ -27,7 +27,7 @@ namespace NYear.Demo
             InitNYearODA();
 
             ODAContext.ExecutingSql += (src, args) => {
-                _ExeSql.AppendLine(args.SQL + ";");
+                _ExeSql.AppendLine(args.DebugSQL + ";");
                 _ExeSql.AppendLine("");
             };
         }

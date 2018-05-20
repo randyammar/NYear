@@ -2,6 +2,7 @@
 using System;
 using System.Data;
 using System.Data.Common;
+using System.Text;
 
 namespace NYear.ODA.Adapter
 {
@@ -70,43 +71,43 @@ namespace NYear.ODA.Adapter
 
         public override DataTable GetTableColumns()
         {
-            string sql_tabcol = " SELECT SOBJ.name AS TABLE_NAME, SCOL.name AS COLUMN_NAME ,"
-            + " CASE STYPE.name  WHEN 'sysname'  THEN 'OVarchar' WHEN 'sql_varint'  THEN 'OVarchar'    WHEN 'varchar' THEN 'OVarchar' WHEN 'char'  THEN 'OChar' "
-            + " WHEN 'nchar'  THEN 'OChar' WHEN 'ntext'  THEN 'OVarchar'  WHEN 'nvarchar'  THEN 'OVarchar'  WHEN 'text'  THEN 'OVarchar' WHEN 'varchar'  THEN 'OVarchar' "
-            + " WHEN 'bigint'  THEN 'ODecimal'  WHEN 'decimal'  THEN 'ODecimal'   WHEN 'float'  THEN 'ODecimal'   WHEN 'money'  THEN 'ODecimal' "
-            + " WHEN 'numeric'  THEN 'ODecimal'    WHEN 'real'  THEN 'ODecimal'   WHEN 'smallmoney'  THEN 'ODecimal' "
-            + " WHEN 'int'  THEN 'OInt'  WHEN 'smallint'  THEN 'OInt'    WHEN 'bit'  THEN 'OInt'  "
-            + " WHEN 'datetime'  THEN 'ODatetime'  WHEN 'smalldatetime'  THEN 'ODatetime'  WHEN 'smalldatetime'  THEN 'ODatetime'  "
-            + " WHEN 'binary'  THEN 'OBinary'  WHEN 'image'  THEN 'OBinary'  WHEN 'timestamp'  THEN 'OBinary'    WHEN 'varbinary'  THEN 'OBinary' "
-            + " ELSE  STYPE.name  END AS ODA_DATATYPE ,"
-            + " SCOL.length AS LENGTH, 'INPUT' AS DIRECTION "
-            + " FROM sysobjects SOBJ,syscolumns SCOL,systypes STYPE "
-            + " WHERE  SOBJ.type  = 'U' "
-            + " AND SOBJ.id = SCOL.id"
-            + " AND STYPE.usertype = SCOL.usertype"
-            + " ORDER BY  TABLE_NAME , COLUMN_NAME ";
+            string sql_tabcol = new StringBuilder().Append(" SELECT SOBJ.name AS TABLE_NAME, SCOL.name AS COLUMN_NAME ,")
+            .Append(" CASE STYPE.name  WHEN 'sysname'  THEN 'OVarchar' WHEN 'sql_varint'  THEN 'OVarchar'    WHEN 'varchar' THEN 'OVarchar' WHEN 'char'  THEN 'OChar' ")
+            .Append(" WHEN 'nchar'  THEN 'OChar' WHEN 'ntext'  THEN 'OVarchar'  WHEN 'nvarchar'  THEN 'OVarchar'  WHEN 'text'  THEN 'OVarchar' WHEN 'varchar'  THEN 'OVarchar' ")
+            .Append(" WHEN 'bigint'  THEN 'ODecimal'  WHEN 'decimal'  THEN 'ODecimal'   WHEN 'float'  THEN 'ODecimal'   WHEN 'money'  THEN 'ODecimal' ")
+            .Append(" WHEN 'numeric'  THEN 'ODecimal'    WHEN 'real'  THEN 'ODecimal'   WHEN 'smallmoney'  THEN 'ODecimal' ")
+            .Append(" WHEN 'int'  THEN 'OInt'  WHEN 'smallint'  THEN 'OInt'    WHEN 'bit'  THEN 'OInt'  ")
+            .Append(" WHEN 'datetime'  THEN 'ODatetime'  WHEN 'smalldatetime'  THEN 'ODatetime'  WHEN 'smalldatetime'  THEN 'ODatetime'  ")
+            .Append(" WHEN 'binary'  THEN 'OBinary'  WHEN 'image'  THEN 'OBinary'  WHEN 'timestamp'  THEN 'OBinary'    WHEN 'varbinary'  THEN 'OBinary' ")
+            .Append(" ELSE  STYPE.name  END AS ODA_DATATYPE ,")
+            .Append(" SCOL.length AS LENGTH, 'INPUT' AS DIRECTION ")
+            .Append(" FROM sysobjects SOBJ,syscolumns SCOL,systypes STYPE ")
+            .Append(" WHERE  SOBJ.type  = 'U' ")
+            .Append(" AND SOBJ.id = SCOL.id")
+            .Append(" AND STYPE.usertype = SCOL.usertype")
+            .Append(" ORDER BY  TABLE_NAME , COLUMN_NAME ").ToString();
             DataTable Dt = Select(sql_tabcol, null);
             Dt.TableName = "TABLE_COLUMN";
             return Dt;
         }
         public override DataTable GetViewColumns()
         {
-            string sql_view = "SELECT SOBJ.name AS TABLE_NAME, SCOL.name AS COLUMN_NAME ,"
-            + " CASE STYPE.name  WHEN 'sysname'  THEN 'OVarchar' WHEN 'sql_varint'  THEN 'OVarchar'    WHEN 'varchar' THEN 'OVarchar' WHEN 'char'  THEN 'OChar' "
-            + " WHEN 'nchar'  THEN 'OChar' WHEN 'ntext'  THEN 'OVarchar'  WHEN 'nvarchar'  THEN 'OVarchar'  WHEN 'text'  THEN 'OVarchar' WHEN 'varchar'  THEN 'OVarchar' "
-            + " WHEN 'bigint'  THEN 'ODecimal'  WHEN 'decimal'  THEN 'ODecimal'   WHEN 'float'  THEN 'ODecimal'   WHEN 'money'  THEN 'ODecimal' "
-            + " WHEN 'numeric'  THEN 'ODecimal'    WHEN 'real'  THEN 'ODecimal'   WHEN 'smallmoney'  THEN 'ODecimal' "
-            + " WHEN 'int'  THEN 'OInt'  WHEN 'smallint'  THEN 'OInt'    WHEN 'bit'  THEN 'OInt'  "
-            + " WHEN 'datetime'  THEN 'ODatetime'  WHEN 'smalldatetime'  THEN 'ODatetime'  WHEN 'smalldatetime'  THEN 'ODatetime'  "
-            + " WHEN 'binary'  THEN 'OBinary'  WHEN 'image'  THEN 'OBinary'  WHEN 'timestamp'  THEN 'OBinary'    WHEN 'varbinary'  THEN 'OBinary' "
-            + " ELSE  STYPE.name  END AS ODA_DATATYPE ,"
-            + " SCOL.length AS LENGTH, 'INPUT' AS DIRECTION "
-            + " FROM sysobjects SOBJ,syscolumns SCOL,systypes STYPE "
-            + " WHERE  SOBJ.type  = 'V' "
-            + " AND SOBJ.name <>'sysquerymetrics'"
-            + " AND SOBJ.id = SCOL.id"
-            + " AND STYPE.usertype = SCOL.usertype"
-            + " ORDER BY  TABLE_NAME , COLUMN_NAME ";
+            string sql_view = new StringBuilder().Append("SELECT SOBJ.name AS TABLE_NAME, SCOL.name AS COLUMN_NAME ,")
+            .Append(" CASE STYPE.name  WHEN 'sysname'  THEN 'OVarchar' WHEN 'sql_varint'  THEN 'OVarchar'    WHEN 'varchar' THEN 'OVarchar' WHEN 'char'  THEN 'OChar' ")
+            .Append(" WHEN 'nchar'  THEN 'OChar' WHEN 'ntext'  THEN 'OVarchar'  WHEN 'nvarchar'  THEN 'OVarchar'  WHEN 'text'  THEN 'OVarchar' WHEN 'varchar'  THEN 'OVarchar' ")
+            .Append(" WHEN 'bigint'  THEN 'ODecimal'  WHEN 'decimal'  THEN 'ODecimal'   WHEN 'float'  THEN 'ODecimal'   WHEN 'money'  THEN 'ODecimal' ")
+            .Append(" WHEN 'numeric'  THEN 'ODecimal'    WHEN 'real'  THEN 'ODecimal'   WHEN 'smallmoney'  THEN 'ODecimal' ")
+            .Append(" WHEN 'int'  THEN 'OInt'  WHEN 'smallint'  THEN 'OInt'    WHEN 'bit'  THEN 'OInt'  ")
+            .Append(" WHEN 'datetime'  THEN 'ODatetime'  WHEN 'smalldatetime'  THEN 'ODatetime'  WHEN 'smalldatetime'  THEN 'ODatetime'  ")
+            .Append(" WHEN 'binary'  THEN 'OBinary'  WHEN 'image'  THEN 'OBinary'  WHEN 'timestamp'  THEN 'OBinary'    WHEN 'varbinary'  THEN 'OBinary' ")
+            .Append(" ELSE  STYPE.name  END AS ODA_DATATYPE ,")
+            .Append(" SCOL.length AS LENGTH, 'INPUT' AS DIRECTION ")
+            .Append(" FROM sysobjects SOBJ,syscolumns SCOL,systypes STYPE ")
+            .Append(" WHERE  SOBJ.type  = 'V' ")
+            .Append(" AND SOBJ.name <>'sysquerymetrics'")
+            .Append(" AND SOBJ.id = SCOL.id")
+            .Append(" AND STYPE.usertype = SCOL.usertype")
+            .Append(" ORDER BY  TABLE_NAME , COLUMN_NAME ").ToString();
             DataTable Dt = Select(sql_view, null);
             Dt.TableName = "VIEW_COLUMN";
             return Dt;

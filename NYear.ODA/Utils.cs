@@ -263,17 +263,7 @@ namespace NYear.ODA
     }
 
     public delegate IDBAccess GetDBAccessHandler(ODAScript ODASql );
-    //public delegate int CountEventHandler(ODACmd Cmd, ODAColumns Col); 
-    //public delegate DataTable SelectEventHandler(ODACmd Cmd, params ODAColumns[] Cols); 
-    //public delegate DataTable SelectPagingEventHandler(ODACmd Cmd, int StartIndex, int MaxRecord, params ODAColumns[] Cols); 
-    //public delegate object[] SelectFirstEventHandler(ODACmd Cmd, params ODAColumns[] Cols);
-    //public delegate DataTable SelectRecursionEventHandler(ODACmd Cmd, string StartWithExpress, string ConnectBy, string Prior, string ConnectColumn, string ConnectChar, int MaxLevel, params ODAColumns[] Cols);
-    //public delegate bool UpdateEventHandler(ODACmd Cmd, params ODAColumns[] Cols);
-    //public delegate bool InsertEventHandler(ODACmd Cmd, params ODAColumns[] Cols);
-    //public delegate bool InsertScriptEventHandler(ODACmd InsertCmd, ODACmd SelectCmd, ODAColumns[] Cols);
-    //public delegate bool ImportEventHandler(ODACmd Cmd, ODAParameter[] Prms, DataTable Data);
-    //public delegate bool DeleteEventHandler(ODACmd Cmd);
-    //public delegate DataSet ExecuteProcedureEventHandler(ODACmd Cmd, params ODAColumns[] Cols);
+
     public delegate void ExecuteSqlEventHandler(object source, ExecuteEventArgs args);
 
     public class ExecuteEventArgs : EventArgs

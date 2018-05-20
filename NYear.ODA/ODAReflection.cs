@@ -1,287 +1,161 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Globalization;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.Serialization;
+using System.Text;
 
 namespace NYear.ODA
 {
-    internal sealed class ODAReflectionFactory : ODAReflectionObject<object>
+    internal class ODAReflection
     {
-        private static SafeDictionary<Type, object> _constrcache = new SafeDictionary<Type, object>();
-        public static ODAReflectionObject<T> GetConstructor<T>()
-        {
-            object RflOject;
-            Type dType = typeof(T);
-            if (!_constrcache.TryGetValue(dType, out RflOject))
+        private static readonly MethodInfo isDBNull = typeof(DetaLoader).GetMethod("IsDBNull", new Type[] { typeof(int) });
+        private static readonly MethodInfo getValue = typeof(DetaLoader).GetMethod("GetValue", new Type[] { typeof(int) });
+
+        public static SafeDictionary<Type, ODAProperty[]> TypeSetPropertyInfos = new SafeDictionary<Type, ODAProperty[]>();
+        private static SafeDictionary<Type, object> Creators = new SafeDictionary<Type, object>();
+         
+        public static Func<DetaLoader, T> CreateInstance<T>()
+        { 
+            object func = null;
+            if (Creators.TryGetValue(typeof(T), out func))
+                return (Func<DetaLoader, T>)func;
+
+            Type classType = typeof(T);
+            ODAProperty[] ppIndex = null ;
+            if (!TypeSetPropertyInfos.TryGetValue(typeof(T), out ppIndex))
             {
-                Func<T> creator = ODAReflection.CreateDefaultConstructor<T>();
-                RflOject = new ODAReflectionObject<T>();
-                ((ODAReflectionObject<T>)RflOject).Creator = creator;
-                PropertyInfo[] prptys = dType.GetProperties(BindingFlags.Instance | BindingFlags.Public);
+                var ppIdx  = new List<ODAProperty>();
+                PropertyInfo[] prptys = classType.GetProperties(BindingFlags.Instance | BindingFlags.Public);
                 foreach (var pi in prptys)
                 {
                     if (pi.CanWrite)
                     {
-                        var settor = ODAReflection.CreateSet<T>(pi);
-                        ((ODAReflectionObject<T>)RflOject).Setters.Add(pi.Name, settor);
-                        ((ODAReflectionObject<T>)RflOject).GetPropertys.Add(new ODAProperty(pi));
-                    }
-                    if (pi.CanRead)
-                    {
-                        var gettor = ODAReflection.CreateGet<T>(pi);
-                        ((ODAReflectionObject<T>)RflOject).Getters.Add(pi.Name, gettor);
-                        ((ODAReflectionObject<T>)RflOject).SetPropertys.Add(new ODAProperty(pi));
+                        ppIdx.Add(new ODAProperty(pi));
                     }
                 }
+                ppIndex = new ODAProperty[ppIdx.Count]; 
+                ppIdx.CopyTo(ppIndex);
+                GC.KeepAlive(ppIndex);
+                TypeSetPropertyInfos.Add(classType, ppIndex);
             }
-            return (ODAReflectionObject<T>)RflOject;
-        }
-    }
-    internal class ODAReflectionObject<T>
-    {
-        public Func<T> Creator { get; set; }
-        public Dictionary<string, Action<T, object>> Setters { get; } = new Dictionary<string, Action<T, object>>();
-        public Dictionary<string, Func<T, object>> Getters { get; } = new Dictionary<string, Func<T, object>>(); 
-        public List<ODAProperty> GetPropertys { get; } = new List<ODAProperty>(); 
-        public List<ODAProperty> SetPropertys { get; } = new List<ODAProperty>();
+            DynamicMethod method;
+            if( classType.IsInterface)
+                method = new DynamicMethod("Create" + classType.FullName, typeof(T), new Type[] { typeof(DetaLoader) }, classType.Module,true);
+            else
+                method = new DynamicMethod("Create" + classType.FullName, typeof(T), new Type[] { typeof(DetaLoader) }, classType, true);
+            ILGenerator il = method.GetILGenerator(); 
+            LocalBuilder result = il.DeclareLocal(classType);
+            il.Emit(OpCodes.Newobj, classType.GetConstructor(Type.EmptyTypes));
+            il.Emit(OpCodes.Stloc, result); 
 
-        public T CreateInstance()
-        {
-            return Creator();
-        }
-
-        public object GetValue(T target, PropertyInfo property)
-        {
-            return GetValue(target, property.Name);
-        }
-
-        public object GetValue(T target, string property)
-        {
-            if (Getters.ContainsKey(property)) 
-                return Getters[property](target); 
-            throw new Exception();
-        }
-
-        public void SetValue(T target, PropertyInfo property, object value)
-        {
-            SetValue(target, property.Name, value);
-        }
-
-        public void SetValue(T target, string property, object value)
-        {
-            if (Setters.ContainsKey(property))
-                Setters[property](target, value);
-        }
-    }
-
-    internal class ODAProperty
-    {
-        public Type OriginType
-        {
-            get;
-            private set;
-        }
-        public string PropertyName
-        {
-            get;
-            private set;
-        }
-        Type _NonNullableUnderlyingType = null;
-        public Type NonNullableUnderlyingType
-        {
-            get
+            for (int i = 0; i < ppIndex.Length; i++)
             {
-                if (_NonNullableUnderlyingType != null)
-                    return _NonNullableUnderlyingType; 
-                _NonNullableUnderlyingType = (ODAReflection.IsNullable(OriginType.UnderlyingSystemType) && ODAReflection.IsNullableType(OriginType.UnderlyingSystemType)) ? Nullable.GetUnderlyingType(OriginType.UnderlyingSystemType) : OriginType.UnderlyingSystemType;
-                return _NonNullableUnderlyingType;
+                var setter = ppIndex[i].OriginProperty.GetSetMethod(true);
+                if (setter != null)
+                {
+                    Label lb = il.DefineLabel();
+                    il.Emit(OpCodes.Ldarg_0);
+                    il.Emit(OpCodes.Ldc_I4, i);
+                    il.Emit(OpCodes.Callvirt, isDBNull);
+                    il.Emit(OpCodes.Brtrue, lb);
+                    il.Emit(OpCodes.Ldloc, result);
+                    il.Emit(OpCodes.Ldarg_0);
+                    il.Emit(OpCodes.Ldc_I4, i); 
+                    il.Emit(OpCodes.Callvirt, getValue); 
+
+                    if (ppIndex[i].OriginType.IsValueType)
+                    {
+                        il.Emit(OpCodes.Unbox_Any, ppIndex[i].OriginType);
+                    }
+                    else
+                    {
+                        il.Emit(OpCodes.Castclass, ppIndex[i].OriginType);
+                    } 
+                    if (setter.IsFinal || !setter.IsVirtual)
+                    {
+                        il.Emit(OpCodes.Call, setter);
+                    }
+                    else
+                    {
+                        il.Emit(OpCodes.Callvirt, setter);
+                    } 
+                    il.MarkLabel(lb); 
+                }
             }
+            il.Emit(OpCodes.Ldloc, result);
+            il.Emit(OpCodes.Ret);
+             
+            object reator = method.CreateDelegate(typeof(Func<DetaLoader, T>)); 
+            Creators.Add(classType, reator);
+            GC.KeepAlive(reator);
+            return (Func<DetaLoader, T>)reator;
+        }
+
+        public static bool IsNullable(Type t)
+        {
+            if (t.IsValueType)
+            {
+                return IsNullableType(t);
+            }
+            return true;
+        }
+
+        public static bool IsNullableType(Type t)
+        {
+            return (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Nullable<>));
+        }
+    }
+
+    internal class DetaLoader
+    {
+        IDataReader reader;
+        ODAMappingInfo mapping;
+        public DetaLoader(IDataReader Reader, ODAMappingInfo Mapping)
+        {
+            reader = Reader;
+            mapping = Mapping; 
+        } 
+        public bool IsDBNull(int i)
+        { 
+            if (mapping.ReadIndex[i] >= 0)
+                return reader.IsDBNull(mapping.ReadIndex[i]);
+            return true;
         }
          
-        public ODAProperty(PropertyInfo Property)
+        public object GetValue(int i)
         {
-            if(Property == null)
-                throw new ArgumentNullException(nameof(Property));
-            OriginType = Property.PropertyType;
-            PropertyName = Property.Name;
-        }
-    }
-
-    internal class ODAReflection
-    {
-        private static DynamicMethod CreateDynamicMethod(string name, Type returnType, Type[] parameterTypes, Type owner)
-        {
-            DynamicMethod dynamicMethod = !owner.IsInterface
-                ? new DynamicMethod(name, returnType, parameterTypes, owner, true)
-                : new DynamicMethod(name, returnType, parameterTypes, owner.Module, true);
-            return dynamicMethod;
-        }
-
-        public static Func<T> CreateDefaultConstructor<T>()
-        {
-            Type type = typeof(T);
-            DynamicMethod dynamicMethod = CreateDynamicMethod("Create" + type.FullName, typeof(T), Type.EmptyTypes, type);
-            dynamicMethod.InitLocals = true;
-            ILGenerator generator = dynamicMethod.GetILGenerator();
-
-            if (type.IsValueType)
+            if (mapping.ReadIndex[i] >= 0)
             {
-                generator.DeclareLocal(type);
-                generator.Emit(OpCodes.Ldloc_0);
-            }
-            else
-            {
-                ConstructorInfo constructorInfo = type.GetConstructor(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, null, Type.EmptyTypes, null); 
-                if (constructorInfo == null)
+                var obj = reader.GetValue(mapping.ReadIndex[i]);
+                switch (mapping.MapInfos[i])
                 {
-                    throw new ArgumentException(string.Format("Could not get constructor for {0}.", type));
+                    case MapResult.Match:  
+                        return obj;
+                    case MapResult.Convert: 
+                        return Convert.ChangeType(reader.GetValue(mapping.ReadIndex[i]), mapping.Pptys[i].NonNullableUnderlyingType, CultureInfo.CurrentCulture);
+                    case MapResult.EnumType:
+                        if (obj is string v)
+                        {
+                            return Enum.Parse(mapping.Pptys[i].NonNullableUnderlyingType, v);
+                        }
+                        else
+                        {
+                            return Enum.ToObject(mapping.Pptys[i].NonNullableUnderlyingType, obj);
+                        } 
                 }
-                generator.Emit(OpCodes.Newobj, constructorInfo);
             } 
-            generator.Emit(OpCodes.Ret); 
-            return (Func<T>)dynamicMethod.CreateDelegate(typeof(Func<T>));
+            /////实体中这个属性，但DataReader没有这个字段
+            return DefaultValue(mapping.Pptys[i].NonNullableUnderlyingType);
         }
 
-        public static Func<T, object> CreateGet<T>(PropertyInfo propertyInfo)
-        {
-            DynamicMethod dynamicMethod = CreateDynamicMethod("Get" + propertyInfo.Name, typeof(object), new[] { typeof(T) }, propertyInfo.DeclaringType);
-            ILGenerator generator = dynamicMethod.GetILGenerator();
-            MethodInfo getMethod = propertyInfo.GetGetMethod(true);
-            if (getMethod == null)
-            {
-                throw new ArgumentException(string.Format("Property '{0}' does not have a getter.", propertyInfo.Name));
-            }
-
-            if (!getMethod.IsStatic)
-            {
-                var dtype = propertyInfo.DeclaringType;
-                generator.Emit(OpCodes.Ldarg_0);
-                if (dtype.IsValueType)
-                {
-                    generator.Emit(OpCodes.Unbox, dtype);
-                }
-                else
-                {
-                    generator.Emit(OpCodes.Castclass, dtype);
-                }
-            }
- 
-            if (getMethod.IsFinal || !getMethod.IsVirtual)
-            {
-                generator.Emit(OpCodes.Call, getMethod);
-            }
-            else
-            {
-                generator.Emit(OpCodes.Callvirt, getMethod);
-            }
-            var pType = propertyInfo.PropertyType;
-            if (pType.IsValueType)
-            {
-                generator.Emit(OpCodes.Box, pType);
-            }
-            else
-            {
-                generator.Emit(OpCodes.Castclass, pType);
-            }
-            generator.Emit(OpCodes.Ret);
-
-            return (Func<T, object>)dynamicMethod.CreateDelegate(typeof(Func<T, object>));
-        }
-
-        public static Action<T, object> CreateSet<T>(PropertyInfo propertyInfo)
-        {
-            DynamicMethod dynamicMethod = CreateDynamicMethod("Set" + propertyInfo.Name, null, new[] { typeof(T), typeof(object) }, propertyInfo.DeclaringType);
-            ILGenerator generator = dynamicMethod.GetILGenerator();
-            MethodInfo setMethod = propertyInfo.GetSetMethod(true);
-            if (!setMethod.IsStatic)
-            {
-                var dtype = propertyInfo.DeclaringType;
-                generator.Emit(OpCodes.Ldarg_0);
-                if (dtype.IsValueType)
-                {
-                    generator.Emit(OpCodes.Unbox, dtype);
-                }
-                else
-                {
-                    generator.Emit(OpCodes.Castclass, dtype);
-                }
-            }
-            generator.Emit(OpCodes.Ldarg_1); 
-            var pType = propertyInfo.PropertyType;
-            if (pType.IsValueType)
-            {
-                generator.Emit(OpCodes.Unbox_Any, pType);
-            }
-            else
-            {
-                generator.Emit(OpCodes.Castclass, pType);
-            } 
-            if (setMethod.IsFinal || !setMethod.IsVirtual)
-            {
-                generator.Emit(OpCodes.Call, setMethod);
-            }
-            else
-            {
-                generator.Emit(OpCodes.Callvirt, setMethod);
-            }
-            generator.Emit(OpCodes.Ret);
-
-            return (Action<T, object>)dynamicMethod.CreateDelegate(typeof(Action<T, object>));
-        }
-
-
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="Val"></param>
-        /// <param name="TargetType">Non Nullable Underlying Type</param>
-        /// <returns></returns>
-        public static object ChangeType(object Val, ODAProperty TargetType)
-        {
-            if (TargetType.OriginType.IsInstanceOfType(Val))
-                return Val;
-
-            if (Val == null || Val == DBNull.Value)
-            {
-                if (IsNullable(TargetType.OriginType))
-                {
-                    return Val;
-                }
-                else
-                {
-                    return DefaultValue(TargetType.NonNullableUnderlyingType);
-                }
-            }
-
-
-            //decimal.Parse(
-
-          //  TargetType.NonNullableUnderlyingType.GetMethod("Parse", BindingFlags.Public| BindingFlags.Static,
-
-
-
-
-            if (TargetType.OriginType.IsEnum)
-            {
-                if (Val is string)
-                    return Enum.Parse(TargetType.OriginType, Val as string);
-                else
-                    return Enum.ToObject(TargetType.OriginType, Val);
-            }
-            return Convert.ChangeType(Val, TargetType.NonNullableUnderlyingType, CultureInfo.CurrentCulture);
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="TargetType"></param>
-        /// <returns></returns>
         public static object DefaultValue(Type TargetType)
-        { 
+        {
             if (TargetType == typeof(DateTime))
-                return new DateTime(1900, 1, 1, 0, 0, 0);
+                return new DateTime(1900, 1, 1);
             if (TargetType == typeof(Guid))
                 return new Guid(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
             if (TargetType == typeof(bool))
@@ -309,27 +183,115 @@ namespace NYear.ODA
             if (TargetType == typeof(ulong))
                 return 0UL;
             if (TargetType == typeof(ushort))
-                return (ushort)0; 
+                return (ushort)0;
             if (TargetType.IsEnum)
                 return Enum.ToObject(TargetType, 1);
-           return  FormatterServices.GetUninitializedObject(TargetType);
-        }
-        public static bool IsNullable(Type t)
-        {
-            if (t.IsValueType)
-            {
-                return IsNullableType(t);
-            }
-            return true;
-        }
-
-        public static bool IsNullableType(Type t)
-        {
-            return (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Nullable<>));
+            return FormatterServices.GetUninitializedObject(TargetType);
         }
     }
-    
-    internal sealed class SafeDictionary<TKey, TValue>
+  
+    internal class ODAMappingInfo
+    {
+        public int[] ReadIndex;
+        public ODAProperty[] Pptys;
+        public MapResult[] MapInfos;
+        public ODAMappingInfo(IDataReader Reader, ODAProperty[] Propertys,bool ByIndex = false)
+        {
+            ReadIndex = new int[Propertys.Length];
+            Pptys = Propertys;
+            MapInfos = new MapResult[Propertys.Length];
+            if (ByIndex)
+            {
+                for (int i = 0; i < ReadIndex.Length && i < Reader.FieldCount; i++)
+                {
+                    ReadIndex[i] = i;
+                    MapInfos[i] = MapResult.Convert; 
+                    Type rType = Reader.GetFieldType(i);
+                    if (Pptys[i].NonNullableUnderlyingType == rType)
+                    {
+                        MapInfos[i] = MapResult.Match;
+                    }
+                    else if (Pptys[i].OriginType.IsEnum)
+                    {
+                        MapInfos[i] = MapResult.EnumType;
+                    }
+                    break; 
+                } 
+            }
+            else
+            {
+                for (int i = 0; i < ReadIndex.Length; i++)
+                {
+                    ReadIndex[i] = -1;
+                    MapInfos[i] = MapResult.Convert;
+                    for (int num = 0; num < Reader.FieldCount; num++)
+                    {
+                        if (Pptys[i].PropertyName == Reader.GetName(num))
+                        {
+                            ReadIndex[i] = Reader.GetOrdinal(Pptys[i].PropertyName);
+                            Type rType = Reader.GetFieldType(num);
+                            if (Pptys[i].NonNullableUnderlyingType == rType)
+                            {
+                                MapInfos[i] = MapResult.Match;
+                            }
+                            else if (Pptys[i].OriginType.IsEnum)
+                            {
+                                MapInfos[i] = MapResult.EnumType;
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    internal enum MapResult
+    {
+        Match = 1,
+        Convert = 2,
+        EnumType = 3,
+    }
+
+    internal class ODAProperty
+    {
+        public Type OriginType
+        {
+            get;
+            private set;
+        }
+        public string PropertyName
+        {
+            get;
+            private set;
+        }
+        public PropertyInfo OriginProperty { get; private set; }
+
+        public bool IsNullableType { get; private set; }
+
+        Type _NonNullableUnderlyingType = null;
+        public Type NonNullableUnderlyingType
+        {
+            get
+            {
+                if (_NonNullableUnderlyingType != null)
+                    return _NonNullableUnderlyingType;
+                _NonNullableUnderlyingType = (ODAReflection.IsNullable(OriginType.UnderlyingSystemType) && ODAReflection.IsNullableType(OriginType.UnderlyingSystemType)) ? Nullable.GetUnderlyingType(OriginType.UnderlyingSystemType) : OriginType.UnderlyingSystemType;
+                return _NonNullableUnderlyingType;
+            }
+        }
+
+        public ODAProperty(PropertyInfo Property)
+        {
+            if (Property == null)
+                throw new ArgumentNullException(nameof(Property));
+            OriginProperty = Property;
+            OriginType = Property.PropertyType;
+            PropertyName = Property.Name;
+            IsNullableType = ODAReflection.IsNullableType(Property.PropertyType);
+        }
+    }
+    internal class SafeDictionary<TKey, TValue>
     {
         private readonly object _Padlock = new object();
         private readonly Dictionary<TKey, TValue> _Dictionary;

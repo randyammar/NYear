@@ -80,7 +80,7 @@ namespace NYear.ODA.DevTool
             {
                 if (Sql.Trim().ToUpper().StartsWith("SELECT "))
                 {
-                    DataTable Dt = CurrentDatabase.DataSource.Select( Sql, null,0,100);
+                    DataTable Dt = CurrentDatabase.DataSource.Select( Sql, null,0,100,null);
                     this.dgvExecuteSql.DataSource = Dt;
                     this.dgvExecuteSql.Update();
                     this.dgvExecuteSql.Refresh();

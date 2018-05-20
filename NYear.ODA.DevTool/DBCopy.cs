@@ -301,7 +301,7 @@ namespace NYear.ODA.DevTool
 
                         DataTable DT_total = CurrentDatabase.DataSource.Select("SELECT COUNT(*) FROM " + prm.TranTable[i], null);
                         int.TryParse(DT_total.Rows[0][0].ToString(), out total);
-                        DataTable Source = CurrentDatabase.DataSource.Select("SELECT * FROM " + prm.TranTable[i], null, startIndx, maxR);
+                        DataTable Source = CurrentDatabase.DataSource.Select("SELECT * FROM " + prm.TranTable[i], null, startIndx, maxR,null);
 
                         TarDB.BeginTransaction();
                         try
@@ -322,32 +322,7 @@ namespace NYear.ODA.DevTool
                                     }
                                     else
                                     {
-                                        switch (Oprms[c].DBDataType)
-                                        {
-                                            case ODAdbType.OArrary:
-                                            case ODAdbType.OBinary:
-                                                Oprms[c].ParamsValue = NYear.ODA.DBAccess.DataConvert(Source.Rows[k][drs[c]["COLUMN_NAME"].ToString()], typeof(byte[]));
-                                                break;
-                                            case ODAdbType.OChar:
-                                            case ODAdbType.OVarchar:
-                                                Oprms[c].ParamsValue = NYear.ODA.DBAccess.DataConvert(Source.Rows[k][drs[c]["COLUMN_NAME"].ToString()], typeof(string));
-                                                break;
-                                            case ODAdbType.ODecimal:
-                                                Oprms[c].ParamsValue = NYear.ODA.DBAccess.DataConvert(Source.Rows[k][drs[c]["COLUMN_NAME"].ToString()], typeof(decimal));
-                                                break;
-                                            case ODAdbType.OInt:
-                                                Oprms[c].ParamsValue = NYear.ODA.DBAccess.DataConvert(Source.Rows[k][drs[c]["COLUMN_NAME"].ToString()], typeof(int));
-                                                break;
-                                            case ODAdbType.ODatetime:
-                                                if (Source.Rows[k][drs[c]["COLUMN_NAME"].ToString()].ToString() == DateTime.MinValue.ToString() || Source.Rows[k][drs[c]["COLUMN_NAME"].ToString()].ToString() == DateTime.MaxValue.ToString())
-                                                    Oprms[c].ParamsValue = null;
-                                                else
-                                                    Oprms[c].ParamsValue = NYear.ODA.DBAccess.DataConvert(Source.Rows[k][drs[c]["COLUMN_NAME"].ToString()], typeof(DateTime));
-                                                break;
-                                            default:
-                                                Oprms[c].ParamsValue = Source.Rows[k][drs[c]["COLUMN_NAME"].ToString()];
-                                                break;
-                                        }
+                                        Oprms[c].ParamsValue = Source.Rows[k][drs[c]["COLUMN_NAME"].ToString()];
                                     }
                                 }
                                 prm.TargetDB.ExecuteSQL(insertSQL, Oprms);

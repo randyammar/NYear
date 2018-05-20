@@ -20,9 +20,9 @@ namespace NYear.ODA.Adapter
             if (_DBConn == null)
                 _DBConn = new MySqlConnection(ConnString);
             if (_DBConn.State == ConnectionState.Closed)
-                _DBConn.Open(); 
+                _DBConn.Open();
             return _DBConn;
-        }  
+        }
         protected override DbDataAdapter GetDataAdapter(IDbCommand SelectCmd)
         {
             return new MySqlDataAdapter((MySqlCommand)SelectCmd);
@@ -45,9 +45,9 @@ namespace NYear.ODA.Adapter
         public override DbAType DBAType { get { return DbAType.MySql; } }
         public override string[] GetUserTables()
         {
-            DataTable dt_table = Select("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES "
-                + " WHERE TABLE_NAME NOT IN (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE  TABLE_SCHEMA =DATABASE()) "
-                + " AND TABLE_SCHEMA =DATABASE() ", null);
+            DataTable dt_table = Select(new StringBuilder().Append("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES ")
+                .Append( " WHERE TABLE_NAME NOT IN (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE  TABLE_SCHEMA =DATABASE()) ")
+                .Append(" AND TABLE_SCHEMA =DATABASE() ").ToString(), null);
             string[] str = new string[dt_table.Rows.Count];
             for (int i = 0; i < str.Length; i++)
             {
@@ -68,58 +68,58 @@ namespace NYear.ODA.Adapter
 
         public override DataTable GetTableColumns()
         {
-            string sql_tabcol = "SELECT C.TABLE_NAME,C.COLUMN_NAME, C.ORDINAL_POSITION COL_SEQ, "
-            + " CASE C.DATA_TYPE WHEN 'char' THEN 'OChar' WHEN 'varchar' THEN 'OVarchar' WHEN 'tinytext' THEN 'OVarchar' "
-            + " WHEN 'text' THEN 'OVarchar' WHEN 'mediumtext' THEN 'OVarchar' WHEN 'longtext' THEN 'OVarchar' WHEN 'enum' THEN 'OChar' "
-            + " WHEN 'set' THEN 'OVarchar' WHEN 'geometry' THEN 'OVarchar' WHEN 'point' THEN 'OVarchar' WHEN 'linestring' THEN 'OVarchar' "
-            + " WHEN 'polygon' THEN 'OVarchar' WHEN 'multipoint' THEN 'OVarchar' WHEN 'multilinestring' THEN 'OVarchar'  "
-            + " WHEN 'multipolygon' THEN 'OVarchar' WHEN 'geometrycollection' THEN 'OVarchar' "
-            + " WHEN 'int' THEN 'OInt' WHEN 'tynyint' THEN 'OInt' WHEN 'smallint' THEN 'OInt' WHEN 'mediumint' THEN 'OInt'"
-            + " WHEN 'bigint' THEN 'ODecimal' WHEN 'real' THEN 'ODecimal'  WHEN 'double' THEN 'ODecimal' WHEN 'float' THEN 'ODecimal' "
-            + " WHEN 'numeric' THEN 'ODecimal' WHEN 'decimal' THEN 'ODecimal' "
-            + " WHEN 'binary' THEN 'OBinary' WHEN 'varbinary' THEN 'OBinary' WHEN 'blob' THEN 'OBinary' WHEN 'mediumblob' THEN 'OBinary' WHEN 'longblob' THEN 'OBinary' "
-            + " WHEN 'date' THEN 'ODatetime' WHEN 'year' THEN 'ODatetime' WHEN 'time' THEN 'ODatetime' WHEN 'timestamp' THEN 'ODatetime' "
-            + " WHEN 'datetime' THEN 'ODatetime' "
-            + " END AS ODA_DATATYPE ,CASE C.IS_NULLABLE WHEN 'NO' THEN 'Y' ELSE 'N' END AS NOT_NULL, "
-            + " CASE WHEN C.CHARACTER_MAXIMUM_LENGTH IS NULL THEN 9 ELSE  CASE WHEN  C.CHARACTER_MAXIMUM_LENGTH > 65534 THEN 0 ELSE  C.CHARACTER_MAXIMUM_LENGTH END END LENGTH,'INPUT' DIRECTION  "
-            + " FROM INFORMATION_SCHEMA.COLUMNS C "
-            + " WHERE C.TABLE_NAME NOT IN (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS V WHERE V.TABLE_SCHEMA  = DATABASE() AND  C.TABLE_SCHEMA =DATABASE()) "
-            + " AND C.TABLE_SCHEMA =DATABASE() "
-            + " ORDER BY C.TABLE_NAME, C.ORDINAL_POSITION ";
-            DataTable Dt = Select(sql_tabcol, null);
+            StringBuilder sql_tabcol =new StringBuilder().Append( "SELECT C.TABLE_NAME,C.COLUMN_NAME, C.ORDINAL_POSITION COL_SEQ, ")
+            .Append(" CASE C.DATA_TYPE WHEN 'char' THEN 'OChar' WHEN 'varchar' THEN 'OVarchar' WHEN 'tinytext' THEN 'OVarchar' ")
+            .Append(" WHEN 'text' THEN 'OVarchar' WHEN 'mediumtext' THEN 'OVarchar' WHEN 'longtext' THEN 'OVarchar' WHEN 'enum' THEN 'OChar' ")
+            .Append(" WHEN 'set' THEN 'OVarchar' WHEN 'geometry' THEN 'OVarchar' WHEN 'point' THEN 'OVarchar' WHEN 'linestring' THEN 'OVarchar' ")
+            .Append(" WHEN 'polygon' THEN 'OVarchar' WHEN 'multipoint' THEN 'OVarchar' WHEN 'multilinestring' THEN 'OVarchar'  ")
+            .Append(" WHEN 'multipolygon' THEN 'OVarchar' WHEN 'geometrycollection' THEN 'OVarchar' ")
+            .Append(" WHEN 'int' THEN 'OInt' WHEN 'tynyint' THEN 'OInt' WHEN 'smallint' THEN 'OInt' WHEN 'mediumint' THEN 'OInt'")
+            .Append(" WHEN 'bigint' THEN 'ODecimal' WHEN 'real' THEN 'ODecimal'  WHEN 'double' THEN 'ODecimal' WHEN 'float' THEN 'ODecimal' ")
+            .Append(" WHEN 'numeric' THEN 'ODecimal' WHEN 'decimal' THEN 'ODecimal' ")
+            .Append(" WHEN 'binary' THEN 'OBinary' WHEN 'varbinary' THEN 'OBinary' WHEN 'blob' THEN 'OBinary' WHEN 'mediumblob' THEN 'OBinary' WHEN 'longblob' THEN 'OBinary' ")
+            .Append(" WHEN 'date' THEN 'ODatetime' WHEN 'year' THEN 'ODatetime' WHEN 'time' THEN 'ODatetime' WHEN 'timestamp' THEN 'ODatetime' ")
+            .Append(" WHEN 'datetime' THEN 'ODatetime' ")
+            .Append(" END AS ODA_DATATYPE ,CASE C.IS_NULLABLE WHEN 'NO' THEN 'Y' ELSE 'N' END AS NOT_NULL, ")
+            .Append(" CASE WHEN C.CHARACTER_MAXIMUM_LENGTH IS NULL THEN 9 ELSE  CASE WHEN  C.CHARACTER_MAXIMUM_LENGTH > 65534 THEN 0 ELSE  C.CHARACTER_MAXIMUM_LENGTH END END LENGTH,'INPUT' DIRECTION  ")
+            .Append(" FROM INFORMATION_SCHEMA.COLUMNS C ")
+            .Append(" WHERE C.TABLE_NAME NOT IN (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS V WHERE V.TABLE_SCHEMA  = DATABASE() AND  C.TABLE_SCHEMA =DATABASE()) ")
+            .Append(" AND C.TABLE_SCHEMA =DATABASE() ")
+            .Append(" ORDER BY C.TABLE_NAME, C.ORDINAL_POSITION ");
+            DataTable Dt = Select(sql_tabcol.ToString(), null);
             Dt.TableName = "TABLE_COLUMN";
             return Dt;
         }
         public override DataTable GetViewColumns()
         {
-            string sql_view = "SELECT C.TABLE_NAME,C.COLUMN_NAME, CASE C.DATA_TYPE "
-            + " WHEN 'char' THEN 'OChar' WHEN 'varchar' THEN 'OVarchar' WHEN 'tinytext' THEN 'OVarchar' "
-            + " WHEN 'text' THEN 'OVarchar' WHEN 'mediumtext' THEN 'OVarchar' WHEN 'longtext' THEN 'OVarchar' WHEN 'enum' THEN 'OChar' "
-            + " WHEN 'set' THEN 'OVarchar' WHEN 'geometry' THEN 'OVarchar' WHEN 'point' THEN 'OVarchar' WHEN 'linestring' THEN 'OVarchar' "
-            + " WHEN 'polygon' THEN 'OVarchar' WHEN 'multipoint' THEN 'OVarchar' WHEN 'multilinestring' THEN 'OVarchar'  "
-            + " WHEN 'multipolygon' THEN 'OVarchar' WHEN 'geometrycollection' THEN 'OVarchar' "
-            + " WHEN 'int' THEN 'OInt' WHEN 'tynyint' THEN 'OInt' WHEN 'smallint' THEN 'OInt' WHEN 'mediumint' THEN 'OInt' "
-            + " WHEN 'bigint' THEN 'ODecimal' WHEN 'real' THEN 'ODecimal'  WHEN 'double' THEN 'ODecimal' WHEN 'float' THEN 'ODecimal' "
-            + " WHEN 'numeric' THEN 'ODecimal' WHEN 'decimal' THEN 'ODecimal' "
-            + " WHEN 'binary' THEN 'OBinary' WHEN 'varbinary' THEN 'OBinary' WHEN 'blob' THEN 'OBinary' WHEN 'mediumblob' THEN 'OBinary' WHEN 'longblob' THEN 'OBinary' "
-            + " WHEN 'date' THEN 'ODatetime' WHEN 'year' THEN 'ODatetime' WHEN 'time' THEN 'ODatetime' WHEN 'timestamp' THEN 'ODatetime' "
-            + " WHEN 'datetime' THEN 'ODatetime' "
-            + " END AS ODA_DATATYPE ,CASE C.IS_NULLABLE WHEN 'NO' THEN 'Y' ELSE 'N' END AS NOT_NULL, "
-            + " CASE WHEN C.CHARACTER_MAXIMUM_LENGTH IS NULL THEN 9 ELSE  CASE WHEN  C.CHARACTER_MAXIMUM_LENGTH > 65534 THEN 0 ELSE  C.CHARACTER_MAXIMUM_LENGTH END  END LENGTH,'INPUT' DIRECTION  "
-            + " FROM INFORMATION_SCHEMA.COLUMNS C, INFORMATION_SCHEMA.VIEWS V "
-            + " WHERE C.TABLE_NAME = V.TABLE_NAME "
-            + " AND C.TABLE_SCHEMA =DATABASE() "
-            + " AND V.TABLE_SCHEMA  = DATABASE() "
-            + " ORDER BY C.TABLE_NAME,C.COLUMN_NAME ";
-            DataTable Dt = Select(sql_view, null);
+            StringBuilder sql_view = new StringBuilder().Append("SELECT C.TABLE_NAME,C.COLUMN_NAME, CASE C.DATA_TYPE ")
+            .Append(" WHEN 'char' THEN 'OChar' WHEN 'varchar' THEN 'OVarchar' WHEN 'tinytext' THEN 'OVarchar' ")
+            .Append(" WHEN 'text' THEN 'OVarchar' WHEN 'mediumtext' THEN 'OVarchar' WHEN 'longtext' THEN 'OVarchar' WHEN 'enum' THEN 'OChar' ")
+            .Append(" WHEN 'set' THEN 'OVarchar' WHEN 'geometry' THEN 'OVarchar' WHEN 'point' THEN 'OVarchar' WHEN 'linestring' THEN 'OVarchar' ")
+            .Append(" WHEN 'polygon' THEN 'OVarchar' WHEN 'multipoint' THEN 'OVarchar' WHEN 'multilinestring' THEN 'OVarchar'  ")
+            .Append(" WHEN 'multipolygon' THEN 'OVarchar' WHEN 'geometrycollection' THEN 'OVarchar' ")
+            .Append(" WHEN 'int' THEN 'OInt' WHEN 'tynyint' THEN 'OInt' WHEN 'smallint' THEN 'OInt' WHEN 'mediumint' THEN 'OInt' ")
+            .Append(" WHEN 'bigint' THEN 'ODecimal' WHEN 'real' THEN 'ODecimal'  WHEN 'double' THEN 'ODecimal' WHEN 'float' THEN 'ODecimal' ")
+            .Append(" WHEN 'numeric' THEN 'ODecimal' WHEN 'decimal' THEN 'ODecimal' ")
+            .Append(" WHEN 'binary' THEN 'OBinary' WHEN 'varbinary' THEN 'OBinary' WHEN 'blob' THEN 'OBinary' WHEN 'mediumblob' THEN 'OBinary' WHEN 'longblob' THEN 'OBinary' ")
+            .Append(" WHEN 'date' THEN 'ODatetime' WHEN 'year' THEN 'ODatetime' WHEN 'time' THEN 'ODatetime' WHEN 'timestamp' THEN 'ODatetime' ")
+            .Append(" WHEN 'datetime' THEN 'ODatetime' ")
+            .Append(" END AS ODA_DATATYPE ,CASE C.IS_NULLABLE WHEN 'NO' THEN 'Y' ELSE 'N' END AS NOT_NULL, ")
+            .Append(" CASE WHEN C.CHARACTER_MAXIMUM_LENGTH IS NULL THEN 9 ELSE  CASE WHEN  C.CHARACTER_MAXIMUM_LENGTH > 65534 THEN 0 ELSE  C.CHARACTER_MAXIMUM_LENGTH END  END LENGTH,'INPUT' DIRECTION  ")
+            .Append(" FROM INFORMATION_SCHEMA.COLUMNS C, INFORMATION_SCHEMA.VIEWS V ")
+            .Append(" WHERE C.TABLE_NAME = V.TABLE_NAME ")
+            .Append(" AND C.TABLE_SCHEMA =DATABASE() ")
+            .Append(" AND V.TABLE_SCHEMA  = DATABASE() ")
+            .Append(" ORDER BY C.TABLE_NAME,C.COLUMN_NAME ");
+            DataTable Dt = Select(sql_view.ToString(), null);
             Dt.TableName = "VIEW_COLUMN";
             return Dt;
         }
 
         public override string[] GetPrimarykey(string TableName)
         {
-            string PrimaryCols = string.Format("SELECT  CU.COLUMN_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE CU,INFORMATION_SCHEMA.TABLE_CONSTRAINTS TC "
-            + " WHERE  CU.TABLE_NAME = TC.TABLE_NAME AND  TC.CONSTRAINT_TYPE = 'PRIMARY KEY' AND CU.TABLE_NAME ='{0}'", TableName);
+            string PrimaryCols = new StringBuilder().Append("SELECT  CU.COLUMN_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE CU,INFORMATION_SCHEMA.TABLE_CONSTRAINTS TC ")
+            .Append(" WHERE  CU.TABLE_NAME = TC.TABLE_NAME AND  TC.CONSTRAINT_TYPE = 'PRIMARY KEY' AND CU.TABLE_NAME ='").Append(TableName).Append("'").ToString();
             DataTable Dt = this.Select(PrimaryCols, null);
             if (Dt != null && Dt.Rows.Count > 0)
             {
@@ -173,14 +173,14 @@ namespace NYear.ODA.Adapter
             return ColInof;
         }
 
-        public override DataTable Select(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord)
+        public override DataTable Select(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord, string Orderby)
         {
             string BlockStr = SQL + " limit " + StartIndex.ToString() + "," + MaxRecord.ToString(); ///取出MaxRecord条记录
             return Select(BlockStr, ParamList);
         }
 
 
-        public override List<T> Select<T>(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord)
+        public override List<T> Select<T>(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord, string Orderby)
         {
             IDbCommand Cmd = OpenCommand();
             try
@@ -189,7 +189,12 @@ namespace NYear.ODA.Adapter
                 Cmd.CommandType = CommandType.Text;
                 SetCmdParameters(ref Cmd, BlockStr, ParamList);
                 IDataReader Dr = Cmd.ExecuteReader();
-                return GetList<T>(Dr);
+                var rlt = GetList<T>(Dr);
+                if (Dr.Read())
+                    Cmd.Cancel();
+                Dr.Close();
+                Dr.Dispose();
+                return rlt;
             }
             finally
             {
@@ -273,7 +278,7 @@ namespace NYear.ODA.Adapter
             IDbCommand Cmd = OpenCommand();
             try
             {
-                string sql = " SELECT" + ExpressionString + " AS VALUE  FROM SEQUENCE_TABLE WHERE SEQUENCE_NAME = 'DUAL'";
+                string sql = new StringBuilder().Append(" SELECT" ).Append( ExpressionString ).Append( " AS VALUE  FROM SEQUENCE_TABLE WHERE SEQUENCE_NAME = 'DUAL'").ToString();
                 Cmd.CommandText = sql;
                 Cmd.CommandType = CommandType.Text;
                 return Cmd.ExecuteScalar();

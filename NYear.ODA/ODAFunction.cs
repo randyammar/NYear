@@ -17,6 +17,7 @@ namespace NYear.ODA
             Case = 3,
             CaseWhen = 4,
             Exists = 5,
+            NoCondition = 6,
         }
         private string _FuncName = "";
         private List<ODAColumns> _FunColumnList = new List<ODAColumns>();
@@ -246,12 +247,26 @@ namespace NYear.ODA
         /// <param name="Function">函数的名字</param>
         /// <param name="ParamsList">函数的参数</param>
         /// <returns></returns>
+        public ODAColumns Express(string Function)
+        {
+            _FuncType = Func.NoCondition;
+            _FuncName = Function;
+            _DBDataType = ODAdbType.OVarchar;
+            return this;
+        }
+
+        /// <summary>
+        /// 自定义函数
+        /// </summary>
+        /// <param name="Function">函数的名字</param>
+        /// <param name="ParamsList">函数的参数</param>
+        /// <returns></returns>
         public ODAColumns CreateFunc(string Function, params object[] ParamsList)
         {
             _FuncType = Func.Normal;
             _FunArgs.AddRange(ParamsList);
             _FuncName = Function;
-            _DBDataType = ODAdbType.OVarchar;
+            _DBDataType = ODAdbType.ODecimal;
             return this;
         }
         /// <summary>
@@ -354,7 +369,7 @@ namespace NYear.ODA
                     _FuncName = Val;
                     break;
             }
-            _FuncType = Func.Self;
+            _FuncType = Func.NoCondition;
             return this;
         }
 
@@ -474,10 +489,16 @@ namespace NYear.ODA
             {
                 string tmpCol = "P_" + Guid.NewGuid().ToString("N").ToString();
                 _ODAColumnName = tmpCol;
-                var wSql = base.GetWhereSubstring(ConIndex );
-                wSql.SqlScript.Replace(tmpCol, this.FunctionName);
+                var wSql = base.GetWhereSubstring(ConIndex);
+                wSql.SqlScript.Replace(tmpCol, this.FunctionName); ///形如：count(*) > 0
                 return wSql;
             }
+            else if (_FuncType == Func.NoCondition)
+            {
+                ODAScript wSql = new ODAScript();
+                wSql.SqlScript.Append(this.FunctionName);
+                return wSql;
+            } 
             return sql;
         }
     }

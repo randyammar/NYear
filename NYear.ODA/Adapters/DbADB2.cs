@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Text;
 
 namespace NYear.ODA.Adapter
 {
@@ -20,10 +21,10 @@ namespace NYear.ODA.Adapter
             if (_DBConn == null)
                 _DBConn = new DB2Connection(ConnString);
             if (_DBConn.State == ConnectionState.Closed)
-                _DBConn.Open(); 
+                _DBConn.Open();
             return _DBConn;
         }
-         
+
         protected override DbDataAdapter GetDataAdapter(IDbCommand SelectCmd)
         {
             return new DB2DataAdapter((DB2Command)SelectCmd);
@@ -66,45 +67,44 @@ namespace NYear.ODA.Adapter
         }
         public override DataTable GetTableColumns()
         {
-            string sql = @"SELECTT.NAME  TABLE_NAME,C.NAME AS COLUMN_NAME,C.COLNO COL_SEQ,
-CASE C.COLTYPE WHEN 'CHAR' THEN 'OChar' WHEN 'VARCHAR' THEN 'OVarchar'
-WHEN 'TIMESTMP' THEN 'ODatetime' WHEN 'DECIMAL' THEN 'ODecimal' WHEN 'INTEGER' THEN 'OInt'
-WHEN 'BLOB' THEN 'OBinary' ELSE  C.COLTYPE END ODA_DATATYPE,
-CASE c.nulls WHEN 'N' THEN 'Y' ELSE 'N' END NOT_NULL,C.LENGTH AS LENGTH, C.REMARKS DIRECTION 
-FROM SYSIBM.SYSCOLUMNS C
-INNER JOIN SYSIBM.SYSTABLES T ON C.TBNAME=T.NAME
-WHERE T.TBSPACE ='USERSPACE1'
-AND T.TYPE='T'
-ORDER BY T.NAME ,C.COLNO";
-            DataTable Dt = Select(sql, null);
+            StringBuilder sql = new StringBuilder().Append("SELECTT.NAME  TABLE_NAME,C.NAME AS COLUMN_NAME,C.COLNO COL_SEQ,")
+                .Append(" CASE C.COLTYPE WHEN 'CHAR' THEN 'OChar' WHEN 'VARCHAR' THEN 'OVarchar'")
+                .Append(" WHEN 'TIMESTMP' THEN 'ODatetime' WHEN 'DECIMAL' THEN 'ODecimal' WHEN 'INTEGER' THEN 'OInt'")
+                .Append(" WHEN 'BLOB' THEN 'OBinary' ELSE  C.COLTYPE END ODA_DATATYPE,")
+                .Append(" CASE c.nulls WHEN 'N' THEN 'Y' ELSE 'N' END NOT_NULL,C.LENGTH AS LENGTH, C.REMARKS DIRECTION ")
+                .Append(" FROM SYSIBM.SYSCOLUMNS C")
+                .Append(" INNER JOIN SYSIBM.SYSTABLES T ON C.TBNAME=T.NAME")
+                .Append(" WHERE T.TBSPACE ='USERSPACE1'")
+                .Append(" AND T.TYPE='T'")
+                .Append(" ORDER BY T.NAME ,C.COLNO");
+            DataTable Dt = Select(sql.ToString(), null);
             Dt.TableName = "TABLE_COLUMN";
             return Dt;
         }
         public override DataTable GetViewColumns()
         {
-            string sql = @"SELECT C.NAME AS COLUMN_NAME,T.NAME  TABLE_NAME,
-CASE C.COLTYPE WHEN 'CHAR' THEN 'OChar' WHEN 'VARCHAR' THEN 'OVarchar'
-WHEN 'TIMESTMP' THEN 'ODatetime' WHEN 'DECIMAL' THEN 'ODecimal' WHEN 'INTEGER' THEN 'OInt'
-WHEN 'BLOB' THEN 'OBinary' ELSE C.COLTYPE END ODA_DATATYPE,
-CASE c.nulls WHEN 'N' THEN 'Y' ELSE 'N' END NOT_NULL, C.LENGTH AS LENGTH, C.REMARKS DIRECTION
-FROM SYSIBM.SYSCOLUMNS C
-INNER JOIN SYSIBM.SYSVIEWS T ON C.TBNAME = T.NAME
-WHERE T.DEFINERTYPE = 'U'
-ORDER BY T.NAME ,C.COLNO";
-            DataTable Dt = this.Select(sql, null);
+            StringBuilder sql = new StringBuilder().Append("SELECT C.NAME AS COLUMN_NAME,T.NAME  TABLE_NAME,")
+                .Append(" CASE C.COLTYPE WHEN 'CHAR' THEN 'OChar' WHEN 'VARCHAR' THEN 'OVarchar'")
+                .Append(" WHEN 'TIMESTMP' THEN 'ODatetime' WHEN 'DECIMAL' THEN 'ODecimal' WHEN 'INTEGER' THEN 'OInt'")
+                .Append(" WHEN 'BLOB' THEN 'OBinary' ELSE C.COLTYPE END ODA_DATATYPE,")
+                .Append(" CASE c.nulls WHEN 'N' THEN 'Y' ELSE 'N' END NOT_NULL, C.LENGTH AS LENGTH, C.REMARKS DIRECTION")
+                .Append(" FROM SYSIBM.SYSCOLUMNS C")
+                .Append(" INNER JOIN SYSIBM.SYSVIEWS T ON C.TBNAME = T.NAME")
+                .Append(" WHERE T.DEFINERTYPE = 'U'ORDER BY T.NAME ,C.COLNO");
+            DataTable Dt = this.Select(sql.ToString(), null);
             Dt.TableName = "TABLE_COLUMN";
             return Dt;
         }
         public override string[] GetPrimarykey(string TableName)
         {
-            string sql = @"SELECT N.TBNAME TABLE_NAME, N.COLNAMES FROM  SYSIBM.SYSTABLES D  
-INNER JOIN SYSIBM.SYSINDEXES N ON N.TBNAME = D.NAME
-WHERE D.TBSPACE = 'USERSPACE1'
-AND D.TYPE = 'T'
-AND UNIQUERULE = 'P'";
-
-            sql += " AND N.TBNAME = '" + TableName.ToUpper() + "'";
-            DataTable Dt = this.Select(sql, null);
+            StringBuilder sql = new StringBuilder().Append("SELECT N.TBNAME TABLE_NAME, N.COLNAMES FROM  SYSIBM.SYSTABLES D  ")
+                 .Append(" INNER JOIN SYSIBM.SYSINDEXES N ON N.TBNAME = D.NAME")
+                 .Append(" WHERE D.TBSPACE = 'USERSPACE1'")
+                 .Append(" AND D.TYPE = 'T'")
+                 .Append(" AND UNIQUERULE = 'P'")
+                 .Append(" AND N.TBNAME = '")
+                 .Append( TableName.ToUpper()).Append( "'");
+            DataTable Dt = this.Select(sql.ToString(), null);
             if (Dt != null && Dt.Rows.Count > 0)
             {
                 return Dt.Rows[0]["COLNAMES"].ToString().Split(new char[] { '+' }, StringSplitOptions.RemoveEmptyEntries);
@@ -157,7 +157,7 @@ AND UNIQUERULE = 'P'";
             return ColInof;
         }
 
-        public override DataTable Select(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord)
+        public override DataTable Select(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord, string Orderby)
         {
             string BlockStr = "select * from (select row_number() over() as r_id_1,t_1.* from ( ";
             BlockStr += SQL;
@@ -167,7 +167,7 @@ AND UNIQUERULE = 'P'";
             return dt;
         }
 
-        public override List<T> Select<T>(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord)
+        public override List<T> Select<T>(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord, string Orderby)
         {
             IDbCommand Cmd = OpenCommand();
             try
@@ -178,7 +178,12 @@ AND UNIQUERULE = 'P'";
                 Cmd.CommandType = CommandType.Text;
                 SetCmdParameters(ref Cmd, BlockStr, ParamList);
                 IDataReader Dr = Cmd.ExecuteReader();
-                return GetList<T>(Dr);
+                var rlt = GetList<T>(Dr, StartIndex, MaxRecord);
+                if (Dr.Read())
+                    Cmd.Cancel();
+                Dr.Close();
+                Dr.Dispose();
+                return rlt;
             }
             finally
             {

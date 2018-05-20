@@ -361,6 +361,7 @@ namespace NYear.ODA
             ExecutingSql?.Invoke(this, args);
             CurrentExecutingSql?.Invoke(this, args);
         }
+
         protected IDBAccess GetDBAccess(ODAScript ODASql)
         {
             
@@ -372,30 +373,7 @@ namespace NYear.ODA
             };
             this.FireExecutingSqlEvent(earg);
             return earg.DBA;
-        }
-        /// <summary>
-        /// 分表查询设定
-        /// </summary>
-        /// <param name="Cmd"></param>
-        protected virtual void SetSelectSplitTable(ODACmd Cmd)
-        {
-            //if (Cmd.BaseCmd != null)
-            //{
-            //    SetSelectSplitTable(Cmd.BaseCmd);
-            //}
-            //else
-            //{
-            //    string[] mTbl = TableRouting(SQLType.Select, Cmd, Cmd.WhereColumns.ToArray());
-            //    Cmd.DBObjectMap = mTbl[0];
-            //}
-            //foreach (IDBScriptGenerator c in Cmd.ListJoinCmd)
-            //    SetSelectSplitTable(c);
-            //foreach (SqlJoinScript c in Cmd.JoinCmd)
-            //    SetSelectSplitTable(c.JoinCmd);
-            //foreach (ODAColumns c in Cmd.WhereColumns)
-            //    if (c.InCmd != null)
-            //        SetSelectSplitTable(c.InCmd);
-        }
+        } 
         #endregion
     }
 }

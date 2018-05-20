@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Data.SqlClient;
+using System.Text;
 
 namespace NYear.ODA.Adapter
 {
@@ -18,9 +19,9 @@ namespace NYear.ODA.Adapter
             if (_DBConn == null)
                 _DBConn = new SqlConnection(ConnString);
             if (_DBConn.State == ConnectionState.Closed)
-                _DBConn.Open(); 
+                _DBConn.Open();
             return _DBConn;
-        } 
+        }
         protected override DbDataAdapter GetDataAdapter(IDbCommand SelectCmd)
         {
             return new SqlDataAdapter((SqlCommand)SelectCmd);
@@ -63,59 +64,59 @@ namespace NYear.ODA.Adapter
         }
         public override DataTable GetTableColumns()
         {
-            string sql_tabcol = "SELECT DISTINCT SOBJ.NAME AS TABLE_NAME, SCOL.NAME AS COLUMN_NAME , SCOL.COLID AS COL_SEQ,"
-            + " CASE SYT.NAME  WHEN 'sysname'  THEN 'OVarchar' WHEN 'sql_varint'  THEN 'OVarchar'    WHEN 'varchar' THEN 'OVarchar' WHEN 'char'  THEN 'OChar' "
-            + " WHEN 'nchar'  THEN 'OChar' WHEN 'ntext'  THEN 'OVarchar'  WHEN 'nvarchar'  THEN 'OVarchar'  WHEN 'text'  THEN 'OVarchar' WHEN 'varchar'  THEN 'OVarchar' "
-            + " WHEN 'bigint'  THEN 'ODecimal'  WHEN 'decimal'  THEN 'ODecimal'   WHEN 'float'  THEN 'ODecimal'   WHEN 'money'  THEN 'ODecimal' "
-            + " WHEN 'numeric'  THEN 'ODecimal'    WHEN 'real'  THEN 'ODecimal'   WHEN 'smallmoney'  THEN 'ODecimal' "
-            + " WHEN 'int'  THEN 'OInt'  WHEN 'smallint'  THEN 'OInt'  WHEN 'bit'  THEN 'OInt'  "
-            + " WHEN 'datetime'  THEN 'ODatetime'  WHEN 'smalldatetime'  THEN 'ODatetime'  WHEN 'smalldatetime'  THEN 'ODatetime'  WHEN 'date'  THEN 'ODatetime' "
-            + " WHEN 'binary'  THEN 'OBinary'  WHEN 'image'  THEN 'OBinary'  WHEN 'timestamp'  THEN 'OBinary'    WHEN 'varbinary'  THEN 'OBinary' "
-            + " ELSE  SYT.NAME  END AS ODA_DATATYPE ,"
-            + " CASE SCOL.ISNULLABLE WHEN 0 THEN 'Y' ELSE 'N' END AS NOT_NULL,"
-            + " SCOL.LENGTH AS LENGTH, ext.value AS DIRECTION  "
-            + " FROM SYSOBJECTS SOBJ "
-            + " inner join SYSCOLUMNS SCOL "
-            + " on SOBJ.ID = SCOL.ID  "
-            + " inner join SYS.TYPES SYT "
-            + " on SYT.IS_USER_DEFINED = 0 "
-            + " AND SYT.SYSTEM_TYPE_ID = SCOL.XTYPE "
-            + " left join sys.extended_properties ext "
-            + " on ext.name= 'MS_Description' "
-            + " and ext.major_id =OBJECT_ID (UPPER(SOBJ.NAME)) "
-            + " and ext.minor_id = SCOL.colid "
-            + " WHERE  SOBJ.XTYPE  = 'U '"
-            + " ORDER BY  TABLE_NAME , SCOL.COLID  ";
-            DataTable Dt = this.Select(sql_tabcol, null);
+            StringBuilder sql_tabcol = new StringBuilder().Append( "SELECT DISTINCT SOBJ.NAME AS TABLE_NAME, SCOL.NAME AS COLUMN_NAME , SCOL.COLID AS COL_SEQ,")
+            .Append(" CASE SYT.NAME  WHEN 'sysname'  THEN 'OVarchar' WHEN 'sql_varint'  THEN 'OVarchar'    WHEN 'varchar' THEN 'OVarchar' WHEN 'char'  THEN 'OChar' ")
+            .Append(" WHEN 'nchar'  THEN 'OChar' WHEN 'ntext'  THEN 'OVarchar'  WHEN 'nvarchar'  THEN 'OVarchar'  WHEN 'text'  THEN 'OVarchar' WHEN 'varchar'  THEN 'OVarchar' ")
+            .Append(" WHEN 'bigint'  THEN 'ODecimal'  WHEN 'decimal'  THEN 'ODecimal'   WHEN 'float'  THEN 'ODecimal'   WHEN 'money'  THEN 'ODecimal' ")
+            .Append(" WHEN 'numeric'  THEN 'ODecimal'    WHEN 'real'  THEN 'ODecimal'   WHEN 'smallmoney'  THEN 'ODecimal' ")
+            .Append(" WHEN 'int'  THEN 'OInt'  WHEN 'smallint'  THEN 'OInt'  WHEN 'bit'  THEN 'OInt'  ")
+            .Append(" WHEN 'datetime'  THEN 'ODatetime'  WHEN 'smalldatetime'  THEN 'ODatetime'  WHEN 'smalldatetime'  THEN 'ODatetime'  WHEN 'date'  THEN 'ODatetime' ")
+            .Append(" WHEN 'binary'  THEN 'OBinary'  WHEN 'image'  THEN 'OBinary'  WHEN 'timestamp'  THEN 'OBinary'    WHEN 'varbinary'  THEN 'OBinary' ")
+            .Append(" ELSE  SYT.NAME  END AS ODA_DATATYPE ,")
+            .Append(" CASE SCOL.ISNULLABLE WHEN 0 THEN 'Y' ELSE 'N' END AS NOT_NULL,")
+            .Append(" SCOL.LENGTH AS LENGTH, ext.value AS DIRECTION  ")
+            .Append(" FROM SYSOBJECTS SOBJ ")
+            .Append(" inner join SYSCOLUMNS SCOL ")
+            .Append(" on SOBJ.ID = SCOL.ID  ")
+            .Append(" inner join SYS.TYPES SYT ")
+            .Append(" on SYT.IS_USER_DEFINED = 0 ")
+            .Append(" AND SYT.SYSTEM_TYPE_ID = SCOL.XTYPE ")
+            .Append(" left join sys.extended_properties ext ")
+            .Append(" on ext.name= 'MS_Description' ")
+            .Append(" and ext.major_id =OBJECT_ID (UPPER(SOBJ.NAME)) ")
+            .Append(" and ext.minor_id = SCOL.colid ")
+            .Append(" WHERE  SOBJ.XTYPE  = 'U '")
+            .Append(" ORDER BY  TABLE_NAME , SCOL.COLID  ");
+            DataTable Dt = this.Select(sql_tabcol.ToString(), null);
             Dt.TableName = "TABLE_COLUMN";
             return Dt;
         }
         public override DataTable GetViewColumns()
         {
-            string sql_view = "SELECT DISTINCT SOBJ.NAME AS TABLE_NAME, SCOL.NAME AS COLUMN_NAME , "
-            + " case SCOL.isnullable when 0 then 'False' else 'True' end as REQUIRE,"
-            + " CASE SYT.NAME  WHEN 'sysname'  THEN 'OVarchar' WHEN 'sql_varint'  THEN 'OVarchar'    WHEN 'varchar' THEN 'OVarchar' WHEN 'char'  THEN 'OChar' "
-            + " WHEN 'nchar'  THEN 'OChar' WHEN 'ntext'  THEN 'OVarchar'  WHEN 'nvarchar'  THEN 'OVarchar'  WHEN 'text'  THEN 'OVarchar' WHEN 'varchar'  THEN 'OVarchar' "
-            + " WHEN 'bigint'  THEN 'ODecimal'  WHEN 'decimal'  THEN 'ODecimal'   WHEN 'float'  THEN 'ODecimal'   WHEN 'money'  THEN 'ODecimal' "
-            + " WHEN 'numeric'  THEN 'ODecimal'    WHEN 'real'  THEN 'ODecimal'   WHEN 'smallmoney'  THEN 'ODecimal' "
-            + " WHEN 'int'  THEN 'OInt'  WHEN 'smallint'  THEN 'OInt'  WHEN 'bit'  THEN 'OInt'  "
-            + " WHEN 'datetime'  THEN 'ODatetime'  WHEN 'smalldatetime'  THEN 'ODatetime'  WHEN 'smalldatetime'  THEN 'ODatetime'  WHEN 'date'  THEN 'ODatetime' "
-            + " WHEN 'binary'  THEN 'OBinary'  WHEN 'image'  THEN 'OBinary'  WHEN 'timestamp'  THEN 'OBinary'    WHEN 'varbinary'  THEN 'OBinary' "
-            + " ELSE  SYT.NAME  END AS ODA_DATATYPE ,"
-            + " SCOL.LENGTH AS LENGTH, ext.value AS DIRECTION  "
-            + " FROM SYSOBJECTS SOBJ "
-            + " inner join SYSCOLUMNS SCOL "
-            + " on SOBJ.ID = SCOL.ID  "
-            + " inner join SYS.TYPES SYT "
-            + " on SYT.IS_USER_DEFINED = 0 "
-            + " AND SYT.SYSTEM_TYPE_ID = SCOL.XTYPE "
-            + " left join sys.extended_properties ext "
-            + " on ext.name= 'MS_Description' "
-            + " and ext.major_id = OBJECT_ID (UPPER(SOBJ.NAME)) "
-            + " and ext.minor_id = SCOL.colid "
-            + " WHERE  SOBJ.XTYPE  = 'V '"
-            + " ORDER BY  TABLE_NAME , COLUMN_NAME  ";
-            DataTable Dt = this.Select(sql_view, null);
+            StringBuilder sql_view = new StringBuilder().Append("SELECT DISTINCT SOBJ.NAME AS TABLE_NAME, SCOL.NAME AS COLUMN_NAME , ")
+            .Append(" case SCOL.isnullable when 0 then 'False' else 'True' end as REQUIRE,")
+            .Append(" CASE SYT.NAME  WHEN 'sysname'  THEN 'OVarchar' WHEN 'sql_varint'  THEN 'OVarchar'    WHEN 'varchar' THEN 'OVarchar' WHEN 'char'  THEN 'OChar' ")
+            .Append(" WHEN 'nchar'  THEN 'OChar' WHEN 'ntext'  THEN 'OVarchar'  WHEN 'nvarchar'  THEN 'OVarchar'  WHEN 'text'  THEN 'OVarchar' WHEN 'varchar'  THEN 'OVarchar' ")
+            .Append(" WHEN 'bigint'  THEN 'ODecimal'  WHEN 'decimal'  THEN 'ODecimal'   WHEN 'float'  THEN 'ODecimal'   WHEN 'money'  THEN 'ODecimal' ")
+            .Append(" WHEN 'numeric'  THEN 'ODecimal'    WHEN 'real'  THEN 'ODecimal'   WHEN 'smallmoney'  THEN 'ODecimal' ")
+            .Append(" WHEN 'int'  THEN 'OInt'  WHEN 'smallint'  THEN 'OInt'  WHEN 'bit'  THEN 'OInt'  ")
+            .Append(" WHEN 'datetime'  THEN 'ODatetime'  WHEN 'smalldatetime'  THEN 'ODatetime'  WHEN 'smalldatetime'  THEN 'ODatetime'  WHEN 'date'  THEN 'ODatetime' ")
+            .Append(" WHEN 'binary'  THEN 'OBinary'  WHEN 'image'  THEN 'OBinary'  WHEN 'timestamp'  THEN 'OBinary'    WHEN 'varbinary'  THEN 'OBinary' ")
+            .Append(" ELSE  SYT.NAME  END AS ODA_DATATYPE ,")
+            .Append(" SCOL.LENGTH AS LENGTH, ext.value AS DIRECTION  ")
+            .Append(" FROM SYSOBJECTS SOBJ ")
+            .Append(" inner join SYSCOLUMNS SCOL ")
+            .Append(" on SOBJ.ID = SCOL.ID  ")
+            .Append(" inner join SYS.TYPES SYT ")
+            .Append(" on SYT.IS_USER_DEFINED = 0 ")
+            .Append(" AND SYT.SYSTEM_TYPE_ID = SCOL.XTYPE ")
+            .Append(" left join sys.extended_properties ext ")
+            .Append(" on ext.name= 'MS_Description' ")
+            .Append(" and ext.major_id = OBJECT_ID (UPPER(SOBJ.NAME)) ")
+            .Append(" and ext.minor_id = SCOL.colid ")
+            .Append(" WHERE  SOBJ.XTYPE  = 'V '")
+            .Append(" ORDER BY  TABLE_NAME , COLUMN_NAME  ");
+            DataTable Dt = this.Select(sql_view.ToString(), null);
             Dt.TableName = "TABLE_COLUMN";
             return Dt;
         }
@@ -234,19 +235,18 @@ DISTINCT
 
         public override string[] GetPrimarykey(string TableName)
         {
-            string PrimaryCols = string.Format("SELECT B.COLUMN_NAME "
-            + " FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS A "
-            + " INNER JOIN INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE B "
-            + " ON A.CONSTRAINT_NAME = B.CONSTRAINT_NAME "
-            + " WHERE A.CONSTRAINT_TYPE = 'PRIMARY KEY'"
-            + " AND A.TABLE_NAME ='{0}'", TableName);
+            string PrimaryCols = new StringBuilder().Append("SELECT B.COLUMN_NAME ")
+            .Append(" FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS A ")
+            .Append(" INNER JOIN INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE B ")
+            .Append(" ON A.CONSTRAINT_NAME = B.CONSTRAINT_NAME ")
+            .Append(" WHERE A.CONSTRAINT_TYPE = 'PRIMARY KEY'")
+            .Append(" AND A.TABLE_NAME ='").Append(TableName).Append("'").ToString();
             DataTable Dt = this.Select(PrimaryCols, null);
             if (Dt != null && Dt.Rows.Count > 0)
             {
                 List<string> cols = new List<string>();
                 for (int i = 0; i < Dt.Rows.Count; i++)
                     cols.Add(Dt.Rows[i]["COLUMN_NAME"].ToString());
-
                 return cols.ToArray();
             }
             return null;
@@ -305,38 +305,74 @@ DISTINCT
             return ColInof;
         }
 
-        public override DataTable Select(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord)
+        public override DataTable Select(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord, string Orderby)
         { 
-            IDbCommand Cmd = OpenCommand();
-            try
+            int sidx = SQL.IndexOf("SELECT ", 0, StringComparison.InvariantCultureIgnoreCase);
+            int distinct = SQL.IndexOf(" DISTINCT ", 0, StringComparison.InvariantCultureIgnoreCase); 
+            SQL = SQL.Remove(sidx, "SELECT ".Length); 
+
+            if (string.IsNullOrWhiteSpace(Orderby))
             {
-                Cmd.CommandType = CommandType.Text;
-                SetCmdParameters(ref Cmd, SQL, ParamList);
-                DbDataAdapter Da = GetDataAdapter(Cmd);
-                DataTable dt = new DataTable();
-                Da.Fill(StartIndex, MaxRecord, dt);
-                Da.Dispose();
-                return dt;
+                if ((distinct < 0 || distinct > "SELECT * FROM ".Length))
+                {
+                    SQL = SQL.Insert(sidx, "SELECT row_number() over(order by GETDATE()) AS R_ID_1, ");
+                }
+                else
+                {
+                    SQL = SQL.Insert(sidx, "SELECT DISTINCT row_number() over(order by GETDATE()) AS R_ID_1, "); 
+                }               
             }
-            finally
+            else
             {
-                CloseCommand(Cmd);
+                SQL = SQL.Replace(Orderby, "");
+                if ((distinct < 0 || distinct > "SELECT * FROM ".Length))
+                {
+                    SQL = SQL.Insert(sidx, "SELECT ROW_NUMBER() OVER(" + Orderby + ") AS R_ID_1, ");
+                }
+                else
+                {
+                    SQL = SQL.Insert(sidx, "SELECT DISTINCT ROW_NUMBER() OVER(" + Orderby + ") AS R_ID_1, ");
+                }
             }
+            DataTable dt = Select("SELECT A_B_1.* FROM ( " + SQL + " ) AS A_B_1 WHERE A_B_1.R_ID_1 > " + StartIndex.ToString() + " AND A_B_1.R_ID_1 <= " + (StartIndex + MaxRecord).ToString(), ParamList); 
+            dt.Columns.Remove("R_ID_1");
+            return dt; 
         }
-        public override List<T> Select<T>(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord)
+        public override List<T> Select<T>(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord, string Orderby)
         {
-            IDbCommand Cmd = OpenCommand();
-            try
+
+            int sidx = SQL.IndexOf("SELECT ", 0, StringComparison.InvariantCultureIgnoreCase);
+            int distinct = SQL.IndexOf(" DISTINCT ", 0, StringComparison.InvariantCultureIgnoreCase);
+            SQL = SQL.Remove(sidx, "SELECT ".Length);
+
+            if (string.IsNullOrWhiteSpace(Orderby))
             {
-                Cmd.CommandType = CommandType.Text;
-                SetCmdParameters(ref Cmd, SQL, ParamList);
-                IDataReader Dr = Cmd.ExecuteReader();
-                return GetList<T>(Dr, StartIndex, MaxRecord);
+                if ((distinct < 0 || distinct > "SELECT * FROM ".Length))
+                {
+                    SQL = SQL.Insert(sidx, "SELECT row_number() over(order by GETDATE()) AS R_ID_1, ");
+                }
+                else
+                {
+                    distinct = SQL.IndexOf("DISTINCT ", 0, StringComparison.InvariantCultureIgnoreCase);
+                    SQL = SQL.Remove(distinct, "DISTINCT ".Length);
+                    SQL = SQL.Insert(sidx, "SELECT DISTINCT row_number() over(order by GETDATE()) AS R_ID_1, ");
+                }
             }
-            finally
+            else
             {
-                CloseCommand(Cmd);
+                SQL = SQL.Replace(Orderby, "");
+                if ((distinct < 0 || distinct > "SELECT * FROM ".Length))
+                {
+                    SQL = SQL.Insert(sidx, "SELECT ROW_NUMBER() OVER(" + Orderby + ") AS R_ID_1, ");
+                }
+                else
+                {
+                    distinct = SQL.IndexOf("DISTINCT ", 0, StringComparison.InvariantCultureIgnoreCase);
+                    SQL = SQL.Remove(distinct, "DISTINCT ".Length);
+                    SQL = SQL.Insert(sidx, "SELECT DISTINCT ROW_NUMBER() OVER(" + Orderby + ") AS R_ID_1, ");
+                }
             }
+            return Select<T>("SELECT A_B_1.* FROM ( " + SQL + " ) AS A_B_1 WHERE A_B_1.R_ID_1 > " + StartIndex.ToString() + " AND A_B_1.R_ID_1 <= " + (StartIndex + MaxRecord).ToString(), ParamList);
         }
 
         public override bool Import(string DbTable, ODAParameter[] prms, DataTable FormTable)

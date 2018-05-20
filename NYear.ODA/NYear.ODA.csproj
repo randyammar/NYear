@@ -112,6 +112,7 @@
     <Compile Include="Interface\IDBAccess.cs" />
     <Compile Include="Interface\IDBScriptGenerator.cs" />
     <Compile Include="Interface\IODAFunction.cs" />
+    <Compile Include="ODACmd.SelectDynamic.cs" />
     <Compile Include="ODACmd.SelectFirst.cs" />
     <Compile Include="ODAContext.cs" />
     <Compile Include="ODAFunction.cs" />

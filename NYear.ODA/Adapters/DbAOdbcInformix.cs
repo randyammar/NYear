@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Data.Odbc;
+using System.Text;
 
 namespace NYear.ODA.Adapter
 {
@@ -24,9 +25,9 @@ namespace NYear.ODA.Adapter
             if (_DBConn == null)
                 _DBConn = new OdbcConnection(ConnString);
             if (_DBConn.State == ConnectionState.Closed)
-                _DBConn.Open(); 
+                _DBConn.Open();
             return _DBConn;
-        } 
+        }
         protected override DbDataAdapter GetDataAdapter(IDbCommand SelectCmd)
         {
             return new OdbcDataAdapter((OdbcCommand)SelectCmd);
@@ -70,35 +71,35 @@ namespace NYear.ODA.Adapter
 
         public override DataTable GetTableColumns()
         {
-            string sql_tabcol = "SELECT T1.TABNAME AS TABLE_NAME,C1.COLNAME AS COLUMN_NAME , "
-            + " DECODE(C1.COLTYPE,0,'OChar',1,'OInt',2,'OInt',3,'ODecimal',4,'ODecimal',5,'ODecimal',6, "
-            + " 'OInt',7,'ODatetime',8,'ODecimal',10,'ODatetime',11,'OInt',12,'OVarchar',13,'OVarchar',14, "
-            + " 'ODecimal',15,'OChar',16,'OVarchar',17,'ODecimal',256,'OChar',257,'OInt',258,'OInt',259,"
-            + " 'ODecimal',260,'ODecimal',261,'ODecimal',162,'OInt',263,'ODatetime',264,'ODecimal',266,'ODatetime',267,"
-            + " 'OInt',268,'OVarchar',269,'OVarchar',270,'ODecimal',271,'OChar',272,'OVarchar',273,'ODecimal') AS ODA_DATATYPE,"
-            + " C1.COLLENGTH AS LENGTH , 'INPUT' AS DIRECTION "
-            + " FROM  SYSCOLUMNS  C1,SYSTABLES T1 "
-            + " WHERE C1.TABID=T1.TABID  "
-            + " AND T1.TABTYPE='T' "
-            + " ORDER BY T1.TABNAME,C1.COLNO ";
-            DataTable Dt = Select(sql_tabcol, null);
+            StringBuilder sql_tabcol = new StringBuilder().Append("SELECT T1.TABNAME AS TABLE_NAME,C1.COLNAME AS COLUMN_NAME , ")
+            .Append(" DECODE(C1.COLTYPE,0,'OChar',1,'OInt',2,'OInt',3,'ODecimal',4,'ODecimal',5,'ODecimal',6, ")
+            .Append(" 'OInt',7,'ODatetime',8,'ODecimal',10,'ODatetime',11,'OInt',12,'OVarchar',13,'OVarchar',14, ")
+            .Append(" 'ODecimal',15,'OChar',16,'OVarchar',17,'ODecimal',256,'OChar',257,'OInt',258,'OInt',259,")
+           .Append(" 'ODecimal',260,'ODecimal',261,'ODecimal',162,'OInt',263,'ODatetime',264,'ODecimal',266,'ODatetime',267,")
+           .Append(" 'OInt',268,'OVarchar',269,'OVarchar',270,'ODecimal',271,'OChar',272,'OVarchar',273,'ODecimal') AS ODA_DATATYPE,")
+           .Append(" C1.COLLENGTH AS LENGTH , 'INPUT' AS DIRECTION ")
+            .Append(" FROM  SYSCOLUMNS  C1,SYSTABLES T1 ")
+            .Append(" WHERE C1.TABID=T1.TABID  ")
+            .Append(" AND T1.TABTYPE='T' ")
+            .Append(" ORDER BY T1.TABNAME,C1.COLNO ");
+            DataTable Dt = Select(sql_tabcol.ToString(), null);
             Dt.TableName = "TABLE_COLUMN";
             return Dt;
         }
         public override DataTable GetViewColumns()
         {
-            string sql_view = "SELECT T1.TABNAME AS TABLE_NAME,C1.COLNAME AS COLUMN_NAME , "
-            + " DECODE(C1.COLTYPE,0,'OChar',1,'OInt',2,'OInt',3,'ODecimal',4,'ODecimal',5,'ODecimal',6, "
-            + " 'OInt',7,'ODatetime',8,'ODecimal',10,'ODatetime',11,'OInt',12,'OVarchar',13,'OVarchar',14, "
-            + " 'ODecimal',15,'OChar',16,'OVarchar',17,'ODecimal',256,'OChar',257,'OInt',258,'OInt',259,"
-            + " 'ODecimal',260,'ODecimal',261,'ODecimal',162,'OInt',263,'ODatetime',264,'ODecimal',266,'ODatetime',267,"
-            + " 'OInt',268,'OVarchar',269,'OVarchar',270,'ODecimal',271,'OChar',272,'OVarchar',273,'ODecimal') AS ODA_DATATYPE,"
-            + " C1.COLLENGTH AS LENGTH , 'INPUT' AS DIRECTION "
-            + " FROM  SYSCOLUMNS  C1,SYSTABLES T1 "
-            + " WHERE C1.TABID=T1.TABID  "
-            + " AND T1.TABTYPE='V' "
-            + " ORDER BY T1.TABNAME,C1.COLNO ";
-            DataTable Dt = Select(sql_view, null);
+            StringBuilder sql_view = new StringBuilder().Append("SELECT T1.TABNAME AS TABLE_NAME,C1.COLNAME AS COLUMN_NAME , ")
+            .Append(" DECODE(C1.COLTYPE,0,'OChar',1,'OInt',2,'OInt',3,'ODecimal',4,'ODecimal',5,'ODecimal',6, ")
+            .Append(" 'OInt',7,'ODatetime',8,'ODecimal',10,'ODatetime',11,'OInt',12,'OVarchar',13,'OVarchar',14, ")
+            .Append(" 'ODecimal',15,'OChar',16,'OVarchar',17,'ODecimal',256,'OChar',257,'OInt',258,'OInt',259,")
+            .Append(" 'ODecimal',260,'ODecimal',261,'ODecimal',162,'OInt',263,'ODatetime',264,'ODecimal',266,'ODatetime',267,")
+            .Append(" 'OInt',268,'OVarchar',269,'OVarchar',270,'ODecimal',271,'OChar',272,'OVarchar',273,'ODecimal') AS ODA_DATATYPE,")
+            .Append(" C1.COLLENGTH AS LENGTH , 'INPUT' AS DIRECTION ")
+            .Append(" FROM  SYSCOLUMNS  C1,SYSTABLES T1 ")
+            .Append(" WHERE C1.TABID=T1.TABID  ")
+            .Append(" AND T1.TABTYPE='V' ")
+            .Append(" ORDER BY T1.TABNAME,C1.COLNO ");
+            DataTable Dt = Select(sql_view.ToString(), null);
             Dt.TableName = "VIEW_COLUMN";
             return Dt;
         }
@@ -150,13 +151,13 @@ namespace NYear.ODA.Adapter
             return ColInof;
         }
 
-        public override DataTable Select(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord)
+        public override DataTable Select(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord, string Orderby)
         {
             string BlockStr = "SELECT SKIP " + StartIndex.ToString() + " FIRST " + MaxRecord.ToString() + " "; ////取出MaxRecord记录
             BlockStr += SQL.Trim().Substring(6);
             return Select(BlockStr, ParamList);
         }
-        public override List<T> Select<T>(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord)
+        public override List<T> Select<T>(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord, string Orderby)
         {
             IDbCommand Cmd = OpenCommand();
             try
@@ -165,7 +166,12 @@ namespace NYear.ODA.Adapter
                 Cmd.CommandType = CommandType.Text;
                 SetCmdParameters(ref Cmd, BlockStr, ParamList);
                 IDataReader Dr = Cmd.ExecuteReader();
-                return GetList<T>(Dr);
+                var rlt = GetList<T>(Dr);
+                if (Dr.Read())
+                    Cmd.Cancel();
+                Dr.Close();
+                Dr.Dispose();
+                return rlt;
             }
             finally
             {

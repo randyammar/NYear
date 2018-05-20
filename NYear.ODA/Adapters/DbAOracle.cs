@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
+using System.Text;
 
 namespace NYear.ODA.Adapter
 {
@@ -26,9 +27,9 @@ namespace NYear.ODA.Adapter
             if (_DBConn == null)
                 _DBConn = new OracleConnection(ConnString);
             if (_DBConn.State == ConnectionState.Closed)
-                _DBConn.Open(); 
+                _DBConn.Open();
             return _DBConn;
-        } 
+        }
 
         public override DataSet ExecuteProcedure(string SQL, ODAParameter[] ParamList)
         {
@@ -212,62 +213,62 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
 
         public override DataTable GetTableColumns()
         {
-            string sql_tabcol = " SELECT TC.TABLE_NAME,TC.COLUMN_NAME,CASE TC.NULLABLE WHEN 'N' THEN 'Y' ELSE 'N' END   NOTNULL,TC.COLUMN_ID COL_SEQ,"
-            + " DECODE(TC.DATA_TYPE,'CHAR','OChar','VARCHAR','OVarchar','VARCHAR2','OVarchar','NVARCHAR2','OVarchar','MLSLABEL','OVarchar',"
-            + " 'UROWID','OVarchar','URITYPE','OVarchar','CHARACTER','OVarchar','CLOB','OVarchar','INTEGER','OInt','INT','OInt',"
-            + " 'SMALLINT','OInt','DATE','ODatetime','LONG','ODecimal','DECIMAL','ODecimal','NUMERIC','ODecimal','REAL','ODecimal',"
-            + " 'NUMBER','ODecimal','BLOB','OBinary','BFILE','OBinary','OVarchar') ODA_DATATYPE, "
-            + " DECODE(TC.DATA_TYPE,'BLOB',2000000000,'CLOB',2000000000, TC.DATA_LENGTH)  LENGTH,"
-            + " TCC.COMMENTS DIRECTION "
-            + " FROM USER_TABLES  TB,USER_TAB_COLUMNS TC ,USER_COL_COMMENTS  TCC"
-            + " WHERE TB.TABLE_NAME = TC.TABLE_NAME "
-            + " AND TC.TABLE_NAME = TCC.table_name(+) "
-            + " AND TC.COLUMN_NAME = TCC.column_name(+) "
-            + " ORDER BY TC.TABLE_NAME,TC.COLUMN_ID ";
+            string sql_tabcol = new StringBuilder().Append("SELECT TC.TABLE_NAME,TC.COLUMN_NAME,CASE TC.NULLABLE WHEN 'N' THEN 'Y' ELSE 'N' END   NOTNULL,TC.COLUMN_ID COL_SEQ,")
+            .Append( " DECODE(TC.DATA_TYPE,'CHAR','OChar','VARCHAR','OVarchar','VARCHAR2','OVarchar','NVARCHAR2','OVarchar','MLSLABEL','OVarchar',")
+            .Append(" 'UROWID','OVarchar','URITYPE','OVarchar','CHARACTER','OVarchar','CLOB','OVarchar','INTEGER','OInt','INT','OInt',")
+            .Append(" 'SMALLINT','OInt','DATE','ODatetime','LONG','ODecimal','DECIMAL','ODecimal','NUMERIC','ODecimal','REAL','ODecimal',")
+            .Append(" 'NUMBER','ODecimal','BLOB','OBinary','BFILE','OBinary','OVarchar') ODA_DATATYPE, ")
+            .Append( " DECODE(TC.DATA_TYPE,'BLOB',2000000000,'CLOB',2000000000, TC.DATA_LENGTH)  LENGTH,")
+            .Append(" TCC.COMMENTS DIRECTION ")
+            .Append(" FROM USER_TABLES  TB,USER_TAB_COLUMNS TC ,USER_COL_COMMENTS  TCC")
+            .Append(" WHERE TB.TABLE_NAME = TC.TABLE_NAME ")
+            .Append(" AND TC.TABLE_NAME = TCC.table_name(+) ")
+            .Append(" AND TC.COLUMN_NAME = TCC.column_name(+) ")
+            .Append(" ORDER BY TC.TABLE_NAME,TC.COLUMN_ID ").ToString();
             DataTable Dt = Select(sql_tabcol, null);
             Dt.TableName = "TABLE_COLUMN";
             return Dt;
         }
         public override DataTable GetViewColumns()
         {
-            string sql_view = "SELECT TC.TABLE_NAME,TC.COLUMN_NAME,CASE TC.NULLABLE WHEN 'N' THEN 'Y' ELSE 'N' END NOTNULL,"
-                + " DECODE(TC.DATA_TYPE,'CHAR','OChar','VARCHAR','OVarchar','VARCHAR2','OVarchar','NVARCHAR2','OVarchar','MLSLABEL','OVarchar','UROWID','OVarchar','URITYPE','OVarchar','CHARACTER','OVarchar','CLOB','OVarchar', "
-                + " 'INTEGER','OInt','INT','OInt','SMALLINT','OInt','DATE','ODatetime','LONG','ODecimal','DECIMAL','ODecimal','NUMERIC','ODecimal','REAL','ODecimal','NUMBER','ODecimal','BLOB','OBinary','BFILE','OBinary','OVarchar') ODA_DATATYPE, "
-                + " DECODE(TC.DATA_TYPE,'BLOB',-1,'CLOB',-1, TC.DATA_LENGTH)  LENGTH,TCC.COMMENTS DIRECTION "
-                + " FROM USER_VIEWS TV,USER_TAB_COLUMNS TC ,'N' NOT_NULL,USER_COL_COMMENTS  TCC"
-                + " WHERE TV.VIEW_NAME = TC.TABLE_NAME "
-                + " AND TC.TABLE_NAME = TCC.table_name(+) "
-                + " AND TC.COLUMN_NAME = TCC.column_name(+) "
-                + " ORDER BY  TC.TABLE_NAME,TC.COLUMN_NAME ";
+            string sql_view = new StringBuilder().Append("SELECT TC.TABLE_NAME,TC.COLUMN_NAME,CASE TC.NULLABLE WHEN 'N' THEN 'Y' ELSE 'N' END NOTNULL,")
+                .Append(" DECODE(TC.DATA_TYPE,'CHAR','OChar','VARCHAR','OVarchar','VARCHAR2','OVarchar','NVARCHAR2','OVarchar','MLSLABEL','OVarchar','UROWID','OVarchar','URITYPE','OVarchar','CHARACTER','OVarchar','CLOB','OVarchar', ")
+                .Append(" 'INTEGER','OInt','INT','OInt','SMALLINT','OInt','DATE','ODatetime','LONG','ODecimal','DECIMAL','ODecimal','NUMERIC','ODecimal','REAL','ODecimal','NUMBER','ODecimal','BLOB','OBinary','BFILE','OBinary','OVarchar') ODA_DATATYPE, ")
+                .Append(" DECODE(TC.DATA_TYPE,'BLOB',-1,'CLOB',-1, TC.DATA_LENGTH)  LENGTH,TCC.COMMENTS DIRECTION ")
+                .Append(" FROM USER_VIEWS TV,USER_TAB_COLUMNS TC ,'N' NOT_NULL,USER_COL_COMMENTS  TCC")
+                .Append(" WHERE TV.VIEW_NAME = TC.TABLE_NAME ")
+                .Append(" AND TC.TABLE_NAME = TCC.table_name(+) ")
+                .Append(" AND TC.COLUMN_NAME = TCC.column_name(+) ")
+                .Append(" ORDER BY  TC.TABLE_NAME,TC.COLUMN_NAME ").ToString();
             DataTable Dt = Select(sql_view, null);
             Dt.TableName = "VIEW_COLUMN";
             return Dt;
         }
         public override DataTable GetUserProcedureArguments(string ProcedureName)
         {
-            string SqlArg = " select arg.object_name PROCEDURE_NAME, arg.ARGUMENT_NAME,arg.DATA_TYPE,"
-            + " DECODE(arg.DATA_TYPE,'CHAR','OChar','VARCHAR','OVarchar','VARCHAR2','OVarchar','NVARCHAR2','OVarchar','MLSLABEL','OVarchar','UROWID','OVarchar','URITYPE','OVarchar','CHARACTER','OVarchar','CLOB','OVarchar', "
-            + " 'INTEGER','OInt','INT','OInt','SMALLINT','OInt','DATE','ODatetime','LONG','ODecimal','DECIMAL','ODecimal','NUMERIC','ODecimal','REAL','ODecimal','NUMBER','ODecimal','BLOB','OBinary','BFILE','OBinary','PL/SQL TABLE','OArrary','REF CURSOR','OTable','OVarchar') ODA_DATATYPE, "
-            + " arg.POSITION,arg.IN_OUT DIRECTION, "
-            + " NVL(DECODE(arg.DATA_TYPE,'BLOB',-1,'CLOB',-1,arg.DATA_LENGTH),-1)  LENGTH"
-            + " from user_objects o,user_arguments arg"
-            + " where  o.object_type='PROCEDURE' "
-            + " and o.OBJECT_NAME = arg.OBJECT_NAME "
-            + " and arg.PACKAGE_NAME is null"
-            + " and o.OBJECT_ID = arg.OBJECT_ID"
-            + " and o.OBJECT_NAME = @ProcedureName"
-            + " union "
-            + " select arg.package_name||'.'|| arg.object_name PROCEDURE_NAME, arg.ARGUMENT_NAME, arg.DATA_TYPE,"
-            + " DECODE(arg.DATA_TYPE,'CHAR','OChar','VARCHAR','OVarchar','VARCHAR2','OVarchar','NVARCHAR2','OVarchar','MLSLABEL','OVarchar','UROWID','OVarchar','URITYPE','OVarchar','CHARACTER','OVarchar','CLOB','OVarchar', "
-            + " 'INTEGER','OInt','INT','OInt','SMALLINT','OInt','DATE','ODatetime','LONG','ODecimal','DECIMAL','ODecimal','NUMERIC','ODecimal','REAL','ODecimal','NUMBER','ODecimal','BLOB','OBinary','BFILE','OBinary','PL/SQL TABLE','OArrary','REF CURSOR','OTable','OVarchar') ODA_DATATYPE, "
-            + " arg.POSITION,arg.IN_OUT DIRECTION,"
-            + " NVL(DECODE(arg.DATA_TYPE,'BLOB',-1,'CLOB',-1,arg.DATA_LENGTH),-1)  LENGTH"
-            + " from user_objects o,user_arguments arg"
-            + " where  o.object_type='PACKAGE' "
-            + " and o.OBJECT_NAME = arg.package_name "
-            + " and o.OBJECT_ID = arg.OBJECT_ID"
-            + " and arg.package_name||'.'|| arg.object_name =@ProcedureName"
-            + " ORDER BY PROCEDURE_NAME ,POSITION ";
+            string SqlArg = new StringBuilder().Append("SELECT arg.object_name PROCEDURE_NAME, arg.ARGUMENT_NAME,arg.DATA_TYPE,")
+            .Append(" DECODE(arg.DATA_TYPE,'CHAR','OChar','VARCHAR','OVarchar','VARCHAR2','OVarchar','NVARCHAR2','OVarchar','MLSLABEL','OVarchar','UROWID','OVarchar','URITYPE','OVarchar','CHARACTER','OVarchar','CLOB','OVarchar', ")
+            .Append(" 'INTEGER','OInt','INT','OInt','SMALLINT','OInt','DATE','ODatetime','LONG','ODecimal','DECIMAL','ODecimal','NUMERIC','ODecimal','REAL','ODecimal','NUMBER','ODecimal','BLOB','OBinary','BFILE','OBinary','PL/SQL TABLE','OArrary','REF CURSOR','OTable','OVarchar') ODA_DATATYPE, ")
+            .Append(" arg.POSITION,arg.IN_OUT DIRECTION, ")
+            .Append(" NVL(DECODE(arg.DATA_TYPE,'BLOB',-1,'CLOB',-1,arg.DATA_LENGTH),-1)  LENGTH")
+            .Append(" from user_objects o,user_arguments arg")
+            .Append(" where  o.object_type='PROCEDURE' ")
+            .Append(" and o.OBJECT_NAME = arg.OBJECT_NAME ")
+            .Append(" and arg.PACKAGE_NAME is null")
+            .Append(" and o.OBJECT_ID = arg.OBJECT_ID")
+            .Append(" and o.OBJECT_NAME = @ProcedureName")
+            .Append(" union ")
+            .Append(" select arg.package_name||'.'|| arg.object_name PROCEDURE_NAME, arg.ARGUMENT_NAME, arg.DATA_TYPE,")
+            .Append(" DECODE(arg.DATA_TYPE,'CHAR','OChar','VARCHAR','OVarchar','VARCHAR2','OVarchar','NVARCHAR2','OVarchar','MLSLABEL','OVarchar','UROWID','OVarchar','URITYPE','OVarchar','CHARACTER','OVarchar','CLOB','OVarchar', ")
+            .Append(" 'INTEGER','OInt','INT','OInt','SMALLINT','OInt','DATE','ODatetime','LONG','ODecimal','DECIMAL','ODecimal','NUMERIC','ODecimal','REAL','ODecimal','NUMBER','ODecimal','BLOB','OBinary','BFILE','OBinary','PL/SQL TABLE','OArrary','REF CURSOR','OTable','OVarchar') ODA_DATATYPE, ")
+            .Append(" arg.POSITION,arg.IN_OUT DIRECTION,")
+            .Append(" NVL(DECODE(arg.DATA_TYPE,'BLOB',-1,'CLOB',-1,arg.DATA_LENGTH),-1)  LENGTH")
+            .Append(" from user_objects o,user_arguments arg")
+            .Append(" where  o.object_type='PACKAGE' ")
+            .Append(" and o.OBJECT_NAME = arg.package_name ")
+            .Append(" and o.OBJECT_ID = arg.OBJECT_ID")
+            .Append(" and arg.package_name||'.'|| arg.object_name =@ProcedureName")
+            .Append(" ORDER BY PROCEDURE_NAME ,POSITION ").ToString();
 
             ODAParameter p = new ODAParameter() { DBDataType = ODAdbType.OVarchar, Direction = ParameterDirection.Input, ParamsName = "@ProcedureName", ParamsValue = ProcedureName, Size = 200 };
 
@@ -275,27 +276,33 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
             Dttmp.TableName = "PROCEDURE_ARGUMENTS";
             return Dttmp;
         }
-        public override DataTable Select(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord)
+
+        public override DataTable Select(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord, string Orderby)
         {
-            string BlockStr = "SELECT * FROM (SELECT ROWNUM AS R_ID_1 ,T_T_1.* FROM ( ";
-            BlockStr += SQL;
-            BlockStr += ") T_T_1 ) WHERE R_ID_1 > " + StartIndex.ToString() + " AND R_ID_1 <= " + (StartIndex + MaxRecord).ToString();  ///取出MaxRecord条记录
+            string BlockStr = new StringBuilder().Append("SELECT * FROM (SELECT ROWNUM AS R_ID_1 ,T_T_1.* FROM ( ")
+            .Append(SQL)
+            .Append(") T_T_1 ) WHERE R_ID_1 > ").Append( StartIndex.ToString() ).Append(" AND R_ID_1 <= " ).Append((StartIndex + MaxRecord).ToString()).ToString();  ///取出MaxRecord条记录
             DataTable dt = Select(BlockStr, ParamList);
             dt.Columns.Remove("R_ID_1");
             return dt;
         }
-        public override List<T> Select<T>(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord)
+        public override List<T> Select<T>(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord, string Orderby)
         {
             IDbCommand Cmd = OpenCommand();
             try
             {
-                string BlockStr = "SELECT * FROM (SELECT ROWNUM AS R_ID_1 ,T_T_1.* FROM ( ";
-                BlockStr += SQL;
-                BlockStr += ") T_T_1 ) WHERE R_ID_1 > " + StartIndex.ToString() + " AND R_ID_1 <= " + (StartIndex + MaxRecord).ToString();  ///取出MaxRecord条记录
+                string BlockStr = new StringBuilder().Append("SELECT * FROM (SELECT ROWNUM AS R_ID_1 ,T_T_1.* FROM ( ")
+               .Append(SQL)
+                .Append(") T_T_1 ) WHERE R_ID_1 > ").Append( StartIndex.ToString()).Append( " AND R_ID_1 <= " ).Append((StartIndex + MaxRecord).ToString()).ToString();  ///取出MaxRecord条记录
                 Cmd.CommandType = CommandType.Text;
                 SetCmdParameters(ref Cmd, BlockStr, ParamList);
                 IDataReader Dr = Cmd.ExecuteReader();
-                return GetList<T>(Dr);
+                var rlt = GetList<T>(Dr);
+                if (Dr.Read())
+                    Cmd.Cancel();
+                Dr.Close();
+                Dr.Dispose();
+                return rlt;
             }
             finally
             {
@@ -325,7 +332,7 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
 
                 for (int i = 0; i < FormTable.Rows.Count; i++)
                     for (int j = 0; j < Cmd.Parameters.Count; j++)
-                       (( object[])((OracleParameter)Cmd.Parameters[j]).Value)[i] = FormTable.Rows[i].ItemArray[j];
+                        ((object[])((OracleParameter)Cmd.Parameters[j]).Value)[i] = FormTable.Rows[i].ItemArray[j];
 
                 Cmd.CommandText = sql;
                 Cmd.CommandType = CommandType.Text;
@@ -360,7 +367,7 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
                     return OracleDbType.Varchar2;
             }
         }
-    
+
         public override object GetExpressResult(string ExpressionString)
         {
             IDbCommand Cmd = OpenCommand();

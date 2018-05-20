@@ -481,8 +481,7 @@ namespace NYear.ODA
 
             if (_WhereList.Count > 0 || _OrList.Count > 0)
             {
-                sql.SqlScript.Append(" WHERE ");
-
+                sql.SqlScript.Append(" WHERE "); 
                 var aSql = GetWhereSubSql(_WhereList, " AND ");
                 sql.Merge(aSql); 
                 var oSql = GetWhereSubSql(_OrList, " OR ");
@@ -502,8 +501,8 @@ namespace NYear.ODA
             if (_Orderby.Count > 0)
             {
                 string Orderby = GetOrderbyColumns(_Orderby.ToArray());
-                sql.OrderBy = Orderby;
-                sql.SqlScript.Append(" ORDER BY ").Append(Orderby);
+                sql.OrderBy = " ORDER BY " + Orderby;
+                sql.SqlScript.Append(sql.OrderBy);
             } 
             return sql;  
         }
@@ -715,7 +714,7 @@ namespace NYear.ODA
                         TotalRecord = this.Count();
                     }
                 }
-                return db.Select(sql.SqlScript.ToString(), prms, StartIndex, MaxRecord);
+                return db.Select(sql.SqlScript.ToString(), prms, StartIndex, MaxRecord, sql.OrderBy);
             }
             else
             {
@@ -778,8 +777,36 @@ namespace NYear.ODA
 
             if (string.IsNullOrEmpty(_StartWithExpress) || string.IsNullOrEmpty(_ConnectByParent) || string.IsNullOrEmpty(_PriorChild))
             {
-                TotalRecord = this.Count();
-                return db.Select<T>(sql.SqlScript.ToString(), prms, StartIndex, MaxRecord);
+
+                if ((_Groupby.Count > 0 || _Having.Count > 0) || (Cols.Length > 0 && _Distinct))
+                {
+                    if (_Orderby.Count > 0)
+                    {
+                        SqlOrderbyScript[] orderbys = this._Orderby.ToArray();
+                        this._Orderby.Clear();
+                        TotalRecord = this.ToView(Cols).Count();
+                        this._Orderby.AddRange(orderbys);
+                    }
+                    else
+                    {
+                        TotalRecord = this.ToView(Cols).Count();
+                    }
+                }
+                else
+                {
+                    if (_Orderby.Count > 0)
+                    {
+                        SqlOrderbyScript[] orderbys = this._Orderby.ToArray();
+                        this._Orderby.Clear();
+                        TotalRecord = this.Count();
+                        this._Orderby.AddRange(orderbys);
+                    }
+                    else
+                    {
+                        TotalRecord = this.Count();
+                    }
+                }
+                return db.Select<T>(sql.SqlScript.ToString(), prms, StartIndex, MaxRecord, sql.OrderBy); 
             }
             else
             {

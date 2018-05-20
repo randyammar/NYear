@@ -48,17 +48,15 @@ namespace NYear.ODA
         [OperationContract]
         List<T> Select<T>(string SQL, ODAParameter[] ParamList) where T : class;
         [OperationContract]
-         List<T> Select<T>(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord) where T : class;
+         List<T> Select<T>(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord,string Orderby) where T : class;
         [OperationContract]
         List<T> Select<T>(string SQL, ODAParameter[] ParamList, string StartWithExpress, string ConnectBy, string Prior, string ConnectColumn, string ConnectChar, int MaxLevel) where T : class;
         [OperationContract(Name = "Select")]
         DataTable Select(string SQL, ODAParameter[] ParamList);
         [OperationContract(Name = "SelectBlock")]
-        DataTable Select(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord);
+        DataTable Select(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord,string Orderby);
         [OperationContract(Name = "SelectFirst")]
-        object[] SelectFirst(string SQL, ODAParameter[] ParamList);
-        [OperationContract(Name = "SelectPaging")]
-        DataTable Select(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord, out int TotalRecord);
+        object[] SelectFirst(string SQL, ODAParameter[] ParamList); 
         [OperationContract(Name = "SelectRecursion")]
         DataTable Select(string SQL, ODAParameter[] ParamList, string StartWithExpress, string ConnectBy, string Prior, string ConnectColumn, string ConnectChar, int MaxLevel);
         [OperationContract]
