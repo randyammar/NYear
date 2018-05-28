@@ -226,9 +226,9 @@ namespace NYear.ODA
                     MapInfos[i] = MapResult.Convert;
                     for (int num = 0; num < Reader.FieldCount; num++)
                     {
-                        if (Pptys[i].PropertyName == Reader.GetName(num))
+                        if (Pptys[i].PropertyName.ToUpper() == Reader.GetName(num).ToUpper())
                         {
-                            ReadIndex[i] = Reader.GetOrdinal(Pptys[i].PropertyName);
+                            ReadIndex[i] = Reader.GetOrdinal(Reader.GetName(num));
                             Type rType = Reader.GetFieldType(num);
                             if (Pptys[i].NonNullableUnderlyingType == rType)
                             {

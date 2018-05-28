@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.Data.SQLite;
 using System.Globalization;
+using System.Text;
 
 namespace NYear.ODA.Adapter
 {
@@ -23,7 +24,7 @@ namespace NYear.ODA.Adapter
             if (_DBConn.State == ConnectionState.Closed)
                 _DBConn.Open();
             return _DBConn;
-        } 
+        }
 
         public static void CreateDataBase(string FileName)
         {
@@ -119,22 +120,35 @@ namespace NYear.ODA.Adapter
 
         public override DbAType DBAType { get { return DbAType.SQLite; } }
 
-        public override DataTable Select(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord)
+        public override DataTable Select(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord, string Orderby)
         {
-            string BlockStr = SQL + " limit " + MaxRecord.ToString() + " offset " + StartIndex.ToString();
+            string BlockStr = new StringBuilder().Append(SQL)
+                .Append(" limit ")
+                .Append(MaxRecord.ToString())
+                .Append(" offset ")
+                .Append(StartIndex.ToString()).ToString();
             return Select(BlockStr, ParamList);
         }
 
-        public override List<T> Select<T>(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord)  
+        public override List<T> Select<T>(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord, string Orderby)
         {
             IDbCommand Cmd = OpenCommand();
             try
             {
-                string BlockStr = SQL + " limit " + MaxRecord.ToString() + " offset " + StartIndex.ToString();
+                string BlockStr = new StringBuilder().Append( SQL )
+                    .Append(" limit " )
+                    .Append(MaxRecord.ToString() )
+                    .Append(" offset ")
+                    .Append( StartIndex.ToString()).ToString();
                 Cmd.CommandType = CommandType.Text;
                 SetCmdParameters(ref Cmd, BlockStr, ParamList);
                 IDataReader Dr = Cmd.ExecuteReader();
-                return GetList<T>(Dr);
+                var rlt = GetList<T>(Dr);
+                if (Dr.Read())
+                    Cmd.Cancel();
+                Dr.Close();
+                Dr.Dispose();
+                return rlt;
             }
             finally
             {
@@ -152,7 +166,14 @@ namespace NYear.ODA.Adapter
                 Sqlprms += "," + ODAParameter.ODAParamsMark + prms[i].ParamsName;
 
             }
-            string sql = "INSERT INTO " + DbTable + " ( " + Sqlcols.TrimStart(',') + ") VALUES (" + Sqlprms.TrimStart(',') + ")";
+            string sql = new StringBuilder()
+                .Append("INSERT INTO " )
+                .Append(DbTable )
+                .Append(" ( ")
+                .Append( Sqlcols.TrimStart(','))
+                .Append(") VALUES (" )
+                .Append( Sqlprms.TrimStart(','))
+                .Append( ")").ToString();
             IDbTransaction tmpTran = null;
             IDbConnection conn = null;
             if (this.Transaction != null)
@@ -240,7 +261,7 @@ namespace NYear.ODA.Adapter
                         param.Size = 1;
                     else
                         param.Size = pr.Size;
-                    param.Direction =  pr.Direction;
+                    param.Direction = pr.Direction;
                     switch (pr.DBDataType)
                     {
                         case ODAdbType.ODatetime:
