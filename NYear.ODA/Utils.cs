@@ -137,6 +137,8 @@ namespace NYear.ODA
     public class ODAScript
     {
         [DataMember]
+        public string DataBaseId { get; set; } = null;
+        [DataMember]
         public SQLType ScriptType { get; set; } = SQLType.Other;
         [DataMember]
         public StringBuilder SqlScript { get; set; } = new StringBuilder();
@@ -209,52 +211,6 @@ namespace NYear.ODA
         Procedure = 10,
     }
 
-    /// <summary>
-    /// 数据库集群（主－从）
-    /// </summary>
-    public class DataBaseSetting
-    {
-        public string SystemID { get; set; }
-        public DbAType DBtype { get; set; }
-        public string ConnectionString { get; set; }
-        public List<string> SlaveConnectionStrings { get; set; }
-    }
-
-    /// <summary>
-    /// 分表设置项
-    /// </summary>
-    public class TableGroup
-    {
-        public string SystemID { get; set; }
-        /// <summary>
-        /// 默认表
-        /// </summary>
-        public string MainObject { get; set; }
-        /// <summary>
-        /// 子表设置
-        /// </summary>
-        public List<SplitTable> SubTable { get; set; }
-    }
-    /// <summary>
-    /// 子表
-    /// </summary>
-    public class SplitTable
-    {
-        public string SubTableName { get; set; }
-        public List<SplitTableColumn> SplitCondition { get; set; }
-    }
-
-    /// <summary>
-    /// 分表条件设定
-    /// </summary>
-    public class SplitTableColumn
-    {
-        public string ColumnName { get; set; }
-        public SplitColumnType ColumnType { get; set; }
-        public object MaxValue { get; set; }
-        public object MinValue { get; set; }
-    }
-
     public enum SplitColumnType
     {
         Varchar,
@@ -270,7 +226,6 @@ namespace NYear.ODA
     {
         public IDBAccess DBA { get; set; } 
         public ODAScript SqlParams { get; set; }
-
         public string DebugSQL
         {
             get
@@ -316,5 +271,48 @@ namespace NYear.ODA
         }
     }
 
-     
+    #region 数据连接设定
+    public class ODAConfiguration
+    {
+        /// <summary>
+        /// 数据库模式
+        /// </summary>
+        public ODAPattern Pattern { get; set; } = ODAPattern.Single;
+        /// <summary>
+        /// 单一数据库或主从模式的主库
+        /// </summary>
+        public ODAConnect ODADataBase { get; set; }
+        /// <summary>
+        /// 业务分库，主从模式的从库
+        /// </summary>
+        public ODAConnect[] DispersedDataBase { get; set; }
+
+        /// <summary>
+        /// 有序的数据库对象
+        /// </summary>
+        public string[] RegularObject { get; set; }
+    }
+    public enum ODAPattern
+    {
+        /// <summary>
+        /// 单一数据库
+        /// </summary>
+        Single, 
+        /// <summary>
+        /// 主从数据库
+        /// </summary>
+        MasterSlave,
+        /// <summary>
+        /// 分库
+        /// </summary>
+        Dispersed,
+    }
+
+    public class ODAConnect
+    {
+        public string DataBaseId { get; set; }
+        public DbAType DBtype { get; set; }
+        public string ConnectionString { get; set; }
+    }
+    #endregion
 }

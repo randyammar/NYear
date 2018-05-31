@@ -42,32 +42,49 @@ namespace NYear.ODA
     public class ODAContext
     {
         #region 数据库连接管理
-        private static List<DataBaseSetting> _DataBaseSetting;
-        /// <summary>
-        /// 数据库连接设定
-        /// </summary>
-        public static List<DataBaseSetting> DataBaseSetting
+        public static ODAConfiguration ODAConfig { get; private set; }
+        public static void SetODAConfig(DbAType DbType, string ConectionString)
         {
-            get { return _DataBaseSetting; }
-            set { _DataBaseSetting = value; }
+            if (string.IsNullOrWhiteSpace(ConectionString))
+                throw new ODAException(30000, "Dispersed DataBase ID should be setted.");
+            ODAConfig = new ODAConfiguration()
+            {
+                Pattern = ODAPattern.Single,
+                ODADataBase = new ODAConnect()
+                {
+                    DBtype = DbType,
+                    ConnectionString = ConectionString
+                }
+            };
         }
-        private static List<TableGroup> _SystemTableGroups = new List<TableGroup>();
-        /// <summary>
-        /// 分表设定,不设定有错误
-        /// </summary>
-        public static List<TableGroup> SystemTableGroups
+        public static void SetODAConfig(ODAConfiguration Config)
         {
-            get
+            if (Config == null)
+                throw new ODAException(30000, "Config can be null.");
+            if (Config.Pattern == ODAPattern.Dispersed)
             {
-                return _SystemTableGroups;
+                if (Config.DispersedDataBase == null || Config.DispersedDataBase.Length == 0)
+                    throw new ODAException(30000, "Dispersed DataBase can be null.");
+                foreach (var Db in Config.DispersedDataBase)
+                {
+                    if (string.IsNullOrWhiteSpace(Db.DataBaseId))
+                        throw new ODAException(30000, "Dispersed DataBase ID should be setted.");
+                }
             }
-            set
+            else if (Config.Pattern == ODAPattern.MasterSlave)
             {
-                _SystemTableGroups = value;
+                if (Config.ODADataBase == null || string.IsNullOrWhiteSpace(Config.ODADataBase.ConnectionString))
+                    throw new ODAException(30000, "Master DataBase should be setted.");
             }
+            else
+            {
+                if (Config.ODADataBase == null || string.IsNullOrWhiteSpace(Config.ODADataBase.ConnectionString))
+                    throw new ODAException(30000, "DataBase should be setted.");
+            }
+            ODAConfig = Config;
         }
-        private static double? _DBTimeDiff = null;
 
+        private static double? _DBTimeDiff = null;
         private static IDBAccess NewDBConnect(DbAType dbtype, string Connecting)
         {
             IDBAccess DBA = null;
@@ -99,18 +116,29 @@ namespace NYear.ODA
                     break;
             }
             return DBA;
-        } 
-        #endregion
-
-        private DbAType dbType = DbAType.MsSQL;
-        private string dbConn = null;
+        }
+        #endregion 
+        /// <summary>
+        /// 临时指定的数据库连接字串
+        /// </summary>
+        private ODAConnect _Conn = null;
+        /// <summary>
+        /// 统一设定数据库连接字
+        /// </summary>
+        private bool _IsUnify = true;
         public ODAContext()
         {
         }
         public ODAContext(DbAType DbType, string ConectionString)
         {
-            dbType = DbType;
-            dbConn = ConectionString;
+            if (string.IsNullOrWhiteSpace(ConectionString))
+                throw new ODAException(30001, "DataBase Conection String  should be setted.");
+            _Conn = new ODAConnect()
+            {
+                DBtype = DbType,
+                ConnectionString = ConectionString
+            };
+            _IsUnify = false;
         }
         /// <summary>
         /// 数据库当前的时间
@@ -121,28 +149,36 @@ namespace NYear.ODA
             {   /////第一次取数据库时间,并保存与本地的时间差异,下一次取本地时间
                 if (_DBTimeDiff == null)
                 {
-                    if (string.IsNullOrWhiteSpace(dbConn))
+                    if (!_IsUnify)
                     {
-                        if (ODAContext.DataBaseSetting != null || ODAContext.DataBaseSetting.Count > 0)
+                        if (string.IsNullOrWhiteSpace(_Conn.ConnectionString))
+                            _DBTimeDiff = (ODAContext.NewDBConnect(_Conn.DBtype, _Conn.ConnectionString).GetDBDateTime() - DateTime.Now).TotalSeconds;
+                    }
+                    else if (ODAConfig != null)
+                    {
+                        if (ODAConfig.Pattern == ODAPattern.Single || ODAConfig.Pattern == ODAPattern.MasterSlave)
                         {
-                            if (!string.IsNullOrWhiteSpace(ODAContext.DataBaseSetting[0].ConnectionString))
+                            if (!string.IsNullOrWhiteSpace(ODAConfig.ODADataBase.ConnectionString))
                             {
-                                _DBTimeDiff = (ODAContext.NewDBConnect(ODAContext.DataBaseSetting[0].DBtype, ODAContext.DataBaseSetting[0].ConnectionString).GetDBDateTime() - DateTime.Now).TotalSeconds;
+                                _DBTimeDiff = (ODAContext.NewDBConnect(ODAConfig.ODADataBase.DBtype, ODAConfig.ODADataBase.ConnectionString).GetDBDateTime() - DateTime.Now).TotalSeconds;
+                            }
+                        }
+                        else if (ODAConfig.DispersedDataBase != null && ODAConfig.DispersedDataBase.Length > 0)
+                        {
+                            foreach (var db in ODAConfig.DispersedDataBase)
+                            {
+                                if (!string.IsNullOrWhiteSpace(db.ConnectionString))
+                                {
+                                    _DBTimeDiff = (ODAContext.NewDBConnect(db.DBtype, db.ConnectionString).GetDBDateTime() - DateTime.Now).TotalSeconds;
+                                }
+                                break;
                             }
                         }
                     }
-                    else
-                    {
-                        _DBTimeDiff = (ODAContext.NewDBConnect(this.dbType,this.dbConn).GetDBDateTime() - DateTime.Now).TotalSeconds;
-                    }
-                    if(_DBTimeDiff== null)
-                    {
-                        _DBTimeDiff = 0d;
-                    }
-                    return DateTime.Now.AddSeconds(_DBTimeDiff.Value);
+                    if (_DBTimeDiff == null)
+                        _DBTimeDiff = 0;
                 }
-                else
-                    return DateTime.Now.AddSeconds(_DBTimeDiff.Value);
+                return DateTime.Now.AddSeconds(_DBTimeDiff.Value);
             }
         }
 
@@ -152,7 +188,7 @@ namespace NYear.ODA
         /// <typeparam name="U">命令类型</typeparam>
         /// <param name="Alias">别名</param>
         /// <returns></returns>
-        public virtual U GetCmd<U>(string Alias = "") where U : ODACmd,new()
+        public virtual U GetCmd<U>(string Alias = "") where U : ODACmd, new()
         {
             U cmd = new U();
             cmd.GetDBAccess = GetDBAccess;
@@ -166,27 +202,6 @@ namespace NYear.ODA
         /// 指示是否已启动了事务
         /// </summary>
         public bool IsTransactionBegined { get { return _Tran != null; } }
-        /// <summary>
-        /// 事务对象的顺序，用以避免死锁
-        /// </summary>
-        protected virtual string[] TransactionSequence
-        {
-            get
-            {
-                return null;
-            }
-        }
-        /// <summary>
-        /// 检查事务对象的顺序
-        /// </summary>
-        /// <param name="Cmd"></param>
-        protected void CheckTransaction(ODAScript Cmd)
-        {
-            //this._Tran.TransactionId
-            //return;
-        }
-
-
         /// <summary>
         /// 开启事务，默认30秒超时
         /// </summary>
@@ -226,12 +241,12 @@ namespace NYear.ODA
                     ScriptType = SQLType.Commit,
                 };
                 Sql.SqlScript.Append("Commit");
-
                 FireExecutingSqlEvent(new ExecuteEventArgs()
                 {
                     SqlParams = Sql,
-                }); 
-            } 
+                });
+                _Tran = null;
+            }
         }
         /// <summary>
         /// 回滚事务
@@ -250,30 +265,79 @@ namespace NYear.ODA
                 {
                     SqlParams = Sql,
                 });
+                _Tran = null;
+            }
+        } 
+        /// <summary>
+        /// 防止死锁，检查事务对象的顺序
+        /// </summary>
+        /// <param name="Cmd"></param>
+        protected void CheckTransaction(ODAScript Cmd)
+        {
+            if (ODAConfig.RegularObject != null && ODAConfig.RegularObject.Length > 0)
+            { 
+                if (_Tran == null || _Tran.CurrentObject == null)
+                    return;
+                int MaxSeq = 0;
+                for (int i = 0; i < ODAConfig.RegularObject.Length; i++)
+                {
+                    if (_Tran.CurrentObject == ODAConfig.RegularObject[i])
+                        MaxSeq = i;
+                }
+                if (Cmd.TableList != null && Cmd.TableList.Count > 0)
+                {
+                    for (int i = 0; i < ODAConfig.RegularObject.Length; i++)
+                    {
+                        if (Cmd.TableList[0] == ODAConfig.RegularObject[i])
+                        {
+                            if (i >= MaxSeq)
+                            {
+                                _Tran.CurrentObject = Cmd.TableList[0];
+                                return;
+                            }
+                            throw new ODAException(30006, string.Format("Access ojbect [{0}] Not orderly", Cmd.TableList[0]));
+                        }
+                    }
+                }
             }
         }
         #endregion
 
-        #region 分库分表算法
-        /// <summary>
-        /// 分库路由算法
-        /// </summary>
-        /// <param name="SqlType"></param>
-        /// <param name="Cmd"></param>
-        /// <returns></returns>
-        private DataBaseSetting RoutToDatabase(ODAScript ODASql)
+        #region 库数据路由算法 
+        private ODAConnect GetConnect(ODAScript ODASql)
         {
-            if (ODAContext.DataBaseSetting.Count == 1)
+            if (!_IsUnify)
             {
-                return ODAContext.DataBaseSetting[0];
+                return _Conn;
             }
             else
             {
-                //分库路由算法
-                ////
-                ////
+                switch (ODAConfig.Pattern)
+                {
+                    case ODAPattern.Single:
+                        return ODAConfig.ODADataBase;
+                    case ODAPattern.MasterSlave:
+                        if (ODASql.ScriptType == SQLType.Select && _Tran == null)
+                        {
+                            if (ODAConfig.DispersedDataBase != null && ODAConfig.DispersedDataBase.Length > 0)
+                            {
+                                int curDate = int.Parse(System.DateTime.Now.ToString("ssfffff"));
+                                int curDt = curDate % ODAConfig.DispersedDataBase.Length;
+                                return ODAConfig.DispersedDataBase[curDt];
+                            }
+                        }
+                        return ODAConfig.ODADataBase;
+                    case ODAPattern.Dispersed:
+                        foreach (var db in ODAConfig.DispersedDataBase)
+                        {
+                            if (ODASql.DataBaseId == db.DataBaseId)
+                                return db;
+                        }
+                        throw new ODAException(30002, string.Format("Can not rout to Dispersed DataBase[{0}]", ODASql.DataBaseId));
+                    default:
+                        throw new ODAException(30002, string.Format("Can not rout to Dispersed DataBase[{0}]", "Impossible Exception"));
+                }
             }
-            throw new ODAException(30001, "没有找到适用的数据库");
         }
 
         /// <summary>
@@ -284,74 +348,30 @@ namespace NYear.ODA
         /// <returns></returns>
         private IDBAccess DatabaseRouting(ODAScript ODASql)
         {
-            IDBAccess DBA = null;
-            if (ODAContext.SystemTableGroups == null && string.IsNullOrWhiteSpace(this.dbConn))
-                throw new ODAException(30000, "没有找到可用的数据库连接设定");
-
-            if (!string.IsNullOrWhiteSpace(this.dbConn))
+            ODAConnect conn = GetConnect(ODASql);
+            if (_Tran == null)
             {
-                if (_Tran != null)
-                {
-                    if (_Tran.IsTimeout)
-                        throw new ODAException(30000, "事务已超时"); 
-                    if (_Tran.TransDB.ContainsKey(this.dbConn))
-                    {
-                        return _Tran.TransDB[this.dbConn];
-                    }
-                    else
-                    {
-                        DBA = ODAContext.NewDBConnect(this.dbType, this.dbConn);
-                        DBA.BeginTransaction();
-                        _Tran.DoCommit += DBA.Commit;
-                        _Tran.RollBacking += DBA.RollBack;
-                        _Tran.TransDB.Add(this.dbConn, DBA);
-                        return DBA;
-                    } 
-                }
-                else
-                {
-                   return ODAContext.NewDBConnect(this.dbType, this.dbConn);
-                }
-            }
-
-            DataBaseSetting DB = RoutToDatabase(ODASql);
-            if (_Tran != null)
-            {
-                if (_Tran.IsTimeout)
-                    throw new ODAException(30000, "事务已超时"); 
-                this.CheckTransaction(ODASql); 
-                if (_Tran.TransDB.ContainsKey(DB.ConnectionString))
-                {
-                    return _Tran.TransDB[DB.ConnectionString];
-                }
-                else
-                {
-                    DBA = DBA = ODAContext.NewDBConnect(DB.DBtype, DB.ConnectionString);
-                    DBA.BeginTransaction();
-                    _Tran.DoCommit += DBA.Commit;
-                    _Tran.RollBacking += DBA.RollBack;
-                    _Tran.TransDB.Add(DB.ConnectionString, DBA);
-                    return DBA;
-                }
+                return ODAContext.NewDBConnect(conn.DBtype, conn.ConnectionString);
             }
             else
             {
-                int curDt = 0;
-                if (ODASql.ScriptType == SQLType.Select && DB.SlaveConnectionStrings != null && DB.SlaveConnectionStrings.Capacity != 0)
+                this.CheckTransaction(ODASql);
+                if (_Tran.TransDB.ContainsKey(conn.ConnectionString))
                 {
-                    ///主写从读集群，简单负载均衡
-                    int curDate = int.Parse(System.DateTime.Now.ToString("ssfffff"));
-                    curDt = curDate % DB.SlaveConnectionStrings.Count;
-                    DBA = ODAContext.NewDBConnect(DB.DBtype, DB.SlaveConnectionStrings[curDt]);
+                    return _Tran.TransDB[_Conn.ConnectionString];
                 }
                 else
                 {
-                    DBA = ODAContext.NewDBConnect(DB.DBtype, DB.ConnectionString);
+                    IDBAccess DBA = ODAContext.NewDBConnect(_Conn.DBtype, _Conn.ConnectionString);
+                    DBA.BeginTransaction();
+                    _Tran.DoCommit += DBA.Commit;
+                    _Tran.RollBacking += DBA.RollBack;
+                    _Tran.TransDB.Add(_Conn.ConnectionString, DBA);
+                    return DBA;
                 }
             }
-            return DBA;
         }
- 
+
         #endregion
         #region SQL语句执行。（待扩展：使用消息队列实现多数据实时同步）
         public static event ExecuteSqlEventHandler ExecutingSql;
@@ -364,8 +384,7 @@ namespace NYear.ODA
 
         protected IDBAccess GetDBAccess(ODAScript ODASql)
         {
-            
-            IDBAccess DBA = DatabaseRouting(ODASql); 
+            IDBAccess DBA = DatabaseRouting(ODASql);
             ExecuteEventArgs earg = new ExecuteEventArgs()
             {
                 DBA = DBA,
@@ -373,7 +392,7 @@ namespace NYear.ODA
             };
             this.FireExecutingSqlEvent(earg);
             return earg.DBA;
-        } 
+        }
         #endregion
     }
 }

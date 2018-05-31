@@ -32,6 +32,7 @@ namespace NYear.ODA
         protected List<ODACmd> ListJoinCmd { get { return _ListCmd; } }
         protected List<SqlJoinScript> JoinCmd { get { return _JoinCmd; } }
         protected virtual ODACmd BaseCmd { get { return null; } }
+        protected virtual string DataBaseId { get { return null; } }
         #endregion
 
         #region 基础信息
@@ -414,6 +415,7 @@ namespace NYear.ODA
             ODAScript sql = new ODAScript()
             {
                 ScriptType = SQLType.Select,
+                DataBaseId = this.DataBaseId,
             };
             if (_Distinct)
                 sql.SqlScript.Append("SELECT COUNT(DISTINCT ");
@@ -458,6 +460,7 @@ namespace NYear.ODA
             ODAScript sql = new ODAScript()
             {
                 ScriptType = SQLType.Select,
+                DataBaseId = this.DataBaseId
             };
             if (_Distinct)
                 sql.SqlScript.Append("SELECT DISTINCT ");
@@ -515,7 +518,8 @@ namespace NYear.ODA
         {
             ODAScript sql = new ODAScript()
             {
-                ScriptType = SQLType.Delete
+                ScriptType = SQLType.Delete,
+                DataBaseId = this.DataBaseId
             };
             sql.TableList.Add(this.DBObjectMap);
             sql.SqlScript.Append("DELETE FROM ").Append(this.DBObjectMap);
@@ -548,6 +552,7 @@ namespace NYear.ODA
             ODAScript sql = new ODAScript()
             {
                 ScriptType = SQLType.Insert,
+                DataBaseId = this.DataBaseId
             };
             sql.TableList.Add(this.DBObjectMap);
             sql.SqlScript.Append("INSERT INTO ").Append(this.DBObjectMap).Append("(");
@@ -580,7 +585,8 @@ namespace NYear.ODA
             this.Alias = "";
             ODAScript sql = new ODAScript()
             {
-                ScriptType = SQLType.Update, 
+                ScriptType = SQLType.Update,
+                DataBaseId = this.DataBaseId
             };
             sql.TableList.Add(this.DBObjectMap);
             sql.SqlScript.Append("UPDATE ").Append(this.DBObjectMap).Append(" SET "); 
@@ -777,7 +783,6 @@ namespace NYear.ODA
 
             if (string.IsNullOrEmpty(_StartWithExpress) || string.IsNullOrEmpty(_ConnectByParent) || string.IsNullOrEmpty(_PriorChild))
             {
-
                 if ((_Groupby.Count > 0 || _Having.Count > 0) || (Cols.Length > 0 && _Distinct))
                 {
                     if (_Orderby.Count > 0)

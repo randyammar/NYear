@@ -24,6 +24,7 @@ namespace NYear.ODA
         /// 启动了事务的DB,为分布式
         /// </summary>
         public Dictionary<string,IDBAccess> TransDB { get; } = new Dictionary<string, IDBAccess>();
+        public string CurrentObject { get; set; }
         public event ODATransactionEventHandler CanCommit;
         public event ODATransactionEventHandler PreCommit;
         public event ODATransactionEventHandler DoCommit

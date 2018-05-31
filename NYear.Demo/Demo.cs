@@ -33,28 +33,8 @@ namespace NYear.Demo
         }
         private void InitNYearODA()
         {
-            ODAContext.DataBaseSetting = new List<DataBaseSetting>();
-
-            //ODAContext.DataBaseSetting.Add(new DataBaseSetting()
-            //{
-            //    ConnectionString = @"Data Source=./sqlite.db",
-            //    DBtype = ODA.DbAType.SQLite,
-            //});
-            //ODAContext.DataBaseSetting.Add(new DataBaseSetting()
-            //{
-            //    ConnectionString = @"server=10.16.67.19;database=MES_ALPHA;uid=mes_app;pwd=1Q2w3e4r;",
-            //    DBtype = ODA.DbAType.MsSQL,
-            //});
-            ODAContext.DataBaseSetting.Add(new DataBaseSetting()
-            {
-                ConnectionString = @"server = localhost; database = MES; uid = sa; pwd = 123;",
-                DBtype = ODA.DbAType.MsSQL,
-            }); 
-            //ODAContext.DataBaseSetting.Add(new DataBaseSetting()
-            //{
-            //    ConnectionString = @"user id=cmes;password=cmes_2017;data source=10.16.12.53:1606/mestst6",
-            //    DBtype = ODA.DbAType.Oracle,
-            //});
+            //ODAContext.SetODAConfig(ODA.DbAType.SQLite, @"Data Source=./sqlite.db");
+            ODAContext.SetODAConfig(ODA.DbAType.MsSQL, @"server = localhost; database = MES; uid = sa; pwd = 123;");
         }
         private void InitFuncType()
         {
