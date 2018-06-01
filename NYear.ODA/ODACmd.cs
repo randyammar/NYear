@@ -439,11 +439,18 @@ namespace NYear.ODA
             sql.Merge(fSql);
 
             if (_WhereList.Count > 0 || _OrList.Count > 0)
+            {
                 sql.SqlScript.Append(" WHERE ");
-            var asql = GetWhereSubSql(_WhereList, " AND ");
-            sql.Merge(asql);
-            var osql = GetWhereSubSql(_OrList, " OR ");
-            sql.Merge(osql);
+                var asql = GetWhereSubSql(_WhereList, " AND ");
+                sql.Merge(asql);
+                if (_OrList.Count > 0)
+                {
+                    if (_WhereList.Count > 0)
+                        sql.SqlScript.Append(" OR ");
+                    var osql = GetWhereSubSql(_OrList, " OR ");
+                    sql.Merge(osql);
+                }
+            }
             return sql;
         }
 
@@ -484,11 +491,16 @@ namespace NYear.ODA
 
             if (_WhereList.Count > 0 || _OrList.Count > 0)
             {
-                sql.SqlScript.Append(" WHERE "); 
-                var aSql = GetWhereSubSql(_WhereList, " AND ");
-                sql.Merge(aSql); 
-                var oSql = GetWhereSubSql(_OrList, " OR ");
-                sql.Merge(oSql);
+                sql.SqlScript.Append(" WHERE ");
+                var asql = GetWhereSubSql(_WhereList, " AND ");
+                sql.Merge(asql);
+                if (_OrList.Count > 0)
+                {
+                    if (_WhereList.Count > 0)
+                        sql.SqlScript.Append(" OR ");
+                    var osql = GetWhereSubSql(_OrList, " OR ");
+                    sql.Merge(osql);
+                }
             }
             if (_Groupby.Count > 0)
             {
@@ -529,11 +541,16 @@ namespace NYear.ODA
 
             if (_WhereList.Count > 0 || _OrList.Count > 0)
             {
-                sql.SqlScript.Append(" WHERE "); 
+                sql.SqlScript.Append(" WHERE ");
                 var asql = GetWhereSubSql(_WhereList, " AND ");
                 sql.Merge(asql);
-                var osql = GetWhereSubSql(_OrList, " OR ");
-                sql.Merge(osql);
+                if (_OrList.Count > 0)
+                {
+                    if (_WhereList.Count > 0)
+                        sql.SqlScript.Append(" OR ");
+                    var osql = GetWhereSubSql(_OrList, " OR ");
+                    sql.Merge(osql);
+                }
             }
             return sql; 
         }
@@ -599,14 +616,19 @@ namespace NYear.ODA
                     sql.ValueList.AddRange(P);
                 Column += ColumnTmp + ",";
             }
-            sql.SqlScript.Append(Column.Remove(Column.Length - 1, 1)); 
+            sql.SqlScript.Append(Column.Remove(Column.Length - 1, 1));
             if (_WhereList.Count > 0 || _OrList.Count > 0)
             {
-                sql.SqlScript.Append(" WHERE "); 
+                sql.SqlScript.Append(" WHERE ");
                 var asql = GetWhereSubSql(_WhereList, " AND ");
                 sql.Merge(asql);
-                var osql = GetWhereSubSql(_OrList, " OR ");
-                sql.Merge(osql);
+                if (_OrList.Count > 0)
+                {
+                    if (_WhereList.Count > 0)
+                        sql.SqlScript.Append(" OR ");
+                    var osql = GetWhereSubSql(_OrList, " OR ");
+                    sql.Merge(osql);
+                }
             }
             return sql; 
         }
