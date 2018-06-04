@@ -350,10 +350,10 @@ namespace NYear.ODA
                                 paramSub.ParamsValue = ValueList[k];
                                 paramSub.DBDataType = _DBDataType;
                                 paramSub.Direction = _PDirection;
-                                paramSub.Size = _Size; 
-                                sql.SqlScript.Append(paramSub.ParamsName).Append( ",");
+                                paramSub.Size = _Size;
+                                sql.SqlScript.Append(paramSub.ParamsName).Append(",");
                                 sql.WhereList.Add(paramSub);
-                            } 
+                            }
                             sql.SqlScript.Remove(sql.SqlScript.Length - 1, 1).Append(")");
                         }
                         else
@@ -361,10 +361,10 @@ namespace NYear.ODA
                             if (string.IsNullOrWhiteSpace(_InCmd.Alias))
                             {
                                 _Cmd.SubCmdCout++;
-                                _InCmd.Alias = "ST_" + _Cmd.SubCmdCout.ToString();
-                            } 
-                            var subSql  = ((ODACmd)_InCmd).GetSelectSql(_InColumn);
-                             string inSql = " IN ( " + subSql.SqlScript.ToString() + ")";
+                                _InCmd.Alias = _Cmd.Alias + "_IN"  +_Cmd.SubCmdCout.ToString();
+                            }  
+                            var subSql = ((ODACmd)_InCmd).GetSelectSql(_InColumn);
+                            string inSql = " IN ( " + subSql.SqlScript.ToString() + ")"; 
                             subSql.SqlScript.Clear();
                             subSql.SqlScript.Append(inSql);
                             sql.Merge(subSql);
@@ -395,7 +395,7 @@ namespace NYear.ODA
                             if (string.IsNullOrWhiteSpace(_InCmd.Alias))
                             {
                                 _Cmd.SubCmdCout++;
-                                _InCmd.Alias = "ST_" + _Cmd.SubCmdCout.ToString();
+                                _InCmd.Alias = _Cmd.Alias + "_IN" + _Cmd.SubCmdCout.ToString();
                             }
                             var subSql = ((ODACmd)_InCmd).GetSelectSql(_InColumn);
                             string inSql = " NOT IN ( " + subSql.SqlScript.ToString() + ")";

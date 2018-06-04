@@ -128,28 +128,35 @@ namespace NYear.ODA
          
         public object GetValue(int i)
         {
-            if (mapping.ReadIndex[i] >= 0)
+            try
             {
-                var obj = reader.GetValue(mapping.ReadIndex[i]);
-                switch (mapping.MapInfos[i])
+                if (mapping.ReadIndex[i] >= 0)
                 {
-                    case MapResult.Match:  
-                        return obj;
-                    case MapResult.Convert: 
-                        return Convert.ChangeType(reader.GetValue(mapping.ReadIndex[i]), mapping.Pptys[i].NonNullableUnderlyingType, CultureInfo.CurrentCulture);
-                    case MapResult.EnumType:
-                        if (obj is string v)
-                        {
-                            return Enum.Parse(mapping.Pptys[i].NonNullableUnderlyingType, v);
-                        }
-                        else
-                        {
-                            return Enum.ToObject(mapping.Pptys[i].NonNullableUnderlyingType, obj);
-                        } 
+                    var obj = reader.GetValue(mapping.ReadIndex[i]);
+                    switch (mapping.MapInfos[i])
+                    {
+                        case MapResult.Match:
+                            return obj;
+                        case MapResult.Convert:
+                            return Convert.ChangeType(reader.GetValue(mapping.ReadIndex[i]), mapping.Pptys[i].NonNullableUnderlyingType, CultureInfo.CurrentCulture);
+                        case MapResult.EnumType:
+                            if (obj is string v)
+                            {
+                                return Enum.Parse(mapping.Pptys[i].NonNullableUnderlyingType, v);
+                            }
+                            else
+                            {
+                                return Enum.ToObject(mapping.Pptys[i].NonNullableUnderlyingType, obj);
+                            }
+                    }
                 }
-            } 
-            /////实体中这个属性，但DataReader没有这个字段
-            return DefaultValue(mapping.Pptys[i].NonNullableUnderlyingType);
+                /////实体中这个属性，但DataReader没有这个字段
+                return DefaultValue(mapping.Pptys[i].NonNullableUnderlyingType);
+            }
+            catch
+            {
+                throw new ODAException(40000, string.Format("Reading value from column : [{0}] , Set [{1}] to [{2}] ", reader.GetName(mapping.ReadIndex[i]) , reader.GetValue(mapping.ReadIndex[i]).ToString(), mapping.Pptys[i].NonNullableUnderlyingType.ToString())); 
+            }
         }
 
         public static object DefaultValue(Type TargetType)

@@ -293,7 +293,7 @@ namespace NYear.ODA
             if (string.IsNullOrWhiteSpace(Cmd.Alias))
             {
                 _Cmd.SubCmdCout++;
-                Cmd.Alias = "ST_" + _Cmd.SubCmdCout.ToString();
+                Cmd.Alias = "EX_" + _Cmd.SubCmdCout.ToString();
             }
             _SubCmd = Cmd;
             _FuncName = " EXISTS ";
@@ -312,7 +312,7 @@ namespace NYear.ODA
             if (string.IsNullOrWhiteSpace(Cmd.Alias))
             {
                 _Cmd.SubCmdCout++;
-                Cmd.Alias = "ST_" + _Cmd.SubCmdCout.ToString();
+                Cmd.Alias = "EX_" + _Cmd.SubCmdCout.ToString();
             }
             _SubCmd = Cmd;
             _FunColumnList.AddRange(Cols);
