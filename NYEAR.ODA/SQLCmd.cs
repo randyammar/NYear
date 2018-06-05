@@ -188,7 +188,7 @@ namespace NYear.ODA
             if (Tables != null && Tables.Length > 1)
                 SqlTables.AddRange(Tables);
             this.OrderbySql = Orderby;
-            TotalRecord = this.Count();
+            TotalRecord = this.CountRecords();
             var sql = this.GetSelectSql(null);
             var db = this.GetDBAccess(sql);
             var prms = new ODAParameter[sql.ValueList.Count + sql.WhereList.Count];
@@ -221,7 +221,7 @@ namespace NYear.ODA
         {
             this.SelectSql = SQL;
             this.OrderbySql = Orderby;
-            TotalRecord = this.Count();
+            TotalRecord = this.CountRecords();
             var sql = this.GetSelectSql(null);
             var db = this.GetDBAccess(sql);
             var prms = new ODAParameter[sql.ValueList.Count + sql.WhereList.Count];

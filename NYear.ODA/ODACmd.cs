@@ -81,7 +81,7 @@ namespace NYear.ODA
                 return System.Text.Encoding.UTF8;
             }
         }
- 
+
         #endregion
 
         #region ODA应用语法定义
@@ -105,7 +105,18 @@ namespace NYear.ODA
         {
             get
             {
-               return new ODAFunction(this);
+                return new ODAFunction(this);
+            }
+        }
+
+        /// <summary>
+        /// 这个表的所有字段,即 "*"
+        /// </summary>
+        public ODAColumns AllColumn
+        {
+            get
+            {
+                return new ODAColumns(this, "*");
             }
         }
 
@@ -115,7 +126,7 @@ namespace NYear.ODA
             {
                 this.Alias = "VS" + Id.ToString();
             }
-      
+
             for (int i = 0; i < _ListCmd.Count; i++)
             {
                 Id++;
@@ -133,12 +144,12 @@ namespace NYear.ODA
         /// <param name="Cols">子查询的字段</param>
         /// <returns></returns>
         public virtual ODACmdView ToView(params ODAColumns[] Cols)
-        { 
+        {
             int Id = 0;
-            this.SetSubViewAlias(ref Id); 
+            this.SetSubViewAlias(ref Id);
             return new ODACmdView(this, Cols)
             {
-                GetDBAccess = this.GetDBAccess, 
+                GetDBAccess = this.GetDBAccess,
             };
         }
         /// <summary>
@@ -160,22 +171,24 @@ namespace NYear.ODA
             return this;
         }
         /// <summary>
-        ///  内连接查询 
+        ///  左连接查询 
         /// </summary>
         /// <param name="JoinCmd">要连接的表</param>
         /// <param name="ONCols">连接条件</param>
         /// <returns></returns>
         public virtual ODACmd LeftJoin(ODACmd JoinCmd, params ODAColumns[] ONCols)
         {
-            if (JoinCmd == this)
-                throw new ODAException(10001, "Left Join Instance Can't be itselft");
-
-            int Tcount = _ListCmd.Count + _JoinCmd.Count;
-            if (string.IsNullOrWhiteSpace(JoinCmd.Alias))
-                JoinCmd.Alias = "JT" + Tcount.ToString();
-            JoinCmd.Where(ONCols);
-            _JoinCmd.Add(new SqlJoinScript() { JoinCmd = JoinCmd, JoinScript = " LEFT JOIN " });
-            return this;
+            return Join(JoinCmd, " LEFT JOIN ", ONCols);
+        }
+        /// <summary>
+        ///  右连接查询 
+        /// </summary>
+        /// <param name="JoinCmd">要连接的表</param>
+        /// <param name="ONCols">连接条件</param>
+        /// <returns></returns>
+        public virtual ODACmd RightJoin(ODACmd JoinCmd, params ODAColumns[] ONCols)
+        {
+            return Join(JoinCmd, " RIGHT JOIN ", ONCols);
         }
         /// <summary>
         ///  内连接查询 
@@ -185,6 +198,17 @@ namespace NYear.ODA
         /// <returns></returns>
         public virtual ODACmd InnerJoin(ODACmd JoinCmd, params ODAColumns[] ONCols)
         {
+            return Join(JoinCmd, " INNER JOIN ", ONCols);
+        }
+        /// <summary>
+        /// 连接查询
+        /// </summary>
+        /// <param name="JoinCmd"></param>
+        /// <param name="Join"></param>
+        /// <param name="ONCols"></param>
+        /// <returns></returns>
+        protected virtual ODACmd Join(ODACmd JoinCmd, string Join, params ODAColumns[] ONCols)
+        {
             if (JoinCmd == this)
                 throw new ODAException(10002, "Inner Join Instance Can't be itselft");
 
@@ -192,7 +216,7 @@ namespace NYear.ODA
             if (string.IsNullOrWhiteSpace(JoinCmd.Alias))
                 JoinCmd.Alias = "JT" + Tcount.ToString();
             JoinCmd.Where(ONCols);
-            _JoinCmd.Add(new SqlJoinScript() { JoinCmd = JoinCmd, JoinScript = " INNER JOIN " });
+            _JoinCmd.Add(new SqlJoinScript() { JoinCmd = JoinCmd, JoinScript = Join });
             return this;
         }
 
@@ -292,9 +316,9 @@ namespace NYear.ODA
         /// <param name="SubSql"></param>
         /// <returns></returns>
         protected virtual ODAScript GetFromSubString()
-        { 
+        {
             var sql = new ODAScript();
-            sql.SqlScript.Append(" FROM "); 
+            sql.SqlScript.Append(" FROM ");
             var cmdsql = GetCmdSql();
             sql.Merge(cmdsql);
             string AliasSql = String.IsNullOrWhiteSpace(Alias) ? "" : " " + Alias;
@@ -304,21 +328,21 @@ namespace NYear.ODA
             {
                 sql.SqlScript.Append(_JoinCmd[i].JoinScript);
                 var join = _JoinCmd[i].JoinCmd.GetCmdSql();
-                sql.Merge(join);　
-                sql.SqlScript.Append(" ").Append(_JoinCmd[i].JoinCmd.Alias); 
-               var wsql = GetWhereSubSql(_JoinCmd[i].JoinCmd._WhereList, " AND ");
+                sql.Merge(join);
+                sql.SqlScript.Append(" ").Append(_JoinCmd[i].JoinCmd.Alias);
+                var wsql = GetWhereSubSql(_JoinCmd[i].JoinCmd._WhereList, " AND ");
                 if (wsql.SqlScript.Length > 0)
                 {
                     sql.SqlScript.Append(" ON ");
                     sql.Merge(wsql);
-                }　
+                }
             }
             for (int i = 0; i < _ListCmd.Count; i++)
             {
                 var lsql = _ListCmd[i].GetCmdSql();
                 sql.SqlScript.Append(",");
                 sql.Merge(lsql).SqlScript.Append(" ").Append(_ListCmd[i].Alias);
-            } 
+            }
             return sql;
         }
         /// <summary>
@@ -332,9 +356,9 @@ namespace NYear.ODA
         {
             var sql = new ODAScript();
             if (WhereList == null || WhereList.Count == 0)
-                return sql; 
+                return sql;
             List<ODAParameter> ParamsList = new List<ODAParameter>();
-          
+
             int A = 0;
             foreach (ODAColumns W in WhereList)
             {
@@ -344,8 +368,8 @@ namespace NYear.ODA
                 A++;
             }
             if (sql.SqlScript.Length > 0)
-                sql.SqlScript.Remove(sql.SqlScript.Length - RelationStr.Length, RelationStr.Length); 
-            return sql; 
+                sql.SqlScript.Remove(sql.SqlScript.Length - RelationStr.Length, RelationStr.Length);
+            return sql;
         }
 
         /// <summary>
@@ -460,7 +484,7 @@ namespace NYear.ODA
         /// <param name="SelectSql">sql脚本</param>
         /// <param name="Cols">变量列表及变操作符</param>
         /// <returns>变量列表</returns>
-        public virtual ODAScript GetSelectSql( params ODAColumns[] Cols)
+        public virtual ODAScript GetSelectSql(params ODAColumns[] Cols)
         {
             if (string.IsNullOrWhiteSpace(Alias))
                 Alias = "T";
@@ -472,7 +496,7 @@ namespace NYear.ODA
             if (_Distinct)
                 sql.SqlScript.Append("SELECT DISTINCT ");
             else
-                sql.SqlScript.Append("SELECT "); 
+                sql.SqlScript.Append("SELECT ");
 
             if (Cols == null || Cols.Length == 0)
             {
@@ -485,7 +509,7 @@ namespace NYear.ODA
                 sql.SqlScript.Append(SubSelectSql);
                 if (SubSelectPrms != null && SubSelectPrms.Length > 0)
                     sql.ValueList.AddRange(SubSelectPrms);
-            } 
+            }
             var fSql = this.GetFromSubString();
             sql.Merge(fSql);
 
@@ -504,7 +528,7 @@ namespace NYear.ODA
             }
             if (_Groupby.Count > 0)
             {
-                string gy = GetGroupByColumns(_Groupby.ToArray()); 
+                string gy = GetGroupByColumns(_Groupby.ToArray());
                 sql.SqlScript.Append(" GROUP BY ").Append(gy);
             }
             if (_Having.Count > 0)
@@ -518,8 +542,8 @@ namespace NYear.ODA
                 string Orderby = GetOrderbyColumns(_Orderby.ToArray());
                 sql.OrderBy = " ORDER BY " + Orderby;
                 sql.SqlScript.Append(sql.OrderBy);
-            } 
-            return sql;  
+            }
+            return sql;
         }
         /// <summary>
         /// 生成删除语
@@ -536,7 +560,7 @@ namespace NYear.ODA
             sql.TableList.Add(this.DBObjectMap);
             sql.SqlScript.Append("DELETE FROM ").Append(this.DBObjectMap);
 
-            if(!string.IsNullOrWhiteSpace(Alias))
+            if (!string.IsNullOrWhiteSpace(Alias))
                 sql.SqlScript.Append(" ").Append(Alias);
 
             if (_WhereList.Count > 0 || _OrList.Count > 0)
@@ -552,7 +576,7 @@ namespace NYear.ODA
                     sql.Merge(osql);
                 }
             }
-            return sql; 
+            return sql;
         }
 
         /// <summary>
@@ -563,7 +587,7 @@ namespace NYear.ODA
         /// <returns>变量列表</returns>
         protected virtual ODAScript GetInsertSql(params ODAColumns[] Cols)
         {
-            if(Cols == null || Cols.Length ==0)
+            if (Cols == null || Cols.Length == 0)
                 throw new ODAException(10018, "NO Columns for Insert!");
             this.Alias = "";
             ODAScript sql = new ODAScript()
@@ -574,7 +598,7 @@ namespace NYear.ODA
             sql.TableList.Add(this.DBObjectMap);
             sql.SqlScript.Append("INSERT INTO ").Append(this.DBObjectMap).Append("(");
 
-            List <ODAParameter> ParamList = new List<ODAParameter>();
+            List<ODAParameter> ParamList = new List<ODAParameter>();
             string Column = "";
             string ColumnParams = "";
             for (int i = 0; i < Cols.Length; i++)
@@ -597,7 +621,7 @@ namespace NYear.ODA
         /// <returns>变量列表</returns>
         protected virtual ODAScript GetUpdateSql(params ODAColumns[] Cols)
         {
-            if(Cols == null || Cols.Length ==0)
+            if (Cols == null || Cols.Length == 0)
                 throw new ODAException(10019, "NO Columns for update!");
             this.Alias = "";
             ODAScript sql = new ODAScript()
@@ -606,7 +630,7 @@ namespace NYear.ODA
                 DataBaseId = this.DataBaseId
             };
             sql.TableList.Add(this.DBObjectMap);
-            sql.SqlScript.Append("UPDATE ").Append(this.DBObjectMap).Append(" SET "); 
+            sql.SqlScript.Append("UPDATE ").Append(this.DBObjectMap).Append(" SET ");
             string Column = "";
             for (int i = 0; i < Cols.Length; i++)
             {
@@ -630,7 +654,7 @@ namespace NYear.ODA
                     sql.Merge(osql);
                 }
             }
-            return sql; 
+            return sql;
         }
 
         /// <summary>
@@ -661,6 +685,22 @@ namespace NYear.ODA
         /// <returns></returns>
         public virtual int Count(ODAColumns Col = null)
         {
+            try
+            {
+                return CountRecords(Col);
+            }
+            finally
+            {
+                this.Clear(); 
+            } 
+        }
+        /// <summary>
+        /// 在数据库中执行select count 语句,返统计结果
+        /// </summary>
+        /// <param name="Col"></param>
+        /// <returns></returns>
+        protected virtual int CountRecords(ODAColumns Col = null)
+        {
             var sql = this.GetCountSql(Col);
             var db = this.GetDBAccess(sql);
             if (db == null)
@@ -669,8 +709,9 @@ namespace NYear.ODA
             sql.ValueList.CopyTo(prms, 0);
             sql.WhereList.CopyTo(prms, sql.ValueList.Count);
             object[] vl = db.SelectFirst(sql.SqlScript.ToString(), prms);
-            return int.Parse(vl[0].ToString()); 
+            return int.Parse(vl[0].ToString());
         }
+
         /// <summary>
         /// 在数据库中执行select语句,并返回结果集
         /// </summary>
@@ -678,25 +719,32 @@ namespace NYear.ODA
         /// <returns></returns>
         public virtual DataTable Select(params ODAColumns[] Cols)
         {
-            var sql = this.GetSelectSql(Cols);
-            var db = this.GetDBAccess(sql);
-            if (db == null)
-                throw new ODAException(10008, "ODACmd Select 没有执行程序");
-            var prms = new ODAParameter[sql.ValueList.Count + sql.WhereList.Count];
-            sql.ValueList.CopyTo(prms, 0);
-            sql.WhereList.CopyTo(prms, sql.ValueList.Count);
-            if (string.IsNullOrEmpty(_StartWithExpress) || string.IsNullOrEmpty(_ConnectByParent) || string.IsNullOrEmpty(_PriorChild))
+            try
             {
-                return db.Select(sql.SqlScript.ToString(), prms);
+                var sql = this.GetSelectSql(Cols);
+                var db = this.GetDBAccess(sql);
+                if (db == null)
+                    throw new ODAException(10008, "ODACmd Select 没有执行程序");
+                var prms = new ODAParameter[sql.ValueList.Count + sql.WhereList.Count];
+                sql.ValueList.CopyTo(prms, 0);
+                sql.WhereList.CopyTo(prms, sql.ValueList.Count);
+                if (string.IsNullOrEmpty(_StartWithExpress) || string.IsNullOrEmpty(_ConnectByParent) || string.IsNullOrEmpty(_PriorChild))
+                {
+                    return db.Select(sql.SqlScript.ToString(), prms);
+                }
+                else
+                {
+                    return db.Select(sql.SqlScript.ToString(), prms, _StartWithExpress, _ConnectByParent, _PriorChild, _ConnectColumn, _ConnectStr, _MaxLevel);
+                }
             }
-            else
+            finally
             {
-                return db.Select(sql.SqlScript.ToString(), prms, _StartWithExpress, _ConnectByParent, _PriorChild, _ConnectColumn, _ConnectStr, _MaxLevel);
+                this.Clear();
             }
         }
 
         /// <summary>
-        /// 查询数据并转换为对象列表（取前多少条记录）
+        /// 查询数据（取前多少条记录）
         /// </summary>
         /// <param name="StartIndex">起始记录的位置</param>
         /// <param name="MaxRecord">返回最大的记录数</param>
@@ -705,58 +753,65 @@ namespace NYear.ODA
         /// <returns></returns>
         public virtual DataTable Select(int StartIndex, int MaxRecord, out int TotalRecord, params ODAColumns[] Cols)
         {
-            var sql = this.GetSelectSql(Cols);
-            var db = this.GetDBAccess(sql);
-            if (db == null)
-                throw new ODAException(10008, "ODACmd Select 没有执行程序");
-            var prms = new ODAParameter[sql.ValueList.Count + sql.WhereList.Count];
-            sql.ValueList.CopyTo(prms, 0);
-            sql.WhereList.CopyTo(prms, sql.ValueList.Count);
-            if (string.IsNullOrEmpty(_StartWithExpress) || string.IsNullOrEmpty(_ConnectByParent) || string.IsNullOrEmpty(_PriorChild))
+            try
             {
-                if ((_Groupby.Count > 0 || _Having.Count > 0) || (Cols.Length > 0 && _Distinct))
+                var sql = this.GetSelectSql(Cols);
+                var db = this.GetDBAccess(sql);
+                if (db == null)
+                    throw new ODAException(10008, "ODACmd Select 没有执行程序");
+                var prms = new ODAParameter[sql.ValueList.Count + sql.WhereList.Count];
+                sql.ValueList.CopyTo(prms, 0);
+                sql.WhereList.CopyTo(prms, sql.ValueList.Count);
+                if (string.IsNullOrEmpty(_StartWithExpress) || string.IsNullOrEmpty(_ConnectByParent) || string.IsNullOrEmpty(_PriorChild))
                 {
-                    if (_Orderby.Count > 0)
+                    if ((_Groupby.Count > 0 || _Having.Count > 0) || (Cols.Length > 0 && _Distinct))
                     {
-                        SqlOrderbyScript[] orderbys = this._Orderby.ToArray();
-                        this._Orderby.Clear();
-                        TotalRecord = this.ToView(Cols).Count();
-                        this._Orderby.AddRange(orderbys);
+                        if (_Orderby.Count > 0)
+                        {
+                            SqlOrderbyScript[] orderbys = this._Orderby.ToArray();
+                            this._Orderby.Clear();
+                            TotalRecord = this.ToView(Cols).CountRecords();
+                            this._Orderby.AddRange(orderbys);
+                        }
+                        else
+                        {
+                            TotalRecord = this.ToView(Cols).CountRecords();
+                        }
                     }
                     else
                     {
-                        TotalRecord = this.ToView(Cols).Count();
+                        if (_Orderby.Count > 0)
+                        {
+                            SqlOrderbyScript[] orderbys = this._Orderby.ToArray();
+                            this._Orderby.Clear();
+                            TotalRecord = this.CountRecords();
+                            this._Orderby.AddRange(orderbys);
+                        }
+                        else
+                        {
+                            TotalRecord = this.CountRecords();
+                        }
                     }
+                    return db.Select(sql.SqlScript.ToString(), prms, StartIndex, MaxRecord, sql.OrderBy);
                 }
                 else
                 {
-                    if (_Orderby.Count > 0)
+                    DataTable dt = db.Select(sql.SqlScript.ToString(), prms, _StartWithExpress, _ConnectByParent, _PriorChild, _ConnectColumn, _ConnectStr, _MaxLevel);
+                    TotalRecord = dt.Rows.Count;
+                    DataTable dtrtl = dt.Clone();
+                    for (int i = StartIndex; i < StartIndex + MaxRecord; i++)
                     {
-                        SqlOrderbyScript[] orderbys = this._Orderby.ToArray();
-                        this._Orderby.Clear();
-                        TotalRecord = this.Count();
-                        this._Orderby.AddRange(orderbys);
+                        if (dt.Rows.Count > i)
+                            dtrtl.Rows.Add(dt.Rows[i].ItemArray);
+                        else
+                            break;
                     }
-                    else
-                    {
-                        TotalRecord = this.Count();
-                    }
+                    return dtrtl;
                 }
-                return db.Select(sql.SqlScript.ToString(), prms, StartIndex, MaxRecord, sql.OrderBy);
             }
-            else
+            finally
             {
-                DataTable dt = db.Select(sql.SqlScript.ToString(), prms, _StartWithExpress, _ConnectByParent, _PriorChild, _ConnectColumn, _ConnectStr, _MaxLevel);
-                TotalRecord = dt.Rows.Count;
-                DataTable dtrtl = dt.Clone();
-                for (int i = StartIndex; i < StartIndex + MaxRecord; i++)
-                {
-                    if (dt.Rows.Count > i)
-                        dtrtl.Rows.Add(dt.Rows[i].ItemArray);
-                    else
-                        break;
-                }
-                return dtrtl;
+                this.Clear();
             }
         }
 
@@ -768,20 +823,27 @@ namespace NYear.ODA
         /// <returns></returns>
         public virtual List<T> Select<T>(params ODAColumns[] Cols) where T : class
         {
-            var sql = this.GetSelectSql(Cols);
-            var db = this.GetDBAccess(sql);
-            if (db == null)
-                throw new ODAException(10009, "ODACmd Select 没有执行程序");
-            var prms = new ODAParameter[sql.ValueList.Count + sql.WhereList.Count];
-            sql.ValueList.CopyTo(prms, 0);
-            sql.WhereList.CopyTo(prms, sql.ValueList.Count);
-            if (string.IsNullOrEmpty(_StartWithExpress) || string.IsNullOrEmpty(_ConnectByParent) || string.IsNullOrEmpty(_PriorChild))
+            try
             {
-                return db.Select<T>(sql.SqlScript.ToString(), prms);
+                var sql = this.GetSelectSql(Cols);
+                var db = this.GetDBAccess(sql);
+                if (db == null)
+                    throw new ODAException(10009, "ODACmd Select 没有执行程序");
+                var prms = new ODAParameter[sql.ValueList.Count + sql.WhereList.Count];
+                sql.ValueList.CopyTo(prms, 0);
+                sql.WhereList.CopyTo(prms, sql.ValueList.Count);
+                if (string.IsNullOrEmpty(_StartWithExpress) || string.IsNullOrEmpty(_ConnectByParent) || string.IsNullOrEmpty(_PriorChild))
+                {
+                    return db.Select<T>(sql.SqlScript.ToString(), prms);
+                }
+                else
+                {
+                    return db.Select<T>(sql.SqlScript.ToString(), prms, _StartWithExpress, _ConnectByParent, _PriorChild, _ConnectColumn, _ConnectStr, _MaxLevel);
+                }
             }
-            else
+            finally
             {
-                return db.Select<T>(sql.SqlScript.ToString(), prms, _StartWithExpress, _ConnectByParent, _PriorChild, _ConnectColumn, _ConnectStr, _MaxLevel);
+                this.Clear();
             }
         }
         /// <summary>
@@ -795,59 +857,66 @@ namespace NYear.ODA
         /// <returns></returns>
         public virtual List<T> Select<T>(int StartIndex, int MaxRecord, out int TotalRecord, params ODAColumns[] Cols) where T : class
         {
-            var sql = this.GetSelectSql(Cols);
-            var db = this.GetDBAccess(sql);
-            if (db == null)
-                throw new ODAException(10010, "ODACmd Select 没有执行程序");
-            var prms = new ODAParameter[sql.ValueList.Count + sql.WhereList.Count];
-            sql.ValueList.CopyTo(prms, 0);
-            sql.WhereList.CopyTo(prms, sql.ValueList.Count);
-
-            if (string.IsNullOrEmpty(_StartWithExpress) || string.IsNullOrEmpty(_ConnectByParent) || string.IsNullOrEmpty(_PriorChild))
+            try
             {
-                if ((_Groupby.Count > 0 || _Having.Count > 0) || (Cols.Length > 0 && _Distinct))
+                var sql = this.GetSelectSql(Cols);
+                var db = this.GetDBAccess(sql);
+                if (db == null)
+                    throw new ODAException(10010, "ODACmd Select 没有执行程序");
+                var prms = new ODAParameter[sql.ValueList.Count + sql.WhereList.Count];
+                sql.ValueList.CopyTo(prms, 0);
+                sql.WhereList.CopyTo(prms, sql.ValueList.Count);
+
+                if (string.IsNullOrEmpty(_StartWithExpress) || string.IsNullOrEmpty(_ConnectByParent) || string.IsNullOrEmpty(_PriorChild))
                 {
-                    if (_Orderby.Count > 0)
+                    if ((_Groupby.Count > 0 || _Having.Count > 0) || (Cols.Length > 0 && _Distinct))
                     {
-                        SqlOrderbyScript[] orderbys = this._Orderby.ToArray();
-                        this._Orderby.Clear();
-                        TotalRecord = this.ToView(Cols).Count();
-                        this._Orderby.AddRange(orderbys);
+                        if (_Orderby.Count > 0)
+                        {
+                            SqlOrderbyScript[] orderbys = this._Orderby.ToArray();
+                            this._Orderby.Clear();
+                            TotalRecord = this.ToView(Cols).CountRecords();
+                            this._Orderby.AddRange(orderbys);
+                        }
+                        else
+                        {
+                            TotalRecord = this.ToView(Cols).CountRecords();
+                        }
                     }
                     else
                     {
-                        TotalRecord = this.ToView(Cols).Count();
+                        if (_Orderby.Count > 0)
+                        {
+                            SqlOrderbyScript[] orderbys = this._Orderby.ToArray();
+                            this._Orderby.Clear();
+                            TotalRecord = this.CountRecords();
+                            this._Orderby.AddRange(orderbys);
+                        }
+                        else
+                        {
+                            TotalRecord = this.CountRecords();
+                        }
                     }
+                    return db.Select<T>(sql.SqlScript.ToString(), prms, StartIndex, MaxRecord, sql.OrderBy);
                 }
                 else
                 {
-                    if (_Orderby.Count > 0)
+                    DataTable dt = db.Select(sql.SqlScript.ToString(), prms, _StartWithExpress, _ConnectByParent, _PriorChild, _ConnectColumn, _ConnectStr, _MaxLevel);
+                    TotalRecord = dt.Rows.Count;
+                    DataTable dtrtl = dt.Clone();
+                    for (int i = StartIndex; i < StartIndex + MaxRecord; i++)
                     {
-                        SqlOrderbyScript[] orderbys = this._Orderby.ToArray();
-                        this._Orderby.Clear();
-                        TotalRecord = this.Count();
-                        this._Orderby.AddRange(orderbys);
+                        if (dt.Rows.Count > i)
+                            dtrtl.Rows.Add(dt.Rows[i].ItemArray);
+                        else
+                            break;
                     }
-                    else
-                    {
-                        TotalRecord = this.Count();
-                    }
+                    return DBAccess.ConvertToList<T>(dtrtl);
                 }
-                return db.Select<T>(sql.SqlScript.ToString(), prms, StartIndex, MaxRecord, sql.OrderBy); 
             }
-            else
+            finally
             {
-                DataTable dt = db.Select(sql.SqlScript.ToString(), prms, _StartWithExpress, _ConnectByParent, _PriorChild, _ConnectColumn, _ConnectStr, _MaxLevel);
-                TotalRecord = dt.Rows.Count;
-                DataTable dtrtl = dt.Clone();
-                for (int i = StartIndex; i < StartIndex + MaxRecord; i++)
-                {
-                    if (dt.Rows.Count > i)
-                        dtrtl.Rows.Add(dt.Rows[i].ItemArray);
-                    else
-                        break;
-                }
-                return DBAccess.ConvertToList<T>(dtrtl);
+                this.Clear();
             }
         }
         /// <summary>
@@ -857,33 +926,47 @@ namespace NYear.ODA
         /// <returns>第一行的数据据</returns>
         public object[] SelectFirst(params ODAColumns[] Cols)
         {
-            var sql = this.GetSelectSql(Cols);
-            var db = this.GetDBAccess(sql);
-            if (db == null)
-                throw new ODAException(10011, "ODACmd Select 没有执行程序");
-            var prms = new ODAParameter[sql.ValueList.Count + sql.WhereList.Count];
-            sql.ValueList.CopyTo(prms, 0);
-            sql.WhereList.CopyTo(prms, sql.ValueList.Count);
-            return db.SelectFirst(sql.SqlScript.ToString(), prms); 
+            try
+            {
+                var sql = this.GetSelectSql(Cols);
+                var db = this.GetDBAccess(sql);
+                if (db == null)
+                    throw new ODAException(10011, "ODACmd Select 没有执行程序");
+                var prms = new ODAParameter[sql.ValueList.Count + sql.WhereList.Count];
+                sql.ValueList.CopyTo(prms, 0);
+                sql.WhereList.CopyTo(prms, sql.ValueList.Count);
+                return db.SelectFirst(sql.SqlScript.ToString(), prms);
+            }
+            finally
+            {
+                this.Clear();
+            }
         }
         /// <summary>
         /// 批量导入数据
         /// </summary>
         /// <param name="Data">源数据</param>
-        /// <param name="Prms">数据表对应的字段（Data.Roww[n][ColumnIndex]与Prms[ColumnIndex]对应）</param>
+        /// <param name="Prms">数据表对应的字段（Data.Row[n][ColumnIndex]与Prms[ColumnIndex]对应）</param>
         /// <returns></returns>
         public virtual bool Import(DataTable Data, ODAParameter[] Prms)
         {
-            ODAScript sql = new ODAScript()
+            try
             {
-                ScriptType = SQLType.Import,
-            };
-            sql.TableList.Add(this.CmdName);
-            sql.ValueList.AddRange(Prms); 
-            var db = this.GetDBAccess(sql);
-            if (db == null)
-                throw new ODAException(10012, "ODACmd Import 没有执行程序");
-            return db.Import(this.CmdName, Prms, Data);
+                ODAScript sql = new ODAScript()
+                {
+                    ScriptType = SQLType.Import,
+                };
+                sql.TableList.Add(this.CmdName);
+                sql.ValueList.AddRange(Prms);
+                var db = this.GetDBAccess(sql);
+                if (db == null)
+                    throw new ODAException(10012, "ODACmd Import 没有执行程序");
+                return db.Import(this.CmdName, Prms, Data);
+            }
+            finally
+            {
+                this.Clear();
+            }
         }
         /// <summary>
         /// 在数据库中执行Delete 语句
@@ -891,14 +974,21 @@ namespace NYear.ODA
         /// <returns></returns>
         public virtual bool Delete()
         {
-            var sql = this.GetDeleteSql();
-            var db = this.GetDBAccess(sql);
-            if (db == null)
-                throw new ODAException(10013, "ODACmd Delete 没有执行程序");
-            var prms = new ODAParameter[sql.ValueList.Count + sql.WhereList.Count];
-            sql.ValueList.CopyTo(prms, 0);
-            sql.WhereList.CopyTo(prms, sql.ValueList.Count);
-            return db.ExecuteSQL(sql.SqlScript.ToString(), prms) > 0;
+            try
+            {
+                var sql = this.GetDeleteSql();
+                var db = this.GetDBAccess(sql);
+                if (db == null)
+                    throw new ODAException(10013, "ODACmd Delete 没有执行程序");
+                var prms = new ODAParameter[sql.ValueList.Count + sql.WhereList.Count];
+                sql.ValueList.CopyTo(prms, 0);
+                sql.WhereList.CopyTo(prms, sql.ValueList.Count);
+                return db.ExecuteSQL(sql.SqlScript.ToString(), prms) > 0;
+            }
+            finally
+            {
+                this.Clear();
+            }
         }
         /// <summary>
         /// 在数据库中执行update 语句
@@ -907,14 +997,21 @@ namespace NYear.ODA
         /// <returns></returns>
         public virtual bool Update(params ODAColumns[] Cols)
         {
-            var sql = this.GetUpdateSql( Cols);
-            var db = this.GetDBAccess(sql);
-            if (db == null)
-                throw new ODAException(10014, "ODACmd Update 没有执行程序");
-            var prms = new ODAParameter[sql.ValueList.Count + sql.WhereList.Count];
-            sql.ValueList.CopyTo(prms, 0);
-            sql.WhereList.CopyTo(prms, sql.ValueList.Count);
-           return db.ExecuteSQL(sql.SqlScript.ToString(), prms) > 0; 
+            try
+            {
+                var sql = this.GetUpdateSql(Cols);
+                var db = this.GetDBAccess(sql);
+                if (db == null)
+                    throw new ODAException(10014, "ODACmd Update 没有执行程序");
+                var prms = new ODAParameter[sql.ValueList.Count + sql.WhereList.Count];
+                sql.ValueList.CopyTo(prms, 0);
+                sql.WhereList.CopyTo(prms, sql.ValueList.Count);
+                return db.ExecuteSQL(sql.SqlScript.ToString(), prms) > 0;
+            }
+            finally
+            {
+                this.Clear();
+            }
         }
 
         /// <summary>
@@ -924,14 +1021,21 @@ namespace NYear.ODA
         /// <returns></returns>
         public virtual bool Insert(params ODAColumns[] Cols)
         {
-            var sql = this.GetInsertSql(Cols);
-            var db = this.GetDBAccess(sql);
-            if (db == null)
-                throw new ODAException(10015, "ODACmd Update 没有执行程序");
-            var prms = new ODAParameter[sql.ValueList.Count + sql.WhereList.Count];
-            sql.ValueList.CopyTo(prms, 0);
-            sql.WhereList.CopyTo(prms, sql.ValueList.Count);
-            return db.ExecuteSQL(sql.SqlScript.ToString(), prms) > 0;
+            try
+            {
+                var sql = this.GetInsertSql(Cols);
+                var db = this.GetDBAccess(sql);
+                if (db == null)
+                    throw new ODAException(10015, "ODACmd Update 没有执行程序");
+                var prms = new ODAParameter[sql.ValueList.Count + sql.WhereList.Count];
+                sql.ValueList.CopyTo(prms, 0);
+                sql.WhereList.CopyTo(prms, sql.ValueList.Count);
+                return db.ExecuteSQL(sql.SqlScript.ToString(), prms) > 0;
+            }
+            finally
+            {
+                this.Clear();
+            }
         }
         /// <summary>
         /// insert () select
@@ -941,25 +1045,32 @@ namespace NYear.ODA
         /// <returns></returns>
         public virtual bool Insert(ODACmd SelectCmd, params ODAColumns[] Cols)
         {
-            var sql = new ODAScript()
+            try
             {
-                ScriptType = SQLType.Insert,
-            };
-            sql.SqlScript.Append("INSERT INTO ").Append(this.CmdName).Append("("); 
-            string Column = "";
-            for (int i = 0; i < Cols.Length; i++)
-                Column += Cols[i].ColumnName + ","; 
-            sql.SqlScript.Append(Column.Remove(Column.Length - 1, 1)).Append(") "); 
-            var sSql = SelectCmd.GetSelectSql(Cols); 
-            sql.Merge(sSql);
-             
-            var db = this.GetDBAccess(sql); 
-            if (db == null)
-                throw new ODAException(10016, "ODACmd Insert 没有执行程序"); 
-            var prms = new ODAParameter[sql.ValueList.Count + sql.WhereList.Count];
-            sql.ValueList.CopyTo(prms, 0);
-            sql.WhereList.CopyTo(prms, sql.ValueList.Count);
-            return db.ExecuteSQL(sql.SqlScript.ToString(), prms) > 0;   
+                var sql = new ODAScript()
+                {
+                    ScriptType = SQLType.Insert,
+                };
+                sql.SqlScript.Append("INSERT INTO ").Append(this.CmdName).Append("(");
+                string Column = "";
+                for (int i = 0; i < Cols.Length; i++)
+                    Column += Cols[i].ColumnName + ",";
+                sql.SqlScript.Append(Column.Remove(Column.Length - 1, 1)).Append(") ");
+                var sSql = SelectCmd.GetSelectSql(Cols);
+                sql.Merge(sSql);
+
+                var db = this.GetDBAccess(sql);
+                if (db == null)
+                    throw new ODAException(10016, "ODACmd Insert 没有执行程序");
+                var prms = new ODAParameter[sql.ValueList.Count + sql.WhereList.Count];
+                sql.ValueList.CopyTo(prms, 0);
+                sql.WhereList.CopyTo(prms, sql.ValueList.Count);
+                return db.ExecuteSQL(sql.SqlScript.ToString(), prms) > 0;
+            }
+            finally
+            {
+                this.Clear();
+            }
         }
 
         /// <summary>
@@ -969,18 +1080,25 @@ namespace NYear.ODA
         /// <returns></returns>
         public virtual DataSet Procedure(params ODAColumns[] Cols)
         {
-            string sqlScript = "";
-            var prms = this.GetProcedureSql(out sqlScript, Cols);
-            var sql = new ODAScript()
+            try
             {
-                ScriptType = SQLType.Procedure,
-            };
-            sql.ValueList.AddRange(prms);
-            sql.TableList.Add(sqlScript);
-            var db = this.GetDBAccess(sql);
-            if (db == null)
-                throw new ODAException(10017, "ODACmd Procedure 没有执行程序");
-            return db.ExecuteProcedure(sqlScript, prms);
+                string sqlScript = "";
+                var prms = this.GetProcedureSql(out sqlScript, Cols);
+                var sql = new ODAScript()
+                {
+                    ScriptType = SQLType.Procedure,
+                };
+                sql.ValueList.AddRange(prms);
+                sql.TableList.Add(sqlScript);
+                var db = this.GetDBAccess(sql);
+                if (db == null)
+                    throw new ODAException(10017, "ODACmd Procedure 没有执行程序");
+                return db.ExecuteProcedure(sqlScript, prms);
+            }
+            finally
+            {
+                this.Clear();
+            }
         }
 
         /// <summary>
@@ -1008,6 +1126,26 @@ namespace NYear.ODA
                 throw new ODAException(10018, sbr.ToString());
             }
         }
+        protected virtual void Clear()
+        {
+            SubCmdCout = 0;
+            _Alias = "";
+            _StartWithExpress = null;
+            _ConnectByParent = null;
+            _PriorChild = null;
+            _ConnectStr = "";
+            _ConnectColumn = null;
+            _MaxLevel = 32; 
+            _Distinct = false;
+            _WhereList.Clear();
+            _OrList.Clear();
+            _Orderby.Clear();
+            _Groupby.Clear();
+            _Having.Clear();
+            _ListCmd.Clear();
+            _JoinCmd.Clear();
+        }
+
         #endregion
     }
 }
