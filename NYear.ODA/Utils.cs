@@ -247,24 +247,27 @@ namespace NYear.ODA
             {
                 foreach (ODAParameter p in prms)
                 {
-                    string ParamsValue = p.ParamsValue.ToString();
-                    string ParamsName = p.ParamsName;
-                    switch (p.DBDataType)
+                    if (p.ParamsValue != null)
                     {
-                        case ODAdbType.OInt:
-                        case ODAdbType.ODecimal:
-                            ParamsValue = p.ParamsValue.ToString();
-                            break;
-                        case ODAdbType.OChar:
-                        case ODAdbType.OVarchar:
-                            ParamsValue = "'" + p.ParamsValue.ToString() + "'";
-                            break;
-                        case ODAdbType.ODatetime:
-                            if (p.ParamsValue is DateTime)
-                                ParamsValue = "'" + ((DateTime)p.ParamsValue).ToString("yyyy/MM/dd HH:mm:ss") + "'";
-                            break;
+                        string ParamsValue = p.ParamsValue.ToString();
+                        string ParamsName = p.ParamsName;
+                        switch (p.DBDataType)
+                        {
+                            case ODAdbType.OInt:
+                            case ODAdbType.ODecimal:
+                                ParamsValue = p.ParamsValue.ToString();
+                                break;
+                            case ODAdbType.OChar:
+                            case ODAdbType.OVarchar:
+                                ParamsValue = "'" + p.ParamsValue.ToString() + "'";
+                                break;
+                            case ODAdbType.ODatetime:
+                                if (p.ParamsValue is DateTime)
+                                    ParamsValue = "'" + ((DateTime)p.ParamsValue).ToString("yyyy/MM/dd HH:mm:ss") + "'";
+                                break;
+                        }
+                        debugSql = debugSql.Replace(ParamsName, ParamsValue);
                     }
-                    debugSql = debugSql.Replace(ParamsName, ParamsValue);
                 }
             }
             return debugSql;

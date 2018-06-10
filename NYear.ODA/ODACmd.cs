@@ -958,6 +958,7 @@ namespace NYear.ODA
                 };
                 sql.TableList.Add(this.CmdName);
                 sql.ValueList.AddRange(Prms);
+                sql.SqlScript.Append(this.CmdName);
                 var db = this.GetDBAccess(sql);
                 if (db == null)
                     throw new ODAException(10012, "ODACmd Import 没有执行程序");
