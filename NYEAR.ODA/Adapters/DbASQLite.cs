@@ -20,10 +20,18 @@ namespace NYear.ODA.Adapter
         protected override IDbConnection GetConnection()
         {
             if (_DBConn == null)
+            {
                 _DBConn = new SQLiteConnection(ConnString);
+                _DBConn.Disposed += _DBConn_Disposed;
+            }
             if (_DBConn.State == ConnectionState.Closed)
                 _DBConn.Open();
             return _DBConn;
+        }
+
+        private void _DBConn_Disposed(object sender, EventArgs e)
+        {
+            _DBConn = null;
         }
 
         public static void CreateDataBase(string FileName)

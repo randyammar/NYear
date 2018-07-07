@@ -17,8 +17,7 @@ namespace NYear.ODA
         private string _ColumnComment = "";
         private bool _IsRequired = false;
         private string _AliasColumnName = null;
-        private ParameterDirection _PDirection = ParameterDirection.Input;
-        private volatile static int AliasCount = 1;
+        private ParameterDirection _PDirection = ParameterDirection.Input; 
         private ODACmd _InCmd = null;
         private ODAColumns _InColumn = null;
         protected CmdConditionSymbol _Symbol = CmdConditionSymbol.NONE;
@@ -176,12 +175,7 @@ namespace NYear.ODA
         public virtual ODAParameter[] GetInsertSubstring(out string SubSql, out string SubSqlParams)
         {
             ODAParameter P = new ODAParameter();
-            string PName = ODAParameter.ODAParamsMark + _ColumnName + "_V" + _Cmd.Alias;
-            if (PName.Length > 27)///变量太长
-            {
-                AliasCount++;
-                PName = ODAParameter.ODAParamsMark + "P" + AliasCount.ToString() + _Cmd.Alias;
-            }
+            string PName = ODAParameter.ODAParamsMark + _Cmd.GetAlias();
             P.ColumnName = _ColumnName;
             P.ParamsName = PName;
             P.ParamsValue = _CompareValue == null ? System.DBNull.Value : _CompareValue;
@@ -236,12 +230,8 @@ namespace NYear.ODA
             else
             {
                 ODAParameter P = new ODAParameter();
-                string PName = ODAParameter.ODAParamsMark + _ColumnName + "_V" + _Cmd.Alias;
-                if (PName.Length > 27)///变量太长
-                {
-                    AliasCount++;
-                    PName = ODAParameter.ODAParamsMark + "P" + AliasCount.ToString() + "_V" + _Cmd.Alias;
-                }
+                string PName = ODAParameter.ODAParamsMark + _Cmd.GetAlias();
+
                 P.ColumnName = _ColumnName;
                 P.ParamsName = PName;
                 P.ParamsValue = _CompareValue == null ? System.DBNull.Value : _CompareValue;
@@ -254,7 +244,7 @@ namespace NYear.ODA
             }
             return PList.ToArray();
         }
-        public virtual ODAScript GetWhereSubstring(string ConIndex)
+        public virtual ODAScript GetWhereSubstring()
         {
             ODAScript sql = new ODAScript();
             sql.SqlScript.Append(GetColumnName());
@@ -308,19 +298,14 @@ namespace NYear.ODA
                 }
                 else
                 {
-                    var sub = ((ODAColumns)_CompareValue).GetWhereSubstring(ConIndex + "C");
+                    var sub = ((ODAColumns)_CompareValue).GetWhereSubstring();
                     sql.Merge(sub); 
                 }
             }
             else
             {
                 ODAParameter param = new ODAParameter();
-                string PName = ODAParameter.ODAParamsMark + _ColumnName + "_" + ConIndex + _Cmd.Alias;
-                if (PName.Length > 27)///变量太长
-                {
-                    AliasCount++;
-                    PName = ODAParameter.ODAParamsMark + "P" + AliasCount.ToString() + ConIndex + _Cmd.Alias;
-                } 
+                string PName = ODAParameter.ODAParamsMark + _Cmd.GetAlias();
                 param.ColumnName = this.ODAColumnName;
                 param.ParamsName = PName;
                 param.ParamsValue = _CompareValue == null ? System.DBNull.Value : _CompareValue;
@@ -341,19 +326,20 @@ namespace NYear.ODA
                         if (_CompareValue != System.DBNull.Value)
                         {
                             object[] ValueList = (object[])_CompareValue;
+                            string paramName = _Cmd.GetAlias();
                             sql.SqlScript.Append(" IN (");
                             for (int k = 0; k < ValueList.Length; k++)
                             {
                                 ODAParameter paramSub = new ODAParameter();
                                 paramSub.ColumnName = this.ODAColumnName;
-                                paramSub.ParamsName = ODAParameter.ODAParamsMark + _ColumnName + "_" + ConIndex + "_W" + k.ToString() + _Cmd.Alias;
+                                paramSub.ParamsName = ODAParameter.ODAParamsMark + paramName + "_" + k.ToString();
                                 paramSub.ParamsValue = ValueList[k];
                                 paramSub.DBDataType = _DBDataType;
                                 paramSub.Direction = _PDirection;
-                                paramSub.Size = _Size;
-                                sql.SqlScript.Append(paramSub.ParamsName).Append(",");
+                                paramSub.Size = _Size; 
+                                sql.SqlScript.Append(paramSub.ParamsName).Append( ",");
                                 sql.WhereList.Add(paramSub);
-                            }
+                            } 
                             sql.SqlScript.Remove(sql.SqlScript.Length - 1, 1).Append(")");
                         }
                         else
@@ -361,10 +347,10 @@ namespace NYear.ODA
                             if (string.IsNullOrWhiteSpace(_InCmd.Alias))
                             {
                                 _Cmd.SubCmdCout++;
-                                _InCmd.Alias = _Cmd.Alias + "_IN"  +_Cmd.SubCmdCout.ToString();
-                            }  
-                            var subSql = ((ODACmd)_InCmd).GetSelectSql(_InColumn);
-                            string inSql = " IN ( " + subSql.SqlScript.ToString() + ")"; 
+                                _InCmd.Alias = _Cmd.GetAlias();
+                            } 
+                            var subSql  = ((ODACmd)_InCmd).GetSelectSql(_InColumn);
+                             string inSql = " IN ( " + subSql.SqlScript.ToString() + ")";
                             subSql.SqlScript.Clear();
                             subSql.SqlScript.Append(inSql);
                             sql.Merge(subSql);
@@ -375,11 +361,12 @@ namespace NYear.ODA
                         {
                             object[] ValueList = (object[])_CompareValue; 
                             sql.SqlScript.Append(" NOT IN (");
+                            string paramName = _Cmd.GetAlias();
                             for (int k = 0; k < ValueList.Length; k++)
                             {
                                 ODAParameter paramSub = new ODAParameter();
                                 paramSub.ColumnName = this.ODAColumnName;
-                                paramSub.ParamsName = ODAParameter.ODAParamsMark + _ColumnName + "_" + ConIndex + "_W" + k.ToString() + _Cmd.Alias;
+                                paramSub.ParamsName = ODAParameter.ODAParamsMark + paramName + "_" + k.ToString() ;
                                 paramSub.ParamsValue = ValueList[k];
                                 paramSub.DBDataType = _DBDataType;
                                 paramSub.Direction = _PDirection;
@@ -395,7 +382,7 @@ namespace NYear.ODA
                             if (string.IsNullOrWhiteSpace(_InCmd.Alias))
                             {
                                 _Cmd.SubCmdCout++;
-                                _InCmd.Alias = _Cmd.Alias + "_IN" + _Cmd.SubCmdCout.ToString();
+                                _InCmd.Alias = _Cmd.GetAlias();
                             }
                             var subSql = ((ODACmd)_InCmd).GetSelectSql(_InColumn);
                             string inSql = " NOT IN ( " + subSql.SqlScript.ToString() + ")";
@@ -459,7 +446,7 @@ namespace NYear.ODA
             for (int i = 0; i < _SqlColumnList.Count; i++)
             {
                 ar.SqlScript.Append(_SqlColumnList[i].ConnScript);
-                var cc = _SqlColumnList[i].SqlColumn.GetWhereSubstring(ConIndex + i.ToString());
+                var cc = _SqlColumnList[i].SqlColumn.GetWhereSubstring();
                 ar.Merge(cc); 
             }
             if (ar.SqlScript.Length > 0)

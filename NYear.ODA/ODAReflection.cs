@@ -12,17 +12,17 @@ namespace NYear.ODA
 {
     internal class ODAReflection
     {
-        private static readonly MethodInfo isDBNull = typeof(DetaLoader).GetMethod("IsDBNull", new Type[] { typeof(int) });
-        private static readonly MethodInfo getValue = typeof(DetaLoader).GetMethod("GetValue", new Type[] { typeof(int) });
+        private static readonly MethodInfo isDBNull = typeof(DataLoader).GetMethod("IsDBNull", new Type[] { typeof(int) });
+        private static readonly MethodInfo getValue = typeof(DataLoader).GetMethod("GetValue", new Type[] { typeof(int) });
 
         public static SafeDictionary<Type, ODAProperty[]> TypeSetPropertyInfos = new SafeDictionary<Type, ODAProperty[]>();
         private static SafeDictionary<Type, object> Creators = new SafeDictionary<Type, object>();
          
-        public static Func<DetaLoader, T> CreateInstance<T>()
+        public static Func<DataLoader, T> CreateInstance<T>()
         { 
             object func = null;
             if (Creators.TryGetValue(typeof(T), out func))
-                return (Func<DetaLoader, T>)func;
+                return (Func<DataLoader, T>)func;
 
             Type classType = typeof(T);
             ODAProperty[] ppIndex = null ;
@@ -44,9 +44,9 @@ namespace NYear.ODA
             }
             DynamicMethod method;
             if( classType.IsInterface)
-                method = new DynamicMethod("Create" + classType.FullName, typeof(T), new Type[] { typeof(DetaLoader) }, classType.Module,true);
+                method = new DynamicMethod("Create" + classType.FullName, typeof(T), new Type[] { typeof(DataLoader) }, classType.Module,true);
             else
-                method = new DynamicMethod("Create" + classType.FullName, typeof(T), new Type[] { typeof(DetaLoader) }, classType, true);
+                method = new DynamicMethod("Create" + classType.FullName, typeof(T), new Type[] { typeof(DataLoader) }, classType, true);
             ILGenerator il = method.GetILGenerator(); 
             LocalBuilder result = il.DeclareLocal(classType);
             il.Emit(OpCodes.Newobj, classType.GetConstructor(Type.EmptyTypes));
@@ -89,10 +89,10 @@ namespace NYear.ODA
             il.Emit(OpCodes.Ldloc, result);
             il.Emit(OpCodes.Ret);
              
-            object reator = method.CreateDelegate(typeof(Func<DetaLoader, T>)); 
+            object reator = method.CreateDelegate(typeof(Func<DataLoader, T>)); 
             Creators.Add(classType, reator);
             GC.KeepAlive(reator);
-            return (Func<DetaLoader, T>)reator;
+            return (Func<DataLoader, T>)reator;
         }
 
         public static bool IsNullable(Type t)
@@ -110,11 +110,11 @@ namespace NYear.ODA
         }
     }
 
-    internal class DetaLoader
+    internal class DataLoader
     {
         IDataReader reader;
         ODAMappingInfo mapping;
-        public DetaLoader(IDataReader Reader, ODAMappingInfo Mapping)
+        public DataLoader(IDataReader Reader, ODAMappingInfo Mapping)
         {
             reader = Reader;
             mapping = Mapping; 
@@ -125,7 +125,7 @@ namespace NYear.ODA
                 return reader.IsDBNull(mapping.ReadIndex[i]);
             return true;
         }
-         
+
         public object GetValue(int i)
         {
             try
@@ -150,12 +150,12 @@ namespace NYear.ODA
                             }
                     }
                 }
-                /////实体中这个属性，但DataReader没有这个字段
+                /////实体中有这个属性，但DataReader没有这个字段
                 return DefaultValue(mapping.Pptys[i].NonNullableUnderlyingType);
             }
             catch
             {
-                throw new ODAException(40000, string.Format("Reading value from column : [{0}] , Set [{1}] to [{2}] ", reader.GetName(mapping.ReadIndex[i]) , reader.GetValue(mapping.ReadIndex[i]).ToString(), mapping.Pptys[i].NonNullableUnderlyingType.ToString())); 
+                throw new ODAException(40000, string.Format("Reading value from column : [{0}] , Set [{1}] to [{2}] ", reader.GetName(mapping.ReadIndex[i]), reader.GetValue(mapping.ReadIndex[i]).ToString(), mapping.Pptys[i].NonNullableUnderlyingType.ToString()));
             }
         }
 
@@ -222,7 +222,6 @@ namespace NYear.ODA
                     {
                         MapInfos[i] = MapResult.EnumType;
                     }
-                    break; 
                 } 
             }
             else
@@ -233,9 +232,9 @@ namespace NYear.ODA
                     MapInfos[i] = MapResult.Convert;
                     for (int num = 0; num < Reader.FieldCount; num++)
                     {
-                        if (Pptys[i].PropertyName.ToUpper() == Reader.GetName(num).ToUpper())
+                        if (Pptys[i].PropertyName == Reader.GetName(num))
                         {
-                            ReadIndex[i] = Reader.GetOrdinal(Reader.GetName(num));
+                            ReadIndex[i] = Reader.GetOrdinal(Pptys[i].PropertyName);
                             Type rType = Reader.GetFieldType(num);
                             if (Pptys[i].NonNullableUnderlyingType == rType)
                             {

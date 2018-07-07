@@ -17,7 +17,7 @@ namespace NYear.ODA
             Case = 3,
             CaseWhen = 4,
             Exists = 5,
-            NoCondition = 6,
+            Express = 6,
         }
         private string _FuncName = "";
         private List<ODAColumns> _FunColumnList = new List<ODAColumns>();
@@ -31,8 +31,7 @@ namespace NYear.ODA
         private ODAColumns _CaseCol;
         private Dictionary<object, object> _CaseThen;
         private Dictionary<ODAColumns, object> _WhenThen;
-        private object _CaseElseVal;
-        private static volatile int AliasCount = 1;
+        private object _CaseElseVal; 
 
         private string _ODAColumnName = "User_Function";
         internal override string ODAColumnName
@@ -61,7 +60,6 @@ namespace NYear.ODA
         private ODAScript GetFunctionArgs()
         {
             ODAScript sql = new ODAScript();
-            AliasCount++;
             switch (_FuncType)
             {
                 case Func.Normal:
@@ -81,7 +79,7 @@ namespace NYear.ODA
                             {
                                 ODAParameter paramSub = new ODAParameter();
                                 paramSub.ColumnName = "@FunctionParameter";
-                                paramSub.ParamsName = ODAParameter.ODAParamsMark + "FA" + "_" + AliasCount.ToString() + k.ToString() + _Cmd.Alias;
+                                paramSub.ParamsName = ODAParameter.ODAParamsMark + _Cmd.GetAlias();
                                 paramSub.ParamsValue = _FunArgs[k];
                                 paramSub.Direction = System.Data.ParameterDirection.Input;
                                 paramSub.Size = 2000;
@@ -102,10 +100,8 @@ namespace NYear.ODA
                     #region CASE COLUMN WHEN
                     {
                         sql.SqlScript.Append("( CASE ").Append(_CaseCol.ODAColumnName);
-                        int k = 0;
                         foreach (KeyValuePair<object, object> wt in _CaseThen)
                         {
-                            k++;
                             if (wt.Key is ODAColumns)
                             {
                                 sql.SqlScript.Append(" WHEN ").Append(((ODAColumns)wt.Key).GetColumnName());
@@ -118,7 +114,7 @@ namespace NYear.ODA
                             {
                                 ODAParameter paramSub = new ODAParameter();
                                 paramSub.ColumnName = _CaseCol.ODAColumnName;
-                                paramSub.ParamsName = ODAParameter.ODAParamsMark + "CSW" + "_" + AliasCount.ToString() + k.ToString();
+                                paramSub.ParamsName = ODAParameter.ODAParamsMark + _Cmd.GetAlias();
                                 paramSub.ParamsValue = wt.Key;
                                 paramSub.Direction = System.Data.ParameterDirection.Input;
                                 paramSub.Size = 2000;
@@ -140,7 +136,7 @@ namespace NYear.ODA
                             {
                                 ODAParameter paramSub = new ODAParameter();
                                 paramSub.ColumnName = _CaseCol.ODAColumnName;
-                                paramSub.ParamsName = ODAParameter.ODAParamsMark + "CST" + "_" + AliasCount.ToString() + k.ToString();
+                                paramSub.ParamsName = ODAParameter.ODAParamsMark + _Cmd.GetAlias(); ;
                                 paramSub.ParamsValue = wt.Value;
                                 paramSub.Direction = System.Data.ParameterDirection.Input;
                                 paramSub.Size = 2000;
@@ -163,7 +159,7 @@ namespace NYear.ODA
                         {
                             ODAParameter paramSub = new ODAParameter();
                             paramSub.ColumnName = _CaseCol.ODAColumnName;
-                            paramSub.ParamsName = ODAParameter.ODAParamsMark + "CSV" + "_" + AliasCount.ToString() + k.ToString();
+                            paramSub.ParamsName = ODAParameter.ODAParamsMark + _Cmd.GetAlias();
                             paramSub.ParamsValue = _CaseElseVal;
                             paramSub.Direction = System.Data.ParameterDirection.Input;
                             paramSub.Size = 2000;
@@ -178,13 +174,11 @@ namespace NYear.ODA
                 case Func.CaseWhen:
                     #region CASE WHEN COLUMN
                     {
-                        sql.SqlScript.Append("( CASE ");
-                        int k = 0; 
+                        sql.SqlScript.Append("( CASE "); 
                         foreach (KeyValuePair<ODAColumns, object> wt in _WhenThen)
-                        {
-                            k++;
+                        { 
                             sql.SqlScript.Append(" WHEN ");
-                            var wSql = wt.Key.GetWhereSubstring("CSW_" + AliasCount.ToString() + k.ToString());
+                            var wSql = wt.Key.GetWhereSubstring();
                             sql.Merge(wSql);
                             if (wt.Value is ODAColumns)
                             {
@@ -198,7 +192,7 @@ namespace NYear.ODA
                             {
                                 ODAParameter paramSub = new ODAParameter();
                                 paramSub.ColumnName = wt.Key.ODAColumnName;
-                                paramSub.ParamsName = ODAParameter.ODAParamsMark + "CST" + "_" + AliasCount.ToString() + k.ToString();
+                                paramSub.ParamsName = ODAParameter.ODAParamsMark + _Cmd.GetAlias();
                                 paramSub.ParamsValue = wt.Value;
                                 paramSub.Direction = System.Data.ParameterDirection.Input;
                                 paramSub.Size = 2000;
@@ -224,7 +218,7 @@ namespace NYear.ODA
                         {
                             ODAParameter paramSub = new ODAParameter();
                             paramSub.ColumnName = "";
-                            paramSub.ParamsName = ODAParameter.ODAParamsMark + "CSE" + "_" + AliasCount.ToString() + k.ToString();
+                            paramSub.ParamsName = ODAParameter.ODAParamsMark + _Cmd.GetAlias();
                             paramSub.ParamsValue = _CaseElseVal;
                             paramSub.Direction = System.Data.ParameterDirection.Input;
                             paramSub.Size = 2000;
@@ -235,7 +229,7 @@ namespace NYear.ODA
                         this._FuncName = "";
                         return sql;
                     }
-                    #endregion
+                #endregion
             }
             return sql;
         }
@@ -247,14 +241,21 @@ namespace NYear.ODA
         /// <param name="Function">函数的名字</param>
         /// <param name="ParamsList">函数的参数</param>
         /// <returns></returns>
-        public ODAColumns Express(string Function)
+        public ODAColumns Express(string Expression)
         {
-            _FuncType = Func.NoCondition;
-            _FuncName = Function;
-            _DBDataType = ODAdbType.OVarchar;
+            _FuncType = Func.Express;
+            _FuncName = Expression; 
             return this;
         }
-
+        /// <summary>
+        /// 使用常量创建一个虚拟字段
+        /// </summary>
+        /// <param name="Val"></param>
+        /// <returns></returns>
+        public ODAColumns VisualColumn(string Val)
+        {
+            return Express(Val); 
+        }
         /// <summary>
         /// 自定义函数
         /// </summary>
@@ -265,8 +266,7 @@ namespace NYear.ODA
         {
             _FuncType = Func.Normal;
             _FunArgs.AddRange(ParamsList);
-            _FuncName = Function;
-            _DBDataType = ODAdbType.ODecimal;
+            _FuncName = Function; 
             return this;
         }
         /// <summary>
@@ -277,8 +277,7 @@ namespace NYear.ODA
             get
             {
                 _FuncType = Func.Self;
-                _FuncName = "COUNT(*)";
-                _DBDataType = ODAdbType.ODecimal;
+                _FuncName = "COUNT(*)"; 
                 return this;
             }
         }
@@ -293,7 +292,7 @@ namespace NYear.ODA
             if (string.IsNullOrWhiteSpace(Cmd.Alias))
             {
                 _Cmd.SubCmdCout++;
-                Cmd.Alias = "EX_" + _Cmd.SubCmdCout.ToString();
+                Cmd.Alias = _Cmd.GetAlias();
             }
             _SubCmd = Cmd;
             _FuncName = " EXISTS ";
@@ -312,7 +311,7 @@ namespace NYear.ODA
             if (string.IsNullOrWhiteSpace(Cmd.Alias))
             {
                 _Cmd.SubCmdCout++;
-                Cmd.Alias = "EX_" + _Cmd.SubCmdCout.ToString();
+                Cmd.Alias = _Cmd.GetAlias();
             }
             _SubCmd = Cmd;
             _FunColumnList.AddRange(Cols);
@@ -355,23 +354,7 @@ namespace NYear.ODA
             _FuncName = "";
             return this;
         }
-        public ODAColumns VisualColumn(string Val, ODAdbType ColumnType = ODAdbType.OVarchar)
-        {
-            _DBDataType = ColumnType;
-            switch (ColumnType)
-            {
-                case ODAdbType.OVarchar:
-                case ODAdbType.OChar:
-                    _FuncName = "'" + Val + "'";
-                    break;
-                case ODAdbType.ODecimal:
-                case ODAdbType.OInt:
-                    _FuncName = Val;
-                    break;
-            }
-            _FuncType = Func.NoCondition;
-            return this;
-        }
+
 
         public ODAColumns NullDefault(ODAColumns Col, object DefVal)
         {
@@ -451,12 +434,12 @@ namespace NYear.ODA
         /// <param name="ConIndex">此参数无效</param>
         /// <param name="SubSql">函数表达式</param>
         /// <returns>函数表达式的参数</returns>
-        public override ODAScript GetWhereSubstring(string ConIndex)
+        public override ODAScript GetWhereSubstring()
         {
             ODAScript sql = new ODAScript();
             if (_Symbol != CmdConditionSymbol.NONE)
             {
-                var wSql = base.GetWhereSubstring(ConIndex);
+                var wSql = base.GetWhereSubstring();
                 sql.Merge(wSql);
             }
             else
@@ -487,18 +470,18 @@ namespace NYear.ODA
             }
             else if (_FuncType == Func.Self)
             {
-                string tmpCol = "P_" + Guid.NewGuid().ToString("N").ToString();
+                string tmpCol = _Cmd.GetAlias();
                 _ODAColumnName = tmpCol;
-                var wSql = base.GetWhereSubstring(ConIndex);
+                var wSql = base.GetWhereSubstring();
                 wSql.SqlScript.Replace(tmpCol, this.FunctionName); ///形如：count(*) > 0
                 return wSql;
             }
-            else if (_FuncType == Func.NoCondition)
+            else if (_FuncType == Func.Express)
             {
                 ODAScript wSql = new ODAScript();
                 wSql.SqlScript.Append(this.FunctionName);
                 return wSql;
-            } 
+            }
             return sql;
         }
     }

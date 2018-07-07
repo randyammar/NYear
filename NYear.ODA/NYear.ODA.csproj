@@ -110,7 +110,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Interface\IDBAccess.cs" />
-    <Compile Include="Interface\IDBScriptGenerator.cs" />
     <Compile Include="Interface\IODAFunction.cs" />
     <Compile Include="ODACmd.SelectDynamic.cs" />
     <Compile Include="ODACmd.SelectFirst.cs" />
@@ -118,9 +117,9 @@
     <Compile Include="ODAFunction.cs" />
     <Compile Include="ODACmdView.cs" />
     <Compile Include="ODAReflection.cs" />
-    <Compile Include="SQLCmd.cs" />
     <Compile Include="ORMCmd.cs" />
     <Compile Include="Record.cs" />
+    <Compile Include="SQLCmd.cs" />
     <Compile Include="Utils.cs" />
     <Compile Include="DBAccess.cs" />
     <Compile Include="Adapters\DbASQLite.cs" />

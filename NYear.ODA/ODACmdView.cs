@@ -58,7 +58,7 @@ namespace NYear.ODA
         internal ODACmdView(ODACmd Cmd, params ODAColumns[] Cols)
         { 
             _CmdView = Cmd;
-            Alias = Cmd.Alias + "V";
+            Alias = Cmd.GetAlias();
             SelectCols = Cols; 
         }
     }

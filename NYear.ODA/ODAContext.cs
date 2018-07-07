@@ -117,11 +117,13 @@ namespace NYear.ODA
             }
             return DBA;
         }
-        #endregion 
+        #endregion
         /// <summary>
         /// 临时指定的数据库连接字串
         /// </summary>
         private ODAConnect _Conn = null;
+
+
         /// <summary>
         /// 统一设定数据库连接字
         /// </summary>
@@ -267,7 +269,7 @@ namespace NYear.ODA
                 });
                 _Tran = null;
             }
-        } 
+        }
         /// <summary>
         /// 防止死锁，检查事务对象的顺序
         /// </summary>
@@ -275,7 +277,7 @@ namespace NYear.ODA
         protected void CheckTransaction(ODAScript Cmd)
         {
             if (ODAConfig.RegularObject != null && ODAConfig.RegularObject.Length > 0)
-            { 
+            {
                 if (_Tran == null || _Tran.CurrentObject == null)
                     return;
                 int MaxSeq = 0;
@@ -382,9 +384,9 @@ namespace NYear.ODA
             CurrentExecutingSql?.Invoke(this, args);
         }
 
-        protected IDBAccess GetDBAccess(ODAScript ODASql)
+        protected virtual IDBAccess GetDBAccess(ODAScript ODASql)
         {
-            IDBAccess DBA = DatabaseRouting(ODASql);
+            IDBAccess DBA = DatabaseRouting(ODASql); 
             ExecuteEventArgs earg = new ExecuteEventArgs()
             {
                 DBA = DBA,
@@ -392,6 +394,39 @@ namespace NYear.ODA
             };
             this.FireExecutingSqlEvent(earg);
             return earg.DBA;
+        }
+        private char[] _Alias = new char[] { 'A', 'A', '0' };
+        protected virtual string GetAlias()
+        {
+            string Alias = string.Format("{0}{1}{2}", _Alias[0], _Alias[1], _Alias[2]);
+            if (_Alias[0] < 'Z')
+            {
+                _Alias[0] = (char)(_Alias[0] + 1);
+            }
+            else
+            {
+                if (_Alias[1] < 'Z')
+                {
+                    _Alias[0] = 'A';
+                    _Alias[1] = (char)(_Alias[1] + 1);
+                }
+                else
+                {
+                    if (_Alias[2] < '9')
+                    {
+                        _Alias[0] = 'A';
+                        _Alias[1] = 'A';
+                        _Alias[2] = (char)(_Alias[2] + 1);
+                    }
+                    else
+                    {
+                        _Alias[0] = 'A';
+                        _Alias[1] = 'A';
+                        _Alias[2] = '0';
+                    }
+                }
+            }
+            return Alias;
         }
         #endregion
     }

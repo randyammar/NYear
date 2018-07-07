@@ -10,14 +10,14 @@ namespace NYear.ODA
     {
         public List<Record<T0>> SelectDynamic<T0>(params ODAColumns[] Cols)
         {
-            if (Cols == null  && Cols.Length != 1) 
+            if (Cols == null  || Cols.Length != 1) 
                 throw new ODAException(100021, "Selecting Columns is not enough! ");
             Cols[0].As("Item0");
             return this.Select<Record<T0>>(Cols);
         }
         public List<Record<T0, T1>> SelectDynamic<T0, T1>(params ODAColumns[] Cols)
         {
-            if (Cols == null && Cols.Length != 2) 
+            if (Cols == null || Cols.Length != 2) 
                 throw new ODAException(100021, "Selecting Columns is not enough!");
             Cols[0].As("Item0");
             Cols[1].As("Item1");
@@ -25,7 +25,7 @@ namespace NYear.ODA
         }
         public List<Record<T0, T1, T2>> SelectDynamic<T0, T1, T2>(params ODAColumns[] Cols)
         {
-            if (Cols == null && Cols.Length != 3)
+            if (Cols == null || Cols.Length != 3)
                 throw new ODAException(100021, "Selecting Columns is not enough!");
 
             Cols[0].As("Item0");
@@ -35,7 +35,7 @@ namespace NYear.ODA
         }
         public List<Record<T0, T1, T2, T3>> SelectDynamic<T0, T1, T2, T3>(params ODAColumns[] Cols)
         {
-            if (Cols == null  && Cols.Length != 4 )
+            if (Cols == null  || Cols.Length != 4 )
                 throw new ODAException(100021, "Selecting Columns is not enough!");
 
             Cols[0].As("Item0");
@@ -46,7 +46,7 @@ namespace NYear.ODA
         }
         public List<Record<T0, T1, T2, T3, T4>> SelectDynamic<T0, T1, T2, T3, T4>(params ODAColumns[] Cols)
         {
-            if (Cols == null && Cols.Length != 5 )
+            if (Cols == null || Cols.Length != 5 )
                 throw new ODAException(100021, "Selecting Columns is not enough!");
             Cols[0].As("Item0");
             Cols[1].As("Item1");
@@ -57,7 +57,7 @@ namespace NYear.ODA
         }
         public List<Record<T0, T1, T2, T3, T4, T5>> SelectDynamic<T0, T1, T2, T3, T4, T5>(params ODAColumns[] Cols)
         {
-            if (Cols == null && Cols.Length != 6  )
+            if (Cols == null || Cols.Length != 6  )
                 throw new ODAException(100021, "Selecting Columns is not enough!");
             Cols[0].As("Item0");
             Cols[1].As("Item1");
@@ -69,7 +69,7 @@ namespace NYear.ODA
         }
         public List<Record<T0, T1, T2, T3, T4, T5, T6>> SelectDynamic<T0, T1, T2, T3, T4, T5, T6>(params ODAColumns[] Cols)
         {
-            if (Cols == null && Cols.Length != 7 )
+            if (Cols == null || Cols.Length != 7 )
                 throw new ODAException(100021, "Selecting Columns is not enough!");
             Cols[0].As("Item0");
             Cols[1].As("Item1");
@@ -82,7 +82,7 @@ namespace NYear.ODA
         }
         public List<Record<T0, T1, T2, T3, T4, T5, T6, T7>> SelectDynamic<T0, T1, T2, T3, T4, T5, T6, T7>(params ODAColumns[] Cols)
         {
-            if (Cols == null && Cols.Length != 8 )
+            if (Cols == null || Cols.Length != 8 )
                 throw new ODAException(100021, "Selecting Columns is not enough!");
             Cols[0].As("Item0");
             Cols[1].As("Item1");
@@ -96,7 +96,7 @@ namespace NYear.ODA
         }
         public List<Record<T0, T1, T2, T3, T4, T5, T6, T7, T8>> SelectDynamic<T0, T1, T2, T3, T4, T5, T6, T7, T8>(params ODAColumns[] Cols)
         {
-            if (Cols == null && Cols.Length != 9 )
+            if (Cols == null || Cols.Length != 9 )
                 throw new ODAException(100021, "Selecting Columns is not enough!");
             Cols[0].As("Item0");
             Cols[1].As("Item1");
@@ -111,7 +111,7 @@ namespace NYear.ODA
         }
         public List<Record<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>> SelectDynamic<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(params ODAColumns[] Cols)
         {
-            if (Cols == null  && Cols.Length != 10 )
+            if (Cols == null  || Cols.Length != 10 )
                 throw new ODAException(100021, "Selecting Columns is not enough!");
             Cols[0].As("Item0");
             Cols[1].As("Item1");
@@ -144,7 +144,7 @@ namespace NYear.ODA
         }
         public List<Record<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>> SelectDynamic<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(params ODAColumns[] Cols)
         {
-            if (Cols == null  && Cols.Length != 12  )
+            if (Cols == null  || Cols.Length != 12  )
                 throw new ODAException(100021, "Selecting Columns is not enough!");
             Cols[0].As("Item0");
             Cols[1].As("Item1");
@@ -162,7 +162,7 @@ namespace NYear.ODA
         }
         public List<Record<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>> SelectDynamic<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(params ODAColumns[] Cols)
         {
-            if (Cols == null && Cols.Length != 13 )
+            if (Cols == null || Cols.Length != 13 )
                 throw new ODAException(100021, "Selecting Columns is not enough!");
             Cols[0].As("Item0");
             Cols[1].As("Item1");
@@ -181,7 +181,7 @@ namespace NYear.ODA
         }
         public List<Record<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>> SelectDynamic<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(params ODAColumns[] Cols)
         {
-            if (Cols == null  && Cols.Length != 14  )
+            if (Cols == null  || Cols.Length != 14  )
                 throw new ODAException(100021, "Selecting Columns is not enough!");
             Cols[0].As("Item0");
             Cols[1].As("Item1");
@@ -201,7 +201,7 @@ namespace NYear.ODA
         }
         public List<Record<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>> SelectDynamic<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(params ODAColumns[] Cols)
         {
-            if (Cols == null  && Cols.Length != 15  )
+            if (Cols == null  || Cols.Length != 15  )
                 throw new ODAException(100021, "Selecting Columns is not enough!");
             Cols[0].As("Item0");
             Cols[1].As("Item1");
@@ -222,7 +222,7 @@ namespace NYear.ODA
         }
         public List<Record<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>> SelectDynamic<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(params ODAColumns[] Cols)
         {
-            if (Cols == null && Cols.Length != 16  )
+            if (Cols == null || Cols.Length != 16  )
                 throw new ODAException(100021, "Selecting Columns is not enough!");
             Cols[0].As("Item0");
             Cols[1].As("Item1");
@@ -245,7 +245,7 @@ namespace NYear.ODA
 
         public List<Record<T0>> SelectDynamic<T0>(int StartIndex, int MaxRecord, out int Total, params ODAColumns[] Cols)
         {
-            if (Cols == null && Cols.Length !=1)
+            if (Cols == null || Cols.Length !=1)
                 throw new ODAException(100021, "Selecting Columns is not enough!");
 
             Cols[0].As("Item0");
@@ -254,7 +254,7 @@ namespace NYear.ODA
         }
         public List<Record<T0, T1>> SelectDynamic<T0, T1>(int StartIndex, int MaxRecord, out int Total, params ODAColumns[] Cols)
         {
-            if (Cols == null  && Cols.Length != 2)
+            if (Cols == null  || Cols.Length != 2)
                 throw new ODAException(100021, "Selecting Columns is not enough!");
             Cols[0].As("Item0");
             Cols[1].As("Item1"); 
@@ -262,7 +262,7 @@ namespace NYear.ODA
         }
         public List<Record<T0, T1, T2>> SelectDynamic<T0, T1, T2>(int StartIndex, int MaxRecord, out int Total, params ODAColumns[] Cols)
         {
-            if (Cols == null  && Cols.Length != 3 )
+            if (Cols == null  || Cols.Length != 3 )
                 throw new ODAException(100021, "Selecting Columns is not enough!"); 
             Cols[0].As("Item0");
             Cols[1].As("Item1");
@@ -271,7 +271,7 @@ namespace NYear.ODA
         }
         public List<Record<T0, T1, T2, T3>> SelectDynamic<T0, T1, T2, T3>(int StartIndex, int MaxRecord, out int Total, params ODAColumns[] Cols)
         {
-            if (Cols == null  && Cols.Length != 4  )
+            if (Cols == null  || Cols.Length != 4  )
                 throw new ODAException(100021, "Selecting Columns is not enough!"); 
             Cols[0].As("Item0");
             Cols[1].As("Item1");
@@ -281,7 +281,7 @@ namespace NYear.ODA
         }
         public List<Record<T0, T1, T2, T3, T4>> SelectDynamic<T0, T1, T2, T3, T4>(int StartIndex, int MaxRecord, out int Total, params ODAColumns[] Cols)
         {
-            if (Cols == null  && Cols.Length != 5)
+            if (Cols == null  || Cols.Length != 5)
                 throw new ODAException(100021, "Selecting Columns is not enough!"); 
             Cols[0].As("Item0");
             Cols[1].As("Item1");
@@ -292,7 +292,7 @@ namespace NYear.ODA
         }
         public List<Record<T0, T1, T2, T3, T4, T5>> SelectDynamic<T0, T1, T2, T3, T4, T5>(int StartIndex, int MaxRecord, out int Total, params ODAColumns[] Cols)
         {
-            if (Cols == null && Cols.Length != 6 )
+            if (Cols == null || Cols.Length != 6 )
                 throw new ODAException(100021, "Selecting Columns is not enough!");
 
             Cols[0].As("Item0");
@@ -305,7 +305,7 @@ namespace NYear.ODA
         }
         public List<Record<T0, T1, T2, T3, T4, T5, T6>> SelectDynamic<T0, T1, T2, T3, T4, T5, T6>(int StartIndex, int MaxRecord, out int Total, params ODAColumns[] Cols)
         {
-            if (Cols == null && Cols.Length != 7 )
+            if (Cols == null || Cols.Length != 7 )
                 throw new ODAException(100021, "Selecting Columns is not enough!");
 
             Cols[0].As("Item0");
@@ -319,7 +319,7 @@ namespace NYear.ODA
         }
         public List<Record<T0, T1, T2, T3, T4, T5, T6, T7>> SelectDynamic<T0, T1, T2, T3, T4, T5, T6, T7>(int StartIndex, int MaxRecord, out int Total, params ODAColumns[] Cols)
         {
-            if (Cols == null && Cols.Length != 9 )
+            if (Cols == null || Cols.Length != 9 )
                 throw new ODAException(100021, "Selecting Columns is not enough!"); 
             Cols[0].As("Item0");
             Cols[1].As("Item1");
@@ -334,7 +334,7 @@ namespace NYear.ODA
         }
         public List<Record<T0, T1, T2, T3, T4, T5, T6, T7, T8>> SelectDynamic<T0, T1, T2, T3, T4, T5, T6, T7, T8>(int StartIndex, int MaxRecord, out int Total, params ODAColumns[] Cols)
         {
-            if (Cols == null  && Cols.Length != 9 )
+            if (Cols == null  || Cols.Length != 9 )
                 throw new ODAException(100021, "Selecting Columns is not enough!");
 
             Cols[0].As("Item0");
@@ -350,7 +350,7 @@ namespace NYear.ODA
         }
         public List<Record<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>> SelectDynamic<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(int StartIndex, int MaxRecord, out int Total, params ODAColumns[] Cols)
         {
-            if (Cols == null  && Cols.Length != 10  )
+            if (Cols == null  || Cols.Length != 10  )
                 throw new ODAException(100021, "Selecting Columns is not enough!"); 
             Cols[0].As("Item0");
             Cols[1].As("Item1");
@@ -366,7 +366,7 @@ namespace NYear.ODA
         }
         public List<Record<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>> SelectDynamic<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(int StartIndex, int MaxRecord, out int Total, params ODAColumns[] Cols)
         {
-            if (Cols == null && Cols.Length != 11 )
+            if (Cols == null || Cols.Length != 11 )
                 throw new ODAException(100021, "Selecting Columns is not enough!");
 
             Cols[0].As("Item0");
@@ -384,7 +384,7 @@ namespace NYear.ODA
         }
         public List<Record<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>> SelectDynamic<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(int StartIndex, int MaxRecord, out int Total, params ODAColumns[] Cols)
         {
-            if (Cols == null  && Cols.Length != 12 )
+            if (Cols == null  || Cols.Length != 12 )
                 throw new ODAException(100021, "Selecting Columns is not enough!");
 
             Cols[0].As("Item0");
@@ -403,7 +403,7 @@ namespace NYear.ODA
         }
         public List<Record<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>> SelectDynamic<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(int StartIndex, int MaxRecord, out int Total, params ODAColumns[] Cols)
         {
-            if (Cols == null && Cols.Length != 13 )
+            if (Cols == null || Cols.Length != 13 )
                 throw new ODAException(100021, "Selecting Columns is not enough!");
 
             Cols[0].As("Item0");
@@ -423,7 +423,7 @@ namespace NYear.ODA
         }
         public List<Record<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>> SelectDynamic<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(int StartIndex, int MaxRecord, out int Total, params ODAColumns[] Cols)
         {
-            if (Cols == null && Cols.Length != 14 )
+            if (Cols == null || Cols.Length != 14 )
                 throw new ODAException(100021, "Selecting Columns is not enough!");
 
             Cols[0].As("Item0");
@@ -444,7 +444,7 @@ namespace NYear.ODA
         }
         public List<Record<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>> SelectDynamic<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(int StartIndex, int MaxRecord, out int Total, params ODAColumns[] Cols)
         {
-            if (Cols == null && Cols.Length != 15)
+            if (Cols == null || Cols.Length != 15)
                 throw new ODAException(100021, "Selecting Columns is not enough!"); 
             Cols[0].As("Item0");
             Cols[1].As("Item1");
@@ -465,7 +465,7 @@ namespace NYear.ODA
         }
         public List<Record<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>> SelectDynamic<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(int StartIndex, int MaxRecord, out int Total, params ODAColumns[] Cols)
         {
-            if (Cols == null && Cols.Length != 16 )
+            if (Cols == null || Cols.Length != 16 )
                 throw new ODAException(100021, "Selecting Columns is not enough!");
 
             Cols[0].As("Item0");

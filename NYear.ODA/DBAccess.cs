@@ -25,7 +25,7 @@ namespace NYear.ODA
                 var create = ODAReflection.CreateInstance<T>();
                 var pptyIdx = ODAReflection.TypeSetPropertyInfos[typeof(T)]; 
                 ODAMappingInfo MapInfo = new ODAMappingInfo(Dr, pptyIdx);
-                var dl = new DetaLoader(Dr, MapInfo);
+                var dl = new DataLoader(Dr, MapInfo);
                 while (Dr.Read())
                 { 
                     T t = create(dl); 
@@ -358,7 +358,7 @@ namespace NYear.ODA
                 var create = ODAReflection.CreateInstance<T>();
                 var pptyIdx = ODAReflection.TypeSetPropertyInfos[typeof(T)];
                 ODAMappingInfo MapInfo = new ODAMappingInfo(Dr, pptyIdx);
-                var dl = new DetaLoader(Dr, MapInfo);
+                var dl = new DataLoader(Dr, MapInfo);
                 while (Dr.Read() && MaxRecord > 0)
                 {
                     T t = create(dl);
