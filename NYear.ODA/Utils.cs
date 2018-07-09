@@ -291,7 +291,7 @@ namespace NYear.ODA
         public ODAConnect[] DispersedDataBase { get; set; }
 
         /// <summary>
-        /// 有序的数据库对象
+        /// 事务控制，事务资源访问顺序
         /// </summary>
         public string[] RegularObject { get; set; }
     }

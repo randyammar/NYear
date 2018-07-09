@@ -46,7 +46,7 @@ namespace NYear.ODA
         public static void SetODAConfig(DbAType DbType, string ConectionString)
         {
             if (string.IsNullOrWhiteSpace(ConectionString))
-                throw new ODAException(30000, "Dispersed DataBase ID should be setted.");
+                throw new ODAException(30000, "DataBase Conection String should be setted.");
             ODAConfig = new ODAConfiguration()
             {
                 Pattern = ODAPattern.Single,
