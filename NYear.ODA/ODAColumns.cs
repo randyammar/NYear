@@ -316,11 +316,11 @@ namespace NYear.ODA
                 {
                     case CmdConditionSymbol.BIGGER:
                         sql.SqlScript.Append(" > ").Append(param.ParamsName);
-                        sql.WhereList.Add(param);
+                        sql.ParamList.Add(param);
                         break;
                     case CmdConditionSymbol.EQUAL: 
                         sql.SqlScript.Append(" = ").Append(param.ParamsName);
-                        sql.WhereList.Add(param);
+                        sql.ParamList.Add(param);
                         break;
                     case CmdConditionSymbol.IN:
                         if (_CompareValue != System.DBNull.Value)
@@ -338,7 +338,7 @@ namespace NYear.ODA
                                 paramSub.Direction = _PDirection;
                                 paramSub.Size = _Size; 
                                 sql.SqlScript.Append(paramSub.ParamsName).Append( ",");
-                                sql.WhereList.Add(paramSub);
+                                sql.ParamList.Add(paramSub);
                             } 
                             sql.SqlScript.Remove(sql.SqlScript.Length - 1, 1).Append(")");
                         }
@@ -373,7 +373,7 @@ namespace NYear.ODA
                                 paramSub.Size = _Size; 
 
                                 sql.SqlScript.Append(paramSub.ParamsName).Append(",");
-                                sql.WhereList.Add(paramSub);
+                                sql.ParamList.Add(paramSub);
                             }
                             sql.SqlScript.Remove(sql.SqlScript.Length - 1, 1).Append(")");
                         }
@@ -393,23 +393,23 @@ namespace NYear.ODA
                         break;
                     case CmdConditionSymbol.LIKE:
                         sql.SqlScript.Append(" LIKE " ).Append( param.ParamsName);
-                        sql.WhereList.Add(param);
+                        sql.ParamList.Add(param);
                         break;
                     case CmdConditionSymbol.NOTBIGGER:
                         sql.SqlScript.Append(" <= ").Append(param.ParamsName);
-                        sql.WhereList.Add(param);
+                        sql.ParamList.Add(param);
                         break;
                     case CmdConditionSymbol.NOTEQUAL: 
                         sql.SqlScript.Append(" <>  ").Append(param.ParamsName);
-                        sql.WhereList.Add(param);
+                        sql.ParamList.Add(param);
                         break;
                     case CmdConditionSymbol.NOTSMALLER: 
                         sql.SqlScript.Append(" >= ").Append(param.ParamsName);
-                        sql.WhereList.Add(param);
+                        sql.ParamList.Add(param);
                         break;
                     case CmdConditionSymbol.SMALLER: 
                         sql.SqlScript.Append("  < ").Append(param.ParamsName);
-                        sql.WhereList.Add(param);
+                        sql.ParamList.Add(param);
                         break;
                     case CmdConditionSymbol.ISNOTNULL: 
                         sql.SqlScript.Append(" IS NOT NULL ");
@@ -419,23 +419,23 @@ namespace NYear.ODA
                         break;
                     case CmdConditionSymbol.ADD: 
                         sql.SqlScript.Append(" + ").Append(param.ParamsName);
-                        sql.WhereList.Add(param);
+                        sql.ParamList.Add(param);
                         break;
                     case CmdConditionSymbol.REDUCE: 
                         sql.SqlScript.Append(" - ").Append(param.ParamsName);
-                        sql.WhereList.Add(param);
+                        sql.ParamList.Add(param);
                         break;
                     case CmdConditionSymbol.TAKE: 
                         sql.SqlScript.Append(" * ").Append(param.ParamsName);
-                        sql.WhereList.Add(param);
+                        sql.ParamList.Add(param);
                         break;
                     case CmdConditionSymbol.REMOVE: 
                         sql.SqlScript.Append(" / ").Append(param.ParamsName);
-                        sql.WhereList.Add(param);
+                        sql.ParamList.Add(param);
                         break;
                     case CmdConditionSymbol.STAY: 
                         sql.SqlScript.Append(" % ").Append(param.ParamsName);
-                        sql.WhereList.Add(param);
+                        sql.ParamList.Add(param);
                         break;
                     default:
                         throw new ODAException(20006, string.IsNullOrWhiteSpace(_ColumnComment) ? _ColumnName + " not assign" : _ColumnComment + "CmdConditionSymbol Errror");
@@ -704,6 +704,15 @@ namespace NYear.ODA
         public static ODAColumns operator %(ODAColumns left, object CValue)
         {
             return left.SetCondition(CmdConditionSymbol.STAY, CValue);
+        }
+
+        public static ODAColumns operator |(ODAColumns left, ODAColumns right)
+        {
+            return left.Or(right);
+        }
+        public static ODAColumns operator &(ODAColumns left, ODAColumns right )
+        {
+            return left.And(right);
         }
         #endregion
 

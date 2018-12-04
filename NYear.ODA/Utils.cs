@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.Dynamic;
 using System.Globalization;
+using System.IO;
 using System.Reflection;
 using System.Runtime;
 using System.Runtime.Serialization;
@@ -119,16 +122,34 @@ namespace NYear.ODA
     public class ODAParameter
     {
         public static char ODAParamsMark { get { return '@'; } }
+        /// <summary>
+        /// 分表时用于识别
+        /// </summary>
         [DataMember]
         public string ColumnName { get; set; }
+        /// <summary>
+        /// SQL查询参数
+        /// </summary>
         [DataMember(IsRequired = true)]
         public string ParamsName { get; set; }
+        /// <summary>
+        /// SQL查询参数对应的数据库值类型
+        /// </summary>
         [DataMember(IsRequired = true)]
         public ODAdbType DBDataType { get; set; }
+        /// <summary>
+        /// 参数的方向
+        /// </summary>
         [DataMember]
         public ParameterDirection Direction { get; set; }
+        /// <summary>
+        /// 参数的最大长度
+        /// </summary>
         [DataMember]
         public int Size { get; set; }
+        /// <summary>
+        /// 参数值
+        /// </summary>
         [DataMember]
         public object ParamsValue { get; set; }
     }
@@ -143,24 +164,18 @@ namespace NYear.ODA
         [DataMember]
         public StringBuilder SqlScript { get; set; } = new StringBuilder();
         [DataMember]
-        public List<ODAParameter> WhereList { get; set; } = new List<ODAParameter>();
+        public List<ODAParameter> ParamList { get; set; } = new List<ODAParameter>(); 
         [DataMember]
-        public List<ODAParameter> ValueList { get; set; } = new List<ODAParameter>();
-        [DataMember]
-        public List<string> TableList { get; set; } = new List<string>();
-        [DataMember]
-        public string OrderBy  { get; set; }  
-
+        public List<string> TableList { get; set; } = new List<string>(); 
+        public StringBuilder OrderBy { get; set; } = new StringBuilder(); 
         public ODAScript Merge(ODAScript Child)
         {
             if (Child.SqlScript.Length > 0)
                 SqlScript.Append(Child.SqlScript.ToString()); 
             if (Child.TableList.Count > 0)
                 TableList.AddRange(Child.TableList.ToArray());
-            if (Child.ValueList.Count > 0)
-                ValueList.AddRange(Child.ValueList.ToArray());
-            if (Child.WhereList.Count > 0)
-                WhereList.AddRange(Child.WhereList.ToArray()); 
+            if (Child.ParamList.Count > 0)
+                ParamList.AddRange(Child.ParamList.ToArray()); 
             return this;
         }
     }
@@ -230,14 +245,7 @@ namespace NYear.ODA
         {
             get
             {
-                var prms = new ODAParameter[0];
-                if (SqlParams != null)
-                {
-                    prms = new ODAParameter[SqlParams.ValueList.Count + SqlParams.WhereList.Count];
-                    SqlParams.ValueList.CopyTo(prms, 0);
-                    SqlParams.WhereList.CopyTo(prms, SqlParams.ValueList.Count);
-                } 
-                return this.GetDebugSql(SqlParams.SqlScript.ToString(), prms);
+                return this.GetDebugSql(SqlParams.SqlScript.ToString(), SqlParams.ParamList.ToArray());
             }
         }
         private string GetDebugSql(string Sql, params ODAParameter[] prms)
@@ -271,6 +279,80 @@ namespace NYear.ODA
                 }
             }
             return debugSql;
+        }
+    }
+
+
+    public class OModel : DynamicObject, IEnumerable<KeyValuePair<string, object>>
+    {
+        private Dictionary<string, object> storage = new Dictionary<string, object>();
+        public override bool TryGetMember(GetMemberBinder binder, out object result)
+        {
+            if (storage.ContainsKey(binder.Name))
+            {
+                result = storage[binder.Name];
+                return true;
+            }
+            result = null;
+            return false;
+        }
+        public override bool TrySetMember(SetMemberBinder binder, object value)
+        {
+            string key = binder.Name;
+            if (storage.ContainsKey(key))
+                storage[key] = value;
+            else
+                storage.Add(key, value);
+            return true;
+        }
+        public override string ToString()
+        {
+            StringWriter message = new StringWriter();
+            foreach (var item in storage)
+                message.WriteLine("\"{0}\":\"{1}\"", item.Key, item.Value);
+            return message.ToString();
+        }
+        public int Count
+        {
+            get
+            {
+                return storage.Count;
+            }
+        }
+
+        public void Add(string key, object value)
+        {
+            storage.Add(key, value);
+        }
+
+        public bool ContainsKey(string key)
+        {
+            return storage.ContainsKey(key);
+        }
+
+        public bool Remove(string key)
+        {
+            return storage.Remove(key);
+        }
+
+        public bool TryGetValue(string key, out object value)
+        {
+            return storage.TryGetValue(key, out value);
+        }
+
+        public void Clear()
+        {
+            storage.Clear();
+        }
+
+        public IEnumerator<KeyValuePair<string, object>> GetEnumerator()
+        {
+            return ((IEnumerable<KeyValuePair<string, object>>)storage).GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return ((IEnumerable<KeyValuePair<string, object>>)storage).GetEnumerator();
         }
     }
 

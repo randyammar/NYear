@@ -123,7 +123,6 @@ namespace NYear.ODA
         /// </summary>
         private ODAConnect _Conn = null;
 
-
         /// <summary>
         /// 统一设定数据库连接字
         /// </summary>
@@ -190,7 +189,7 @@ namespace NYear.ODA
         /// <typeparam name="U">命令类型</typeparam>
         /// <param name="Alias">别名</param>
         /// <returns></returns>
-        public virtual U GetCmd<U>(string Alias = "") where U : ODACmd, new()
+        public virtual U GetCmd<U>(string Alias = "") where U : IODACmd, new()
         {
             U cmd = new U();
             cmd.GetDBAccess = GetDBAccess;
@@ -285,7 +284,7 @@ namespace NYear.ODA
                 {
                     if (_Tran.CurrentObject == ODAConfig.RegularObject[i])
                         MaxSeq = i;
-                }
+                } 
                 if (Cmd.TableList != null && Cmd.TableList.Count > 0)
                 {
                     for (int i = 0; i < ODAConfig.RegularObject.Length; i++)
@@ -330,10 +329,17 @@ namespace NYear.ODA
                         }
                         return ODAConfig.ODADataBase;
                     case ODAPattern.Dispersed:
-                        foreach (var db in ODAConfig.DispersedDataBase)
+                        if (string.IsNullOrWhiteSpace(ODASql.DataBaseId))
                         {
-                            if (ODASql.DataBaseId == db.DataBaseId)
-                                return db;
+                           return ODAConfig.ODADataBase;
+                        }
+                        else
+                        {
+                            foreach (var db in ODAConfig.DispersedDataBase)
+                            {
+                                if (ODASql.DataBaseId == db.DataBaseId)
+                                    return db;
+                            }
                         }
                         throw new ODAException(30002, string.Format("Can not rout to Dispersed DataBase[{0}]", ODASql.DataBaseId));
                     default:
@@ -378,8 +384,11 @@ namespace NYear.ODA
         #region SQL语句执行。（待扩展：使用消息队列实现多数据实时同步）
         public static event ExecuteSqlEventHandler ExecutingSql;
         public event ExecuteSqlEventHandler CurrentExecutingSql;
+        public static ODAScript LastSQL { get; private set; }
+        public ODAScript CurrentSQL { get; private set; }
         private void FireExecutingSqlEvent(ExecuteEventArgs args)
         {
+            
             ExecutingSql?.Invoke(this, args);
             CurrentExecutingSql?.Invoke(this, args);
         }
@@ -392,40 +401,16 @@ namespace NYear.ODA
                 DBA = DBA,
                 SqlParams = ODASql,
             };
-            this.FireExecutingSqlEvent(earg);
+            CurrentSQL = ODASql;
+            LastSQL = ODASql; 
+            this.FireExecutingSqlEvent(earg); 
             return earg.DBA;
         }
-        private char[] _Alias = new char[] { 'A', 'A', '0' };
+        private int _Alias = 0;
         protected virtual string GetAlias()
         {
-            string Alias = string.Format("{0}{1}{2}", _Alias[0], _Alias[1], _Alias[2]);
-            if (_Alias[0] < 'Z')
-            {
-                _Alias[0] = (char)(_Alias[0] + 1);
-            }
-            else
-            {
-                if (_Alias[1] < 'Z')
-                {
-                    _Alias[0] = 'A';
-                    _Alias[1] = (char)(_Alias[1] + 1);
-                }
-                else
-                {
-                    if (_Alias[2] < '9')
-                    {
-                        _Alias[0] = 'A';
-                        _Alias[1] = 'A';
-                        _Alias[2] = (char)(_Alias[2] + 1);
-                    }
-                    else
-                    {
-                        _Alias[0] = 'A';
-                        _Alias[1] = 'A';
-                        _Alias[2] = '0';
-                    }
-                }
-            }
+            string Alias = string.Format("T{0}", _Alias);
+            _Alias++; 
             return Alias;
         }
         #endregion

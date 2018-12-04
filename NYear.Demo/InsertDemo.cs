@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using NYear.ODA;
 using NYear.ODA.Cmd;
 using NYear.ODA.Model;
-using NYear.ODA;
+using System;
 using System.Data;
 
 namespace NYear.Demo
@@ -15,6 +11,20 @@ namespace NYear.Demo
         [Demo(Demo = FuncType.Insert, MethodName = "Insert", MethodDescript = "插入指定字段的数据")]
         public static void Insert()
         {
+            dynamic m = new OModel();
+            m.Add("aaa", 123456);
+            m.Add("bbbb", 234567);
+
+            decimal a =  m.aaa;
+            decimal b = m.aaa;
+
+            foreach (var i in m)
+            {
+                var an = i.Key;
+                var av = i.Value;
+            }
+
+
             ODAContext ctx = new ODAContext();
             CmdOrgDepartment od = ctx.GetCmd<CmdOrgDepartment>();
             od.Insert(od.ColAssistantId == "美女",

@@ -9,7 +9,7 @@ namespace NYear.ODA.Cmd
 {
 internal partial class CmdVPrmUserAuthorize:ORMCmd<V_PRM_USER_AUTHORIZE>
 {
-     public override bool Insert(params ODA.ODAColumns[] Cols) { throw new ODAException("Not suport Insert CmdName " + CmdName);}
+     public override bool Insert(params ODAColumns[] Cols) { throw new ODAException("Not suport Insert CmdName " + CmdName);}
      public override bool Update(params ODAColumns[] Cols) {  throw new ODAException("Not Suport Update CmdName " + CmdName);}
      public override bool Delete() {  throw new ODAException("Not Suport Delete CmdName " + CmdName);}
      public ODAColumns ColUserId{ get { return new ODAColumns(this, "USER_ID", ODAdbType.OVarchar, 64,true ); } }

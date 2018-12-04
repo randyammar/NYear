@@ -320,8 +320,8 @@ namespace NYear.Demo
         {
             ODAContext ctx = new ODAContext();
             CmdPrmRole pr = ctx.GetCmd<CmdPrmRole>();
-            var rlt = pr.Where(pr.ColRoleName == "Administrator")
-                .Select(pr.ColRoleName,pr.ColDescript,pr.ColIsSupperAdmin,pr.Function.VisualColumn("My Data").As("MyData"), pr.Function.VisualColumn("123", ODAdbType.ODecimal).As("MyCount"));
+            var rlt = pr.Where(pr.ColRoleName == "Administrator");
+                //.Select(pr.ColRoleName,pr.ColDescript,pr.ColIsSupperAdmin,pr.Function.VisualColumn("My Data").As("MyData"), pr.Function.VisualColumn("123", ODAdbType.ODecimal).As("MyCount"));
             return rlt;
         }
 
@@ -488,8 +488,8 @@ namespace NYear.Demo
             ra.Where(ra.ColIsForbidden == "Y", pr.ColRoleName == ra.ColRoleName);
 
             var rlt = pr.Where(
-                  pr.ColRoleName == "Administrator",
-                  pr.Function.Exists(ra, ra.Function.VisualColumn("1", ODAdbType.OInt))
+                  pr.ColRoleName == "Administrator"
+                 // pr.Function.Exists(ra, ra.Function.VisualColumn("1", ODAdbType.OInt))
                   )
                   .Select(pr.ColDescript, pr.ColIsSupperAdmin.Ascii);
             return rlt;
@@ -503,8 +503,8 @@ namespace NYear.Demo
             ra.Where(ra.ColIsForbidden == "Y", pr.ColRoleName == ra.ColRoleName);
 
             var rlt = pr.Where(
-                   pr.ColRoleName == "Administrator",
-                   pr.ColRoleName.In(ra, ra.Function.VisualColumn("1", ODAdbType.OInt))
+                   pr.ColRoleName == "Administrator"
+                   //pr.ColRoleName.In(ra, ra.Function.VisualColumn("1", ODAdbType.OInt))
                    )
                    .Select(pr.ColDescript, pr.ColIsSupperAdmin.Ascii);
             return rlt;
