@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Text;
 
@@ -8,6 +9,7 @@ namespace NYear.ODA
     {
         string Alias { get; set; }
         GetDBAccessHandler GetDBAccess { get; set; }
+        Func<string> GetAlias { get; set; }
 
         //ODAColumns AllColumn { get; }
         //string CmdName { get; }

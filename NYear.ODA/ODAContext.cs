@@ -193,7 +193,8 @@ namespace NYear.ODA
         {
             U cmd = new U();
             cmd.GetDBAccess = GetDBAccess;
-            cmd.Alias = Alias;
+            cmd.Alias = Alias; 
+            cmd.GetAlias = this.GetAlias;
             return cmd;
         }
 

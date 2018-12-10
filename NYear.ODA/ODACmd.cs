@@ -550,9 +550,11 @@ namespace NYear.ODA
             }
             if (_Orderby.Count > 0)
             {
-                var oy = GetOrderbyColumns(_Orderby.ToArray()); 
-                sql.OrderBy.Insert(0, " ORDER BY ");
-                sql.SqlScript.Append(sql.OrderBy.ToString());
+                var oy = GetOrderbyColumns(_Orderby.ToArray());
+                sql.OrderBy.Clear();
+                sql.OrderBy.Append(" ORDER BY ");
+                sql.OrderBy.Append(oy.OrderBy.ToString()); 
+                sql.SqlScript.Append(sql.OrderBy.ToString()); 
                 sql.Merge(oy);
             }
             return sql;  
@@ -688,13 +690,34 @@ namespace NYear.ODA
 
         #endregion
 
-        #region 执行SQL语句
-        public GetDBAccessHandler GetDBAccess { get; set; } 
-
+        #region 执行SQL语句 
+        GetDBAccessHandler IODACmd.GetDBAccess { get; set; }
+        Func<string> IODACmd.GetAlias { get; set; }
+        protected virtual GetDBAccessHandler GetDBAccess
+        {
+            get
+            {
+                return ((IODACmd)this).GetDBAccess;
+            }
+            set
+            {
+                ((IODACmd)this).GetDBAccess = value;
+            }
+        }
         /// <summary>
         /// 获取表别名或Function 参数命称
         /// </summary>
-        public Func<string> GetAlias = null;
+        internal Func<string> GetAlias
+        {
+            get
+            {
+                return ((IODACmd)this).GetAlias;
+            }
+            set
+            {
+                ((IODACmd)this).GetAlias = value;
+            }
+        } 
         /// <summary>
         /// 在数据库中执行select count 语句,返统计结果
         /// </summary>
@@ -777,10 +800,10 @@ namespace NYear.ODA
                     {
                         if (_Orderby.Count > 0)
                         {
-                            SqlOrderbyScript[] orderbys = this._Orderby.ToArray();
-                            this._Orderby.Clear();
+                            SqlOrderbyScript[] orderbys = _Orderby.ToArray();
+                            _Orderby.Clear();
                             TotalRecord = this.ToView(Cols).CountRecords();
-                            this._Orderby.AddRange(orderbys);
+                            _Orderby.AddRange(orderbys);
                         }
                         else
                         {
@@ -791,10 +814,10 @@ namespace NYear.ODA
                     {
                         if (_Orderby.Count > 0)
                         {
-                            SqlOrderbyScript[] orderbys = this._Orderby.ToArray();
-                            this._Orderby.Clear();
+                            SqlOrderbyScript[] orderbys = _Orderby.ToArray();
+                            _Orderby.Clear();
                             TotalRecord = this.CountRecords();
-                            this._Orderby.AddRange(orderbys);
+                            _Orderby.AddRange(orderbys);
                         }
                         else
                         {
@@ -877,10 +900,10 @@ namespace NYear.ODA
                     {
                         if (_Orderby.Count > 0)
                         {
-                            SqlOrderbyScript[] orderbys = this._Orderby.ToArray();
-                            this._Orderby.Clear();
+                            SqlOrderbyScript[] orderbys = _Orderby.ToArray();
+                            _Orderby.Clear();
                             TotalRecord = this.ToView(Cols).CountRecords();
-                            this._Orderby.AddRange(orderbys);
+                            _Orderby.AddRange(orderbys);
                         }
                         else
                         {
@@ -891,10 +914,10 @@ namespace NYear.ODA
                     {
                         if (_Orderby.Count > 0)
                         {
-                            SqlOrderbyScript[] orderbys = this._Orderby.ToArray();
-                            this._Orderby.Clear();
+                            SqlOrderbyScript[] orderbys = _Orderby.ToArray();
+                            _Orderby.Clear();
                             TotalRecord = this.CountRecords();
-                            this._Orderby.AddRange(orderbys);
+                            _Orderby.AddRange(orderbys);
                         }
                         else
                         {

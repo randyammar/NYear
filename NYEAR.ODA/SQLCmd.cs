@@ -10,8 +10,32 @@ namespace NYear.ODA
     /// </summary>
     public class SQLCmd : IODACmd
     {
+        GetDBAccessHandler IODACmd.GetDBAccess { get; set; }
+        Func<string> IODACmd.GetAlias { get; set; } 
         public string Alias { get; set; }
-        public GetDBAccessHandler GetDBAccess { get; set; }
+        private GetDBAccessHandler GetDBAccess
+        {
+            get
+            {
+                return ((IODACmd)this).GetDBAccess;
+            }
+            set
+            {
+                ((IODACmd)this).GetDBAccess = value; 
+            }
+        }
+        private Func<string> GetAlias
+        {
+            get
+            {
+                return ((IODACmd)this).GetAlias;
+            }
+            set
+            {
+                ((IODACmd)this).GetAlias = value;
+            }
+        }
+
         public DataTable Select(string Sql, params ODAParameter[] Parameters)
         {
             ODAScript oSql = new ODAScript()
