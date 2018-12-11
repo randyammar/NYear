@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
+using System.Text;
 
 namespace NYear.ODA
 {
@@ -11,7 +12,10 @@ namespace NYear.ODA
     public class SQLCmd : IODACmd
     {
         GetDBAccessHandler IODACmd.GetDBAccess { get; set; }
-        Func<string> IODACmd.GetAlias { get; set; } 
+        Func<string> IODACmd.GetAlias { get; set; }
+        string IODACmd.DBObjectMap {get;set;} 
+        Encoding IODACmd.DBCharSet { get; set; }
+
         public string Alias { get; set; }
         private GetDBAccessHandler GetDBAccess
         {

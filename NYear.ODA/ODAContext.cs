@@ -32,6 +32,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Security.Cryptography;
+using System.Text;
 using System.Timers;
 
 namespace NYear.ODA
@@ -193,8 +194,12 @@ namespace NYear.ODA
         {
             U cmd = new U();
             cmd.GetDBAccess = GetDBAccess;
-            cmd.Alias = Alias; 
+            if (string.IsNullOrWhiteSpace(Alias))
+                cmd.Alias = this.GetAlias();
+            else
+                cmd.Alias = Alias; 
             cmd.GetAlias = this.GetAlias;
+            cmd.DBCharSet = Encoding.UTF8;
             return cmd;
         }
 
@@ -237,7 +242,6 @@ namespace NYear.ODA
         {
             if (_Tran != null)
             {
-                _Tran.Commit();
                 var Sql = new ODAScript()
                 {
                     ScriptType = SQLType.Commit,
@@ -247,6 +251,7 @@ namespace NYear.ODA
                 {
                     SqlParams = Sql,
                 });
+                _Tran.Commit();
                 _Tran = null;
             }
         }

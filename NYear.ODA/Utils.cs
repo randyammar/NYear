@@ -193,17 +193,22 @@ namespace NYear.ODA
         public ODACmd JoinCmd { get; set; }
         public string JoinScript { get; set; }
     }
+    public class SqlUnionScript
+    {
+        public ODACmdView UnionCmd { get; set; }
+        public string JoinScript { get; set; }
+    }
 
     public class SqlOrderbyScript
     {
-        public ODAColumns OrderbyCol { get; set; }
+        public IODAColumns OrderbyCol { get; set; }
         public string OrderbyScript { get; set; }
     }
     public class SqlColumnScript
     {
-        public ODAColumns SqlColumn { get; set; }
+        public IODAColumns SqlColumn { get; set; }
         public string ConnScript { get; set; }
-    }
+    } 
     public class DatabaseColumnInfo
     {
         public string Name { get; set; }

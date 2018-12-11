@@ -8,7 +8,7 @@ namespace NYear.ODA
     /// <summary>
     /// ODA字段信息
     /// </summary>
-    public class ODAColumns
+    public class ODAColumns : IODAColumns
     {
         private CmdFuntion _Fun = CmdFuntion.NONE;
         private List<SqlColumnScript> _SqlColumnList = new List<SqlColumnScript>();
@@ -17,45 +17,13 @@ namespace NYear.ODA
         private string _ColumnComment = "";
         private bool _IsRequired = false;
         private string _AliasColumnName = null;
-        private ParameterDirection _PDirection = ParameterDirection.Input; 
+        private ParameterDirection _PDirection = ParameterDirection.Input;
         private ODACmd _InCmd = null;
         private ODAColumns _InColumn = null;
         protected CmdConditionSymbol _Symbol = CmdConditionSymbol.NONE;
         protected string _ColumnName = "*";
-        protected ODACmd _Cmd = null;
-        protected ODAdbType _DBDataType = ODAdbType.OChar;
-
-        internal virtual string ODAColumnName
-        {
-            get
-            {
-                return string.IsNullOrEmpty(_Cmd.Alias) ? _ColumnName : _Cmd.Alias + "." + _ColumnName;
-            }
-        }
-        public string ColumnName
-        {
-            get
-            {
-                return _ColumnName;
-            }
-        }
-        /// <summary>
-        /// In 子查询命令
-        /// </summary>
-        public ODACmd InCmd
-        {
-            get
-            {
-                return _InCmd;
-            }
-        }
-        public ODACmd ParentCmd
-        {
-            get
-            {
-                return _Cmd;
-            }
-        }
+        protected IODACmd _Cmd = null;
+        protected ODAdbType _DBDataType = ODAdbType.OChar; 
         public object CompareValue
         {
             get
@@ -70,10 +38,9 @@ namespace NYear.ODA
                 return _AliasColumnName;
             }
         }
-        internal ODAdbType DBDataType { get { return _DBDataType; } }
-        internal int Size { get { return _Size; } }
-        internal string ColumnComment { get { return _ColumnComment; } }
-        internal bool IsRequired { get { return _IsRequired; } }
+        public ODAdbType DBDataType { get { return _DBDataType; } }
+        public int Size { get { return _Size; } }
+        
         /// <summary>
         /// 创建ODA字段，默认 OVarchar（2000）,
         /// </summary>
@@ -95,12 +62,10 @@ namespace NYear.ODA
         {
             this.ODAColumnsInit(Cmd, ColumnName, DBDataType, Size, null, IsRequired, ParameterDirection.Input);
         }
-
         public ODAColumns(ODACmd Cmd, string ColumnName, ODAdbType DBDataType, int Size, string ColumnComment, bool IsRequired, ParameterDirection Direction)
         {
             this.ODAColumnsInit(Cmd, ColumnName, DBDataType, Size, ColumnComment, IsRequired, Direction);
         }
-
         private void ODAColumnsInit(ODACmd Cmd, string ColumnName, ODAdbType DBDataType, int Size, string ColumnComment, bool IsRequired, ParameterDirection Direction)
         {
             if (Cmd == null)
@@ -114,9 +79,55 @@ namespace NYear.ODA
             _PDirection = Direction;
             _IsRequired = IsRequired;
         }
-
+       
         #region SQL 脚本生成
-        public string GetColumnName()
+        string IODAColumns.GetColumnName()
+        {
+            return this.GetColumnName();
+        }
+        ODAParameter[] IODAColumns.GetSelectColumn(out string SubSql)
+        {
+            return this.GetSelectColumn(out SubSql);
+        }
+        ODAParameter[] IODAColumns.GetInsertSubstring(out string SubSql, out string SubSqlParams)
+        {
+            return GetInsertSubstring(out SubSql, out SubSqlParams);
+        }
+        ODAParameter[] IODAColumns.GetUpdateSubstring(out string SubSql)
+        {
+            return this.GetUpdateSubstring(out SubSql);
+        }
+        ODAScript IODAColumns.GetWhereSubstring()
+        {
+            return this.GetWhereSubstring();
+        }
+        ODAParameter IODAColumns.GetProcedureParams()
+        {
+            return this.GetProcedureParams();
+        } 
+        ODAColumns IODAColumns.SetParamDataType(ODAdbType ParamType)
+        {
+            _DBDataType = ParamType;
+            return this;
+        }
+        bool IODAColumns.IsRequired { get { return _IsRequired; } }
+        string IODAColumns.ColumnComment { get { return _ColumnComment; } }
+        public string ColumnName
+        {
+            get
+            {
+                return _ColumnName;
+            }
+        }
+        public virtual string ODAColumnName
+        {
+            get
+            {
+                return string.IsNullOrEmpty(_Cmd.Alias) ? _ColumnName : _Cmd.Alias + "." + _ColumnName;
+            }
+        }
+
+        protected virtual string GetColumnName()
         {
             string SColumn = "";
             switch (_Fun)
@@ -163,7 +174,7 @@ namespace NYear.ODA
             }
             return SColumn;
         }
-        public virtual ODAParameter[] GetSelectColumn(out string SubSql)
+        protected virtual ODAParameter[] GetSelectColumn(out string SubSql)
         {
             string SColumn = GetColumnName();
             if (!string.IsNullOrEmpty(_AliasColumnName))
@@ -172,7 +183,7 @@ namespace NYear.ODA
                 SubSql = SColumn;
             return new ODAParameter[0];
         }
-        public virtual ODAParameter[] GetInsertSubstring(out string SubSql, out string SubSqlParams)
+        protected virtual ODAParameter[] GetInsertSubstring(out string SubSql, out string SubSqlParams)
         {
             ODAParameter P = new ODAParameter();
             string PName = ODAParameter.ODAParamsMark + _Cmd.GetAlias();
@@ -186,7 +197,7 @@ namespace NYear.ODA
             SubSqlParams = P.ParamsName;
             return new ODAParameter[] { P };
         }
-        public virtual ODAParameter[] GetUpdateSubstring(out string SubSql)
+        protected virtual ODAParameter[] GetUpdateSubstring(out string SubSql)
         {
             SubSql = "";
             List<ODAParameter> PList = new List<ODAParameter>();
@@ -222,7 +233,7 @@ namespace NYear.ODA
                 }
                 else
                 {
-                    ODAParameter[] p = ((ODAColumns)_CompareValue).GetUpdateSubstring(out SubSqltmp);
+                    ODAParameter[] p = ((IODAColumns)_CompareValue).GetUpdateSubstring(out SubSqltmp);
                     PList.AddRange(p);
                     SubSql += SubSqltmp;
                 }
@@ -244,11 +255,10 @@ namespace NYear.ODA
             }
             return PList.ToArray();
         }
-        public virtual ODAScript GetWhereSubstring()
+        protected virtual ODAScript GetWhereSubstring()
         {
             ODAScript sql = new ODAScript();
             sql.SqlScript.Append(GetColumnName());
-            //List<ODAParameter> ParamsList = new List<ODAParameter>();
             if (_CompareValue is ODAColumns)
             {
                 switch (_Symbol)
@@ -291,15 +301,15 @@ namespace NYear.ODA
                         break;
                     default:
                         throw new ODAException(20005, string.IsNullOrEmpty(_ColumnComment) ? _ColumnName + " not assign" : _ColumnComment + "CmdConditionSymbol Errror");
-                } 
+                }
                 if (((ODAColumns)_CompareValue)._Symbol == CmdConditionSymbol.NONE)
                 {
                     sql.SqlScript.Append(((ODAColumns)_CompareValue).ODAColumnName);
                 }
                 else
                 {
-                    var sub = ((ODAColumns)_CompareValue).GetWhereSubstring();
-                    sql.Merge(sub); 
+                    var sub = ((IODAColumns)_CompareValue).GetWhereSubstring();
+                    sql.Merge(sub);
                 }
             }
             else
@@ -318,12 +328,12 @@ namespace NYear.ODA
                         sql.SqlScript.Append(" > ").Append(param.ParamsName);
                         sql.ParamList.Add(param);
                         break;
-                    case CmdConditionSymbol.EQUAL: 
+                    case CmdConditionSymbol.EQUAL:
                         sql.SqlScript.Append(" = ").Append(param.ParamsName);
                         sql.ParamList.Add(param);
                         break;
                     case CmdConditionSymbol.IN:
-                        if (_CompareValue != System.DBNull.Value)
+                        if (_InCmd == null && _CompareValue != System.DBNull.Value)
                         {
                             object[] ValueList = (object[])_CompareValue;
                             string paramName = _Cmd.GetAlias();
@@ -336,41 +346,36 @@ namespace NYear.ODA
                                 paramSub.ParamsValue = ValueList[k];
                                 paramSub.DBDataType = _DBDataType;
                                 paramSub.Direction = _PDirection;
-                                paramSub.Size = _Size; 
-                                sql.SqlScript.Append(paramSub.ParamsName).Append( ",");
+                                paramSub.Size = _Size;
+                                sql.SqlScript.Append(paramSub.ParamsName).Append(",");
                                 sql.ParamList.Add(paramSub);
-                            } 
+                            }
                             sql.SqlScript.Remove(sql.SqlScript.Length - 1, 1).Append(")");
                         }
                         else
                         {
-                            if (string.IsNullOrWhiteSpace(_InCmd.Alias))
-                            {
-                                _Cmd.SubCmdCout++;
-                                _InCmd.Alias = _Cmd.GetAlias();
-                            } 
-                            var subSql  = ((ODACmd)_InCmd).GetSelectSql(_InColumn);
-                             string inSql = " IN ( " + subSql.SqlScript.ToString() + ")";
+                            var subSql = ((ODACmd)_InCmd).GetSelectSql(_InColumn);
+                            string inSql = " IN ( " + subSql.SqlScript.ToString() + ")";
                             subSql.SqlScript.Clear();
                             subSql.SqlScript.Append(inSql);
                             sql.Merge(subSql);
                         }
                         break;
                     case CmdConditionSymbol.NOTIN:
-                        if (_CompareValue != System.DBNull.Value)
+                        if (_InCmd == null && _CompareValue != System.DBNull.Value)
                         {
-                            object[] ValueList = (object[])_CompareValue; 
+                            object[] ValueList = (object[])_CompareValue;
                             sql.SqlScript.Append(" NOT IN (");
                             string paramName = _Cmd.GetAlias();
                             for (int k = 0; k < ValueList.Length; k++)
                             {
                                 ODAParameter paramSub = new ODAParameter();
                                 paramSub.ColumnName = this.ODAColumnName;
-                                paramSub.ParamsName = ODAParameter.ODAParamsMark + paramName + "_" + k.ToString() ;
+                                paramSub.ParamsName = ODAParameter.ODAParamsMark + paramName + "_" + k.ToString();
                                 paramSub.ParamsValue = ValueList[k];
                                 paramSub.DBDataType = _DBDataType;
                                 paramSub.Direction = _PDirection;
-                                paramSub.Size = _Size; 
+                                paramSub.Size = _Size;
 
                                 sql.SqlScript.Append(paramSub.ParamsName).Append(",");
                                 sql.ParamList.Add(paramSub);
@@ -379,61 +384,56 @@ namespace NYear.ODA
                         }
                         else
                         {
-                            if (string.IsNullOrWhiteSpace(_InCmd.Alias))
-                            {
-                                _Cmd.SubCmdCout++;
-                                _InCmd.Alias = _Cmd.GetAlias();
-                            }
                             var subSql = ((ODACmd)_InCmd).GetSelectSql(_InColumn);
                             string inSql = " NOT IN ( " + subSql.SqlScript.ToString() + ")";
                             subSql.SqlScript.Clear();
                             subSql.SqlScript.Append(inSql);
-                            sql.Merge(subSql); 
+                            sql.Merge(subSql);
                         }
                         break;
                     case CmdConditionSymbol.LIKE:
-                        sql.SqlScript.Append(" LIKE " ).Append( param.ParamsName);
+                        sql.SqlScript.Append(" LIKE ").Append(param.ParamsName);
                         sql.ParamList.Add(param);
                         break;
                     case CmdConditionSymbol.NOTBIGGER:
                         sql.SqlScript.Append(" <= ").Append(param.ParamsName);
                         sql.ParamList.Add(param);
                         break;
-                    case CmdConditionSymbol.NOTEQUAL: 
+                    case CmdConditionSymbol.NOTEQUAL:
                         sql.SqlScript.Append(" <>  ").Append(param.ParamsName);
                         sql.ParamList.Add(param);
                         break;
-                    case CmdConditionSymbol.NOTSMALLER: 
+                    case CmdConditionSymbol.NOTSMALLER:
                         sql.SqlScript.Append(" >= ").Append(param.ParamsName);
                         sql.ParamList.Add(param);
                         break;
-                    case CmdConditionSymbol.SMALLER: 
+                    case CmdConditionSymbol.SMALLER:
                         sql.SqlScript.Append("  < ").Append(param.ParamsName);
                         sql.ParamList.Add(param);
                         break;
-                    case CmdConditionSymbol.ISNOTNULL: 
+                    case CmdConditionSymbol.ISNOTNULL:
                         sql.SqlScript.Append(" IS NOT NULL ");
                         break;
                     case CmdConditionSymbol.ISNULL:
                         sql.SqlScript.Append(" IS NULL ");
                         break;
-                    case CmdConditionSymbol.ADD: 
+                    case CmdConditionSymbol.ADD:
                         sql.SqlScript.Append(" + ").Append(param.ParamsName);
                         sql.ParamList.Add(param);
                         break;
-                    case CmdConditionSymbol.REDUCE: 
+                    case CmdConditionSymbol.REDUCE:
                         sql.SqlScript.Append(" - ").Append(param.ParamsName);
                         sql.ParamList.Add(param);
                         break;
-                    case CmdConditionSymbol.TAKE: 
+                    case CmdConditionSymbol.TAKE:
                         sql.SqlScript.Append(" * ").Append(param.ParamsName);
                         sql.ParamList.Add(param);
                         break;
-                    case CmdConditionSymbol.REMOVE: 
+                    case CmdConditionSymbol.REMOVE:
                         sql.SqlScript.Append(" / ").Append(param.ParamsName);
                         sql.ParamList.Add(param);
                         break;
-                    case CmdConditionSymbol.STAY: 
+                    case CmdConditionSymbol.STAY:
                         sql.SqlScript.Append(" % ").Append(param.ParamsName);
                         sql.ParamList.Add(param);
                         break;
@@ -447,16 +447,16 @@ namespace NYear.ODA
             {
                 ar.SqlScript.Append(_SqlColumnList[i].ConnScript);
                 var cc = _SqlColumnList[i].SqlColumn.GetWhereSubstring();
-                ar.Merge(cc); 
+                ar.Merge(cc);
             }
             if (ar.SqlScript.Length > 0)
             {
                 sql.Merge(ar);
                 sql.SqlScript.Insert(0, "(").Append(")");
-            } 
+            }
             return sql;
         }
-        public virtual ODAParameter GetProcedureParams()
+        protected virtual ODAParameter GetProcedureParams()
         {
             ODAParameter P = new ODAParameter();
             P.ColumnName = _ColumnName;
@@ -575,11 +575,7 @@ namespace NYear.ODA
             _AliasColumnName = AliasColumnName;
             return this;
         }
-        public ODAColumns SetParamDataType(ODAdbType ParamType)
-        {
-            this._DBDataType = ParamType;
-            return this;
-        }
+    
         public ODAColumns SetCondition(CmdConditionSymbol Symbol, object CompareValue)
         {
             if (Symbol == CmdConditionSymbol.NONE)
@@ -710,7 +706,7 @@ namespace NYear.ODA
         {
             return left.Or(right);
         }
-        public static ODAColumns operator &(ODAColumns left, ODAColumns right )
+        public static ODAColumns operator &(ODAColumns left, ODAColumns right)
         {
             return left.And(right);
         }

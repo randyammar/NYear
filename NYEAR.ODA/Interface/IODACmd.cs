@@ -10,11 +10,11 @@ namespace NYear.ODA
         string Alias { get; set; }
         GetDBAccessHandler GetDBAccess { get; set; }
         Func<string> GetAlias { get; set; }
+        string DBObjectMap { get; set; }
+        Encoding DBCharSet { get; set; }
 
         //ODAColumns AllColumn { get; }
-        //string CmdName { get; }
-        //Encoding DBCharSet { get; }
-        //string DBObjectMap { get; set; }
+        //string CmdName { get; } 
         //ODACmd Distinct { get; }
         //IODAFunction Function { get; }
 

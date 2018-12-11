@@ -9,9 +9,7 @@ namespace NYear.ODA
     public partial class ODACmd : IODACmd //: IDBScriptGenerator
     {
         
-        #region ODA指令寄存器
-        internal int SubCmdCout = 0;
-        private string _Alias = "";
+        #region ODA指令寄存器 
         private string _StartWithExpress = null;
         private string _ConnectByParent = null;
         private string _PriorChild = null;
@@ -27,32 +25,58 @@ namespace NYear.ODA
         protected List<ODAColumns> _Having = new List<ODAColumns>();
         protected List<ODACmd> _ListCmd = new List<ODACmd>();
         protected List<SqlJoinScript> _JoinCmd = new List<SqlJoinScript>();
+        protected List<SqlUnionScript> _UnionCmd = new List<SqlUnionScript>();
 
         protected List<ODAColumns> WhereColumns { get { return _WhereList; } }
         protected List<ODAColumns> OrColumns { get { return _OrList; } }
         protected List<ODACmd> ListJoinCmd { get { return _ListCmd; } }
         protected List<SqlJoinScript> JoinCmd { get { return _JoinCmd; } }
+        protected List<SqlUnionScript> UnionCmd { get { return _UnionCmd; } }
         protected virtual ODACmd BaseCmd { get { return null; } }
         protected virtual string DataBaseId { get { return null; } }
+
+
         #endregion
 
         #region 基础信息
-
+        private string _DBObjectMap = string.Empty;
         /// <summary>
         /// 命令名称
         /// </summary>
         public virtual string CmdName
         {
             get;
+        } 
+        /// <summary>
+        /// 确定输入项长度
+        /// </summary>
+        Encoding IODACmd.DBCharSet { get; set; }
+        GetDBAccessHandler IODACmd.GetDBAccess { get; set; }
+        Func<string> IODACmd.GetAlias { get; set; }
+        string IODACmd.DBObjectMap
+        {
+            get { return this.DBObjectMap; }
+            set
+            {
+                this.DBObjectMap = value;
+            }
         }
-        private string _DBObjectMap = string.Empty;
+        /// <summary>
+        /// 别名
+        /// </summary>
+        public string Alias
+        {
+            get;
+            set;
+        }
+
         /// <summary>
         /// 操作的表名
         /// 用作分表
         ///   CmdName：没有分表的情况下就是表名
         ///   当对表[CmdName]纵向切割出N个分表时，DBObjectMap是根据路由条件临时给出表名 
-        /// </summary>
-        public virtual string DBObjectMap
+        /// </summary> 
+        protected virtual string DBObjectMap
         {
             get
             {
@@ -63,30 +87,35 @@ namespace NYear.ODA
                 if (!string.IsNullOrWhiteSpace(value))
                     _DBObjectMap = value;
             }
-        }
-        /// <summary>
-        /// 别名
-        /// </summary>
-        public string Alias
-        {
-            get { return _Alias; }
-            set { _Alias = value; }
-        }
-        /// <summary>
-        /// 确定输入项长度
-        /// </summary>
-        public virtual System.Text.Encoding DBCharSet
+        } 
+        protected virtual GetDBAccessHandler GetDBAccess
         {
             get
             {
-                return System.Text.Encoding.UTF8;
+                return ((IODACmd)this).GetDBAccess;
+            }
+            set
+            {
+                ((IODACmd)this).GetDBAccess = value;
             }
         }
- 
+        /// <summary>
+        /// 获取表别名或Function 参数命称
+        /// </summary>
+        internal Func<string> GetAlias
+        {
+            get
+            {
+                return ((IODACmd)this).GetAlias;
+            }
+            set
+            {
+                ((IODACmd)this).GetAlias = value;
+            }
+        }
         #endregion
 
-        #region ODA应用语法定义
-
+        #region ODA应用语法定义 
         /// <summary>
         /// 查询去除重复
         /// </summary>
@@ -120,25 +149,7 @@ namespace NYear.ODA
                 return new ODAColumns(this, "*");
             }
         }
-
-        //protected void SetSubViewAlias(ref int Id)
-        //{
-        //    if (string.IsNullOrWhiteSpace(this.Alias) || this.Alias.StartsWith("LT") || this.Alias.StartsWith("JT"))
-        //    {
-        //        this.Alias = "VS" + Id.ToString();
-        //    }
-
-        //    for (int i = 0; i < _ListCmd.Count; i++)
-        //    {
-        //        Id++;
-        //        _ListCmd[i].SetSubViewAlias(ref Id);
-        //    }
-        //    for (int i = 0; i < _JoinCmd.Count; i++)
-        //    {
-        //        Id++;
-        //        _JoinCmd[i].JoinCmd.SetSubViewAlias(ref Id);
-        //    }
-        //}
+         
         /// <summary>
         /// 转换成子查询
         /// </summary>
@@ -149,7 +160,8 @@ namespace NYear.ODA
             return new ODACmdView(this, Cols)
             {
                 GetDBAccess = this.GetDBAccess,
-                GetAlias = this.GetAlias
+                GetAlias = this.GetAlias,
+                Alias = this.GetAlias(), 
             };
         }
         /// <summary>
@@ -162,9 +174,7 @@ namespace NYear.ODA
             for (int i = 0; i < Cmds.Length; i++)
             {
                 if (Cmds[i] == this)
-                    throw new ODAException(10000, "ListCmd 对象不能是本身");
-                if (string.IsNullOrWhiteSpace(Cmds[i].Alias))
-                    Cmds[i].Alias = this.GetAlias();
+                    throw new ODAException(10000, "ListCmd 对象不能是本身"); 
                 _ListCmd.Add(Cmds[i]);
             }
             return this;
@@ -209,10 +219,7 @@ namespace NYear.ODA
         protected virtual ODACmd Join(ODACmd JoinCmd, string Join, params ODAColumns[] ONCols)
         {
             if (JoinCmd == this)
-                throw new ODAException(10002, "Inner Join Instance Can't be itselft");
-
-            if (string.IsNullOrWhiteSpace(JoinCmd.Alias))
-                JoinCmd.Alias = this.GetAlias();
+                throw new ODAException(10002, "Inner Join Instance Can't be itselft"); 
             JoinCmd.Where(ONCols);
             _JoinCmd.Add(new SqlJoinScript() { JoinCmd = JoinCmd, JoinScript = Join });
             return this;
@@ -284,14 +291,24 @@ namespace NYear.ODA
             return this;
         }
 
-        //public virtual ODACmd Union(ODACmd Union,params ODAColumns[] Cols)
-        //{
-        //    return this;
-        //}
-        //public virtual ODACmd UnionAll(ODACmd Union,params ODAColumns[] Cols)
-        //{
-        //    return this;
-        //}
+        public virtual ODACmd Union(ODACmdView Union)
+        {
+            if (Union._Orderby.Count > 0)
+            {
+                throw new ODAException(10020, "There is [Order by] expression  in Union ODACmd !"); 
+            }
+            _UnionCmd.Add(new SqlUnionScript() { UnionCmd = Union, JoinScript = " UNION " }); 
+            return this;
+        }
+        public virtual ODACmd UnionAll(ODACmdView Union)
+        {
+            if (Union._Orderby.Count > 0)
+            {
+                throw new ODAException(10020, "There is [Order by] expression  in Union ODACmd !"); 
+            }
+            _UnionCmd.Add(new SqlUnionScript() { UnionCmd = Union, JoinScript = " UNION ALL " });
+            return this;
+        }
         #endregion
 
         #region SQL语句生成
@@ -359,7 +376,7 @@ namespace NYear.ODA
           
             foreach (ODAColumns W in WhereList)
             {
-                var sub = W.GetWhereSubstring();
+                var sub = ((IODAColumns)W).GetWhereSubstring();
                 sql.Merge(sub);
                 sql.SqlScript.Append(RelationStr); 
             }
@@ -382,7 +399,7 @@ namespace NYear.ODA
             foreach (ODAColumns Col in ColList)
             {
                 string SubSelectSql = "";
-                ODAParameter[] prms = Col.GetSelectColumn(out SubSelectSql);
+                ODAParameter[] prms = ((IODAColumns)Col).GetSelectColumn(out SubSelectSql);
                 ParamList.AddRange(prms);
                 Sql += SubSelectSql + ConnectStr;
             }
@@ -404,7 +421,7 @@ namespace NYear.ODA
             foreach (ODAColumns Col in ColList)
             {
                 string OSql = "";
-                var prms = Col.GetSelectColumn(out OSql);
+                var prms = ((IODAColumns)Col).GetSelectColumn(out OSql);
                 sql.ParamList.AddRange(prms);
                 sql.SqlScript.Append(OSql + ",");
             }
@@ -445,9 +462,7 @@ namespace NYear.ODA
         {
             if (_Groupby.Count > 0 || _Having.Count > 0)
                 throw new ODAException(10006, "Do not count the [Group by] cmd,You should probably use [ ToView(Columns).Count()] instead.");
-            if (string.IsNullOrWhiteSpace(Alias))
-                Alias = this.GetAlias();
-
+        
             ODAScript sql = new ODAScript()
             {
                 ScriptType = SQLType.Select,
@@ -496,9 +511,7 @@ namespace NYear.ODA
         /// <param name="Cols">变量列表及变操作符</param>
         /// <returns>变量列表</returns>
         public virtual ODAScript GetSelectSql( params ODAColumns[] Cols)
-        {
-            if (string.IsNullOrWhiteSpace(Alias))
-                Alias = this.GetAlias();
+        { 
             ODAScript sql = new ODAScript()
             {
                 ScriptType = SQLType.Select,
@@ -548,6 +561,18 @@ namespace NYear.ODA
                 sql.SqlScript.Append(" HAVING ");
                 sql.Merge(hsql);
             }
+
+            if (_UnionCmd.Count > 0)
+            {
+                for (int i = 0; i < _UnionCmd.Count; i++)
+                {
+                    sql.SqlScript.AppendLine(" ");
+                    sql.SqlScript.AppendLine(_UnionCmd[i].JoinScript);
+                    var Union = _UnionCmd[i].UnionCmd.BaseCmd.GetSelectSql(_UnionCmd[i].UnionCmd.ViewColumns);
+                    sql.Merge(Union); 
+                }
+            }
+
             if (_Orderby.Count > 0)
             {
                 var oy = GetOrderbyColumns(_Orderby.ToArray());
@@ -619,7 +644,7 @@ namespace NYear.ODA
             {
                 string ColumnTmp = "";
                 string ColumnParamsTmp = "";
-                sql.ParamList.AddRange(Cols[i].GetInsertSubstring(out ColumnTmp, out ColumnParamsTmp));
+                sql.ParamList.AddRange(((IODAColumns)Cols[i]).GetInsertSubstring(out ColumnTmp, out ColumnParamsTmp));
                 Column += ColumnTmp + ",";
                 ColumnParams += ColumnParamsTmp + ",";
             }
@@ -649,7 +674,7 @@ namespace NYear.ODA
             for (int i = 0; i < Cols.Length; i++)
             {
                 string ColumnTmp = "";
-                ODAParameter[] P = Cols[i].GetUpdateSubstring(out ColumnTmp);
+                ODAParameter[] P = ((IODAColumns)Cols[i]).GetUpdateSubstring(out ColumnTmp);
                 if (P != null)
                     sql.ParamList.AddRange(P);
                 Column += ColumnTmp + ",";
@@ -683,41 +708,14 @@ namespace NYear.ODA
             Sql = this.DBObjectMap;
             for (int i = 0; i < Cols.Length; i++)
             {
-                ParamList.Add(Cols[i].GetProcedureParams());
+                ParamList.Add(((IODAColumns)Cols[i]).GetProcedureParams());
             }
             return ParamList.ToArray();
         }
 
         #endregion
 
-        #region 执行SQL语句 
-        GetDBAccessHandler IODACmd.GetDBAccess { get; set; }
-        Func<string> IODACmd.GetAlias { get; set; }
-        protected virtual GetDBAccessHandler GetDBAccess
-        {
-            get
-            {
-                return ((IODACmd)this).GetDBAccess;
-            }
-            set
-            {
-                ((IODACmd)this).GetDBAccess = value;
-            }
-        }
-        /// <summary>
-        /// 获取表别名或Function 参数命称
-        /// </summary>
-        internal Func<string> GetAlias
-        {
-            get
-            {
-                return ((IODACmd)this).GetAlias;
-            }
-            set
-            {
-                ((IODACmd)this).GetAlias = value;
-            }
-        } 
+        #region 执行SQL语句  
         /// <summary>
         /// 在数据库中执行select count 语句,返统计结果
         /// </summary>
@@ -1123,10 +1121,10 @@ namespace NYear.ODA
         /// 验证更新值是否合法
         /// </summary>
         /// <param name="Cols"></param>
-        protected virtual void ValidColumn(params ODAColumns[] Cols)
+        protected virtual void ValidColumn(params IODAColumns[] Cols)
         {
             StringBuilder sbr = new StringBuilder();
-            foreach (ODAColumns c in Cols)
+            foreach (IODAColumns c in Cols)
             {
                 if (c.IsRequired)
                 {
@@ -1145,9 +1143,8 @@ namespace NYear.ODA
             }
         }
         protected virtual void Clear()
-        {
-            SubCmdCout = 0;
-            _Alias = "";
+        { 
+            Alias = "";
             _StartWithExpress = null;
             _ConnectByParent = null;
             _PriorChild = null;

@@ -32,15 +32,15 @@ namespace NYear.ODA
             }
         }
 
-        public override string DBObjectMap
+        protected override string DBObjectMap
         {
             get
             {
-                return ((ODACmd)_CmdView).DBObjectMap;
+                return ((IODACmd)_CmdView).DBObjectMap;
             }
             set
             {
-                ((ODACmd)_CmdView).DBObjectMap = value;
+                ((IODACmd)_CmdView).DBObjectMap = value;
             }
         }
 

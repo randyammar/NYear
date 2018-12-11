@@ -28,13 +28,13 @@ namespace NYear.ODA
         //    return jc;
         //}
 
-        public static ODAColumns[] AllColumns<T>(this T cmd)
+        public static IODAColumns[] AllColumns<T>(this T cmd)
             where T : ORMCmd<T>
         {
             var list = cmd.GetColumnList();
             return list.ToArray();
         }
-        public static ODAColumns[] AllColumnsWith<T>(this T cmd, params ODAColumns[] withCols)
+        public static IODAColumns[] AllColumnsWith<T>(this T cmd, params ODAColumns[] withCols)
             where T : ORMCmd<T>
         {
             var list = cmd.GetColumnList();

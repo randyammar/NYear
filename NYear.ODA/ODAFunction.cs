@@ -31,6 +31,7 @@ namespace NYear.ODA
         private Dictionary<object, object> _CaseThen;
         private Dictionary<ODAColumns, object> _WhenThen;
         private object _CaseElseVal;
+        private ODAParameter[] _ExpressPrms = new ODAParameter[0];
 
         /// <summary>
         /// 数据库函数
@@ -43,15 +44,16 @@ namespace NYear.ODA
 
         #region Oda Function
         /// <summary>
-        /// 自定义函数
+        /// 自定义表达式
         /// </summary>
-        /// <param name="Function">函数的名字</param>
-        /// <param name="ParamsList">函数的参数</param>
+        /// <param name="Express">函数的名字</param>
+        /// <param name="Expression">函数的参数</param>
         /// <returns></returns>
-        public ODAColumns Express(string Expression)
+        public ODAColumns Express(string Expression,params ODAParameter[] ODAParameters)
         {
             _FuncType = Func.Express;
-            _FuncName = Expression; 
+            _FuncName = Expression;
+            _ExpressPrms = ODAParameters;
             return this;
         }
         /// <summary>
@@ -61,7 +63,25 @@ namespace NYear.ODA
         /// <returns></returns>
         public ODAColumns VisualColumn(string Val)
         {
-            return Express(Val); 
+            return Express("'"+Val+"'"); 
+        }
+        public ODAColumns VisualColumn(decimal Val)
+        {
+            return Express(Val.ToString());
+        }
+        public ODAColumns VisualColumn(DateTime Val)
+        {
+            var prm = _Cmd.GetAlias();
+            ODAParameter FuncPrm = new ODAParameter()
+            {
+                ColumnName = prm,
+                DBDataType = ODAdbType.ODatetime,
+                Direction = System.Data.ParameterDirection.Input,
+                ParamsName = ODAParameter.ODAParamsMark + prm,
+                ParamsValue = Val,
+                Size = 22
+            };
+            return Express(FuncPrm.ParamsName, FuncPrm);
         }
         /// <summary>
         /// 自定义函数
@@ -95,12 +115,7 @@ namespace NYear.ODA
         /// <param name="Cols"></param>
         /// <returns></returns>
         public ODAColumns Exists(ODACmd Cmd, params ODAColumns[] Cols)
-        {
-            if (string.IsNullOrWhiteSpace(Cmd.Alias))
-            {
-                _Cmd.SubCmdCout++;
-                Cmd.Alias = _Cmd.GetAlias();
-            }
+        { 
             _FuncCmd = Cmd;
             _FuncName = " EXISTS ";
             _FunColumnList.AddRange(Cols);
@@ -114,12 +129,7 @@ namespace NYear.ODA
         /// <param name="Cols"></param>
         /// <returns></returns>
         public ODAColumns NotExists(ODACmd Cmd, params ODAColumns[] Cols)
-        {
-            if (string.IsNullOrWhiteSpace(Cmd.Alias))
-            {
-                _Cmd.SubCmdCout++;
-                Cmd.Alias = _Cmd.GetAlias();
-            }
+        { 
             _FuncCmd = Cmd;
             _FunColumnList.AddRange(Cols);
             _FuncName = " NOT EXISTS ";
@@ -141,8 +151,7 @@ namespace NYear.ODA
             _CaseThen = WhenThen;
             _CaseElseVal = ElseVal;
             _FuncType = Func.Case;
-            _FuncName = "";
-
+            _FuncName = ""; 
             return this;
         }
         /// <summary>
@@ -182,7 +191,7 @@ namespace NYear.ODA
         /// <summary>
         /// 数据库函数
         /// </summary> 
-        internal override string ODAColumnName
+        public override string ODAColumnName
         {
             get { return _FuncName; }
         }
@@ -197,7 +206,7 @@ namespace NYear.ODA
                 if (_FunArgs[k] is ODAColumns)
                 {
                     string colSql;
-                    ODAParameter[] prmSub = ((ODAColumns)_FunArgs[k]).GetSelectColumn(out colSql);
+                    ODAParameter[] prmSub = ((IODAColumns)_FunArgs[k]).GetSelectColumn(out colSql);
                     sql.SqlScript.Append(colSql).Append(",");
                     if (prmSub != null && prmSub.Length > 0)
                         sql.ParamList.AddRange(prmSub);
@@ -228,7 +237,7 @@ namespace NYear.ODA
             {
                 if (wt.Key is ODAColumns)
                 {
-                    sql.SqlScript.Append(" WHEN ").Append(((ODAColumns)wt.Key).GetColumnName());
+                    sql.SqlScript.Append(" WHEN ").Append(((IODAColumns)wt.Key).GetColumnName());
                 }
                 else if (wt.Key is System.DBNull)
                 {
@@ -272,7 +281,7 @@ namespace NYear.ODA
 
             if (_CaseElseVal is ODAColumns)
             {
-                sql.SqlScript.Append(" ELSE ").Append(((ODAColumns)_CaseElseVal).GetColumnName()).Append(" END )");
+                sql.SqlScript.Append(" ELSE ").Append(((IODAColumns)_CaseElseVal).GetColumnName()).Append(" END )");
             }
             else if (_CaseElseVal is System.DBNull || _CaseElseVal == null || string.IsNullOrWhiteSpace(_CaseElseVal.ToString()))
             {
@@ -301,7 +310,7 @@ namespace NYear.ODA
             foreach (KeyValuePair<ODAColumns, object> wt in _WhenThen)
             {
                 sql.SqlScript.Append(" WHEN ");
-                var wSql = wt.Key.GetWhereSubstring();
+                var wSql = ((IODAColumns)wt.Key).GetWhereSubstring();
                 sql.Merge(wSql);
                 if (wt.Value is ODAColumns)
                 {
@@ -328,7 +337,7 @@ namespace NYear.ODA
             if (_CaseElseVal is ODAColumns)
             {
                 string slt;
-                ODAParameter[] sltPrm = ((ODAColumns)_CaseElseVal).GetSelectColumn(out slt);
+                ODAParameter[] sltPrm = ((IODAColumns)_CaseElseVal).GetSelectColumn(out slt);
                 if (sltPrm != null && sltPrm.Length > 0)
                     sql.ParamList.AddRange(sltPrm);
                 sql.SqlScript.Append(" ELSE ").Append(slt).Append(" END )");
@@ -358,7 +367,7 @@ namespace NYear.ODA
         /// </summary>
         /// <param name="SubSql">函数表达式</param>
         /// <returns>函表达式的参数</returns>
-        public override ODAParameter[] GetSelectColumn(out string SubSql)
+        protected override  ODAParameter[] GetSelectColumn(out string SubSql)
         {
             if (_FuncType == Func.Normal)
             {
@@ -370,8 +379,8 @@ namespace NYear.ODA
             }
             else if (_FuncType == Func.Express)
             {
-                var prms = base.GetSelectColumn(out SubSql);
-                return prms;
+                base.GetSelectColumn(out SubSql);
+                return _ExpressPrms;
             }
             else if (_FuncType == Func.Case)
             {
@@ -400,7 +409,7 @@ namespace NYear.ODA
         /// <param name="SubSql">insert 的字段名字</param>
         /// <param name="SubSqlParams">函数表达式</param>
         /// <returns>函数表达式的参数</returns>
-        public override ODAParameter[] GetInsertSubstring(out string SubSql, out string SubSqlParams)
+        protected override ODAParameter[] GetInsertSubstring(out string SubSql, out string SubSqlParams)
         {
             throw new ODAException(40005, string.Format("{0} Function not for Insert", _FuncName));
         }
@@ -409,7 +418,7 @@ namespace NYear.ODA
         /// </summary>
         /// <param name="SubSql">函数表达式</param>
         /// <returns>函数表达式的参数</returns>
-        public override ODAParameter[] GetUpdateSubstring(out string SubSql)
+        protected override ODAParameter[] GetUpdateSubstring(out string SubSql)
         {
             throw new ODAException(40006, string.Format("{0} Function not for Update", _FuncName));
         }
@@ -419,7 +428,7 @@ namespace NYear.ODA
         /// <param name="ConIndex">此参数无效</param>
         /// <param name="SubSql">函数表达式</param>
         /// <returns>函数表达式的参数</returns>
-        public override ODAScript GetWhereSubstring()
+        protected override ODAScript GetWhereSubstring()
         {
             ODAScript sql = new ODAScript(); 
             if (_FuncType == Func.Exists)
@@ -443,6 +452,7 @@ namespace NYear.ODA
             else if (_FuncType == Func.Express)
             {
                 var wSql = base.GetWhereSubstring(); ///形如：having count(*) > 0 
+                wSql.ParamList.InsertRange(0, _ExpressPrms);
                 return wSql;
             }
             else

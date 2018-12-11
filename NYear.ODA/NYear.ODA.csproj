@@ -112,6 +112,7 @@
     <Compile Include="Interface\IDBAccess.cs" />
     <Compile Include="Interface\IODAFunction.cs" />
     <Compile Include="Interface\IODACmd.cs" />
+    <Compile Include="Interface\IODAColumns.cs" />
     <Compile Include="ODACmd.Extension.cs" />
     <Compile Include="ODACmd.SelectDynamic.cs" />
     <Compile Include="ODACmd.SelectFirst.cs" />

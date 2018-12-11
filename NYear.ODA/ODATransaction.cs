@@ -69,8 +69,7 @@ namespace NYear.ODA
         public Action TransactionTimeOut;
 
         public string TransactionId { get { return _TransactionId; } }
-        private bool _IsTimeout = false;
-        public bool IsTimeout { get { return _IsTimeout; } }
+        public bool IsTimeout { get; private set; } = false;
         internal ODATransaction(int TimeOut)
         {
             _TransactionId = Guid.NewGuid().ToString("N");
@@ -80,10 +79,10 @@ namespace NYear.ODA
         }
         private void Tim_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
-            _IsTimeout = true;
+            IsTimeout = true;
             TransactionTimeOut?.Invoke();
         }
-        
+
         /// <summary>
         /// 提交事务
         /// </summary>
@@ -91,36 +90,37 @@ namespace NYear.ODA
         {
             //分布式事务，二阶段提交，或三阶段提交
             //暂不支持
-            //try
-            //{
-            //    if (CanCommit == null)
-            //        CanCommit();
-            //    if (PreCommit == null)
-            //        PreCommit();
-            //}
-            //catch
-            //{
-            //    RollBack();
-            //}
-            DisposeTimer();
-            if (_DoCommit == null)
-                return;
-            _DoCommit();
-            _DoCommit = null;
+            try
+            {
+                DisposeTimer();
+                CanCommit?.Invoke();
+                PreCommit?.Invoke();
+                _DoCommit?.Invoke();
+            }
+            finally
+            {
+                CanCommit = null;
+                PreCommit = null;
+                _DoCommit = null;
+            } 
         }
         /// <summary>
         /// 回滚事务
         /// </summary>
         public void RollBack()
         {
-            DisposeTimer();
-            if (_DoRollBack == null)
-                return;
-            _DoRollBack();
-            _DoRollBack = null;
+            try
+            {
+                DisposeTimer();
+                _DoRollBack?.Invoke();
+            }
+            finally
+            {
+                _DoRollBack = null;
+            }
         }
         private void DisposeTimer()
-        {
+        { 
             if (Tim != null)
             {
                 if (Tim.Enabled)
