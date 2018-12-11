@@ -501,6 +501,7 @@ namespace NYear.ODA
                     sql.Merge(osql);
                 }
             }
+          
             return sql;
         }
 
@@ -794,7 +795,10 @@ namespace NYear.ODA
                     throw new ODAException(10008, "ODACmd Select 没有执行程序"); 
                 if (string.IsNullOrEmpty(_StartWithExpress) || string.IsNullOrEmpty(_ConnectByParent) || string.IsNullOrEmpty(_PriorChild))
                 {
-                    if ((_Groupby.Count > 0 || _Having.Count > 0) || (Cols.Length > 0 && _Distinct))
+                    if ((_Groupby.Count > 0 || _Having.Count > 0) 
+                        || (Cols.Length > 0 && _Distinct)
+                        || (_UnionCmd.Count > 0)
+                        )
                     {
                         if (_Orderby.Count > 0)
                         {
