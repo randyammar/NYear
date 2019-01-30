@@ -33,7 +33,6 @@
             this.fileMenu = new System.Windows.Forms.ToolStripMenuItem();
             this.mncNewConnect = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator5 = new System.Windows.Forms.ToolStripSeparator();
-            this.mncQueryWm = new System.Windows.Forms.ToolStripMenuItem();
             this.mncORMCreateWm = new System.Windows.Forms.ToolStripMenuItem();
             this.mncDBCopyWm = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
@@ -55,15 +54,18 @@
             this.closeAllToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.arrangeIconsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStrip = new System.Windows.Forms.ToolStrip();
-            this.tlbrExecuteSQL = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
-            this.tlbrORMCodeCreate = new System.Windows.Forms.ToolStripButton();
-            this.tlbrORMCodeSave = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
-            this.tlbrDBConnectTest = new System.Windows.Forms.ToolStripButton();
-            this.tlbrDBCopy = new System.Windows.Forms.ToolStripButton();
             this.statusStrip = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
+            this.tlbrExecuteSQL = new System.Windows.Forms.ToolStripButton();
+            this.tlbrORMCodeCreate = new System.Windows.Forms.ToolStripButton();
+            this.tlbrORMCodeSave = new System.Windows.Forms.ToolStripButton();
+            this.tlbrDBConnectTest = new System.Windows.Forms.ToolStripButton();
+            this.tlbrDBCopy = new System.Windows.Forms.ToolStripButton();
+            this.tlbrDBRefresh = new System.Windows.Forms.ToolStripButton();
+            this.mncQueryWm = new System.Windows.Forms.ToolStripMenuItem();
+            this.mncRefresh = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip.SuspendLayout();
             this.toolStrip.SuspendLayout();
             this.statusStrip.SuspendLayout();
@@ -92,6 +94,7 @@
             this.mncDBCopyWm,
             this.toolStripSeparator3,
             this.mncExcuteSQL,
+            this.mncRefresh,
             this.mncORMCodeCreate,
             this.mncORMCodeSave,
             this.mncDBConnectTest,
@@ -114,15 +117,6 @@
             // 
             this.toolStripSeparator5.Name = "toolStripSeparator5";
             this.toolStripSeparator5.Size = new System.Drawing.Size(196, 6);
-            // 
-            // mncQueryWm
-            // 
-            this.mncQueryWm.Image = ((System.Drawing.Image)(resources.GetObject("mncQueryWm.Image")));
-            this.mncQueryWm.Name = "mncQueryWm";
-            this.mncQueryWm.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Q)));
-            this.mncQueryWm.Size = new System.Drawing.Size(199, 22);
-            this.mncQueryWm.Text = "SQL查询(&Q)";
-            this.mncQueryWm.Click += new System.EventHandler(this.ShowNewForm_SQLDevlop);
             // 
             // mncORMCreateWm
             // 
@@ -278,6 +272,7 @@
             // 
             this.toolStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.tlbrExecuteSQL,
+            this.tlbrDBRefresh,
             this.toolStripSeparator2,
             this.tlbrORMCodeCreate,
             this.tlbrORMCodeSave,
@@ -290,6 +285,32 @@
             this.toolStrip.TabIndex = 1;
             this.toolStrip.Text = "ToolStrip";
             // 
+            // toolStripSeparator2
+            // 
+            this.toolStripSeparator2.Name = "toolStripSeparator2";
+            this.toolStripSeparator2.Size = new System.Drawing.Size(6, 25);
+            // 
+            // toolStripSeparator1
+            // 
+            this.toolStripSeparator1.Name = "toolStripSeparator1";
+            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 25);
+            // 
+            // statusStrip
+            // 
+            this.statusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripStatusLabel});
+            this.statusStrip.Location = new System.Drawing.Point(0, 396);
+            this.statusStrip.Name = "statusStrip";
+            this.statusStrip.Size = new System.Drawing.Size(632, 22);
+            this.statusStrip.TabIndex = 2;
+            this.statusStrip.Text = "StatusStrip";
+            // 
+            // toolStripStatusLabel
+            // 
+            this.toolStripStatusLabel.Name = "toolStripStatusLabel";
+            this.toolStripStatusLabel.Size = new System.Drawing.Size(32, 17);
+            this.toolStripStatusLabel.Text = "状态";
+            // 
             // tlbrExecuteSQL
             // 
             this.tlbrExecuteSQL.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
@@ -298,11 +319,6 @@
             this.tlbrExecuteSQL.Name = "tlbrExecuteSQL";
             this.tlbrExecuteSQL.Size = new System.Drawing.Size(23, 22);
             this.tlbrExecuteSQL.Text = "执行";
-            // 
-            // toolStripSeparator2
-            // 
-            this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(6, 25);
             // 
             // tlbrORMCodeCreate
             // 
@@ -322,11 +338,6 @@
             this.tlbrORMCodeSave.Size = new System.Drawing.Size(23, 22);
             this.tlbrORMCodeSave.Text = "保存代码";
             // 
-            // toolStripSeparator1
-            // 
-            this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 25);
-            // 
             // tlbrDBConnectTest
             // 
             this.tlbrDBConnectTest.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
@@ -345,21 +356,30 @@
             this.tlbrDBCopy.Size = new System.Drawing.Size(23, 22);
             this.tlbrDBCopy.Text = "数据库复制";
             // 
-            // statusStrip
+            // tlbrDBRefresh
             // 
-            this.statusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripStatusLabel});
-            this.statusStrip.Location = new System.Drawing.Point(0, 396);
-            this.statusStrip.Name = "statusStrip";
-            this.statusStrip.Size = new System.Drawing.Size(632, 22);
-            this.statusStrip.TabIndex = 2;
-            this.statusStrip.Text = "StatusStrip";
+            this.tlbrDBRefresh.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.tlbrDBRefresh.Image = global::Creative.ODA.DevTool.Properties.Resources.database_refresh;
+            this.tlbrDBRefresh.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.tlbrDBRefresh.Name = "tlbrDBRefresh";
+            this.tlbrDBRefresh.Size = new System.Drawing.Size(23, 22);
+            this.tlbrDBRefresh.Text = "Refresh";
             // 
-            // toolStripStatusLabel
+            // mncQueryWm
             // 
-            this.toolStripStatusLabel.Name = "toolStripStatusLabel";
-            this.toolStripStatusLabel.Size = new System.Drawing.Size(32, 17);
-            this.toolStripStatusLabel.Text = "状态";
+            this.mncQueryWm.Image = ((System.Drawing.Image)(resources.GetObject("mncQueryWm.Image")));
+            this.mncQueryWm.Name = "mncQueryWm";
+            this.mncQueryWm.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Q)));
+            this.mncQueryWm.Size = new System.Drawing.Size(199, 22);
+            this.mncQueryWm.Text = "SQL查询(&Q)";
+            this.mncQueryWm.Click += new System.EventHandler(this.ShowNewForm_SQLDevlop);
+            // 
+            // mncRefresh
+            // 
+            this.mncRefresh.Name = "mncRefresh";
+            this.mncRefresh.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.R)));
+            this.mncRefresh.Size = new System.Drawing.Size(199, 22);
+            this.mncRefresh.Text = "刷新";
             // 
             // ToolMain
             // 
@@ -422,6 +442,8 @@
         private System.Windows.Forms.ToolStripMenuItem mncDBCopy;
         private System.Windows.Forms.ToolStripMenuItem mncNewConnect;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator5;
+        private System.Windows.Forms.ToolStripButton tlbrDBRefresh;
+        private System.Windows.Forms.ToolStripMenuItem mncRefresh;
     }
 }
 

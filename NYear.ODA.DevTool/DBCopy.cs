@@ -60,54 +60,52 @@ namespace NYear.ODA.DevTool
         private void btn_connect_Click(object sender, EventArgs e)
         {
             string ConMsg = TarDBConnect();
-            lblExecuteRlt.Text = ConMsg;
+            this.pnlTranStatus.Visible = false;
+            this.ckbxTarDB.Visible = true;
             if (TarDB != null)
-                ckbxTarDB.Items.AddRange(TarDB.GetUserTables());
-            this.tbc_ExecuteSqlResult.SelectedTab = this.tpgMsg;
+                this.ckbxTarDB.Items.AddRange(TarDB.GetUserTables()); 
         }
 
         private void cbbx_database_SelectedIndexChanged(object sender, System.EventArgs e)
         {
             if (this.cbbx_database.Text == "DbAReflection")
             {
-                this.lblExecuteRlt.Text = "使用反射建立DbAccess,dll 文件必需有一個類繼承ODA.DataSource.DbAccess, 而且程序集必需標注ODA.AssemblyOdaAttribute屬性";
+                MessageBox.Show("使用反射建立DbAccess,dll 文件必需有一個類繼承ODA.DataSource.DbAccess, 而且程序集必需標注ODA.AssemblyOdaAttribute屬性");
             }
             else
             {
+                string msg = null;
                 switch (this.cbbx_database.Text)
                 {
                     case "MsSQL":
                         tbx_connectstring.Text = "server=localhost;database=master;uid=sa;pwd=sa;";
-                        this.lblExecuteRlt.Text = "server=localhost;database=master;uid=sa;pwd=sa;";
                         break;
                     case "MySql":
-                        tbx_connectstring.Text = "Server=localhost;Database=; User=root;Password=;Use Procedure Bodies=false;Charset=utf8;Allow Zero Datetime=True; Pooling=false; Max Pool Size=50;Port=3306;";
-                        this.lblExecuteRlt.Text = "Server=localhost;Database=; User=root;Password=;Use Procedure Bodies=false;Charset=utf8;Allow Zero Datetime=True; Pooling=false; Max Pool Size=50;Port=3306;";
+                        this.tbx_connectstring.Text = "Server=localhost;Database=; User=root;Password=;Use Procedure Bodies=false;Charset=utf8;Allow Zero Datetime=True; Pooling=false; Max Pool Size=50;Port=3306;";
                         break;
                     case "OdbcInformix":
                         tbx_connectstring.Text = "DSN=;User ID=;PWD=";
-                        this.lblExecuteRlt.Text = "DSN=;User ID=;PWD=";
                         break;
                     case "OledbAccess":
                         tbx_connectstring.Text = " Provider=Microsoft.Jet.OLEDB.4.0;Data Source=\\directory\\demo.mdb;User Id=admin;Password=; ";
-                        this.lblExecuteRlt.Text = " Access建立时自动添加了系统表。但Access默认是不显示的，要想看到这些表，得手动设置一下：选择菜单“工具”－“选项”－“视图”，在“系统对象”前面打勾，就能看到如下七个表了： "
-                            + " MSysAccessObjects、MSysAccessXML、MSysAces、MSysImexColumns、MSysObjects、MSysQueries、MSysRelationShips"
-                            + " 看是看到了，但还不能读取表里的数据，还需要设置权限：选择菜单“工具”－“安全”－“用户与组的权限”，把这些表的读写权限都勾上，OK！一切尽在掌握了，想怎么用就怎么用。"
-                            //+ " 遗憾的是，微软并没给出这些表的文档说明，具体功能也只好望文生义了。较常用的MSysObjects表，很显然储存的是一些对象，里面包含了两个字段Name和Type，可以依靠它们来判断数某个表或某个查询是否存在。"
-                            //+ " 例：SELECT [Name] FROM [MSysObjects] WHERE (Left([Name],1)<>'~') AND ([Type]=1)  ORDER BY [Name] "
-                            //+ " 其中已知的Type值和对应的类型分别是：1－表；5－查询；-32768－窗体；-32764－报表；-32761－模块；-32766－宏。"
-                            + " Connect String: Provider=Microsoft.Jet.OLEDB.4.0;Data Source=\\directory\\demo.mdb;User Id=admin;Password=;  ";
+                        msg = " Access建立时自动添加了系统表。但Access默认是不显示的，要想看到这些表，得手动设置一下：选择菜单“工具”－“选项”－“视图”，在“系统对象”前面打勾，就能看到如下七个表了： "
+                           + " MSysAccessObjects、MSysAccessXML、MSysAces、MSysImexColumns、MSysObjects、MSysQueries、MSysRelationShips"
+                           + " 看是看到了，但还不能读取表里的数据，还需要设置权限：选择菜单“工具”－“安全”－“用户与组的权限”，把这些表的读写权限都勾上，OK！一切尽在掌握了，想怎么用就怎么用。"
+                           //+ " 遗憾的是，微软并没给出这些表的文档说明，具体功能也只好望文生义了。较常用的MSysObjects表，很显然储存的是一些对象，里面包含了两个字段Name和Type，可以依靠它们来判断数某个表或某个查询是否存在。"
+                           //+ " 例：SELECT [Name] FROM [MSysObjects] WHERE (Left([Name],1)<>'~') AND ([Type]=1)  ORDER BY [Name] "
+                           //+ " 其中已知的Type值和对应的类型分别是：1－表；5－查询；-32768－窗体；-32764－报表；-32761－模块；-32766－宏。"
+                           + " Connect String: Provider=Microsoft.Jet.OLEDB.4.0;Data Source=\\directory\\demo.mdb;User Id=admin;Password=;  ";
+
+                        MessageBox.Show(msg, "提示", MessageBoxButtons.OK);
                         break;
                     case "Oracle":
                         tbx_connectstring.Text = "password=;user id=;data source=;";
-                        this.lblExecuteRlt.Text = "password=;user id=;data source=;";
                         break;
                     case "Sybase":
                         tbx_connectstring.Text = "Data Source='myASEserver'; Port=5000; Database='myDBname'; UID='username'; PWD='password'; ";
-                        this.lblExecuteRlt.Text = "Data Source='myASEserver'; Port=5000; Database='myDBname'; UID='username'; PWD='password'; ";
                         break;
                     case "DbAOledb":
-                        this.lblExecuteRlt.Text = " Access:Provider=Microsoft.Jet.OLEDB.4.0;Data Source=\\directory\\demo.mdb;User Id=admin;Password=; \r\n"
+                        msg = " Access:Provider=Microsoft.Jet.OLEDB.4.0;Data Source=\\directory\\demo.mdb;User Id=admin;Password=; \r\n"
                         + " DB2:Provider=IBMDADB2;Database=demodeb;HOSTNAME=myservername;PROTOCOL=TCPIP;PORT=50000;uid=myusername;pwd=mypasswd;\r\n"
                         + " DBase:Provider=Microsoft.Jet.OLEDB.4.0;Data Source=c:\\directory;Extended Properties=dBASE IV;User ID=Admin;Password= \r\n"
                         + " Excel:Provider=Microsoft.Jet.OLEDB.4.0;Data Source=c:\\directory;Extended Properties=dBASE IV;User ID=Admin;Password= \r\n"
@@ -120,15 +118,20 @@ namespace NYear.ODA.DevTool
                         + " SQL Server:Provider=sqloledb;Data Source=myservername;Initial Catalog=mydemodb;User Id=myusername;Password=mypasswd; \r\n"
                         + " Sybase:Provider=Sybase.ASEOLEDBProvider;Server Name=myservername,5000;Initial Catalog=mydemodb;User Id=myusername;Password=mypassword  "
                         + " 以上信息來自:http://blog.csdn.net/yufei_yxd/archive/2010/04/21/5510593.aspx";
+
+                        MessageBox.Show(msg, "提示", MessageBoxButtons.OK);
                         break;
+
                     case "SQLite":
                         tbx_connectstring.Text = "Data Source=./sqlite.db";
-                        this.lblExecuteRlt.Text = "Data Source=./sqlite.db;Version=3;UseUTF16Encoding=True;Password=myPassword;Legacy Format=True;"
+                        msg = "Data Source=./sqlite.db;Version=3;UseUTF16Encoding=True;Password=myPassword;Legacy Format=True;"
                         + " Pooling=False;Max Pool Size=100;Read Only=True;DateTimeFormat=Ticks;BinaryGUID=False;Cache Size=2000;Page Size=1024;\r\n"
                             + "在FrameWork4.0上运行须要在<configuration>节点下加入以下配置： <startup useLegacyV2RuntimeActivationPolicy=\"true\" > "
                             + " <supportedRuntime version=\"v4.0\" sku=\".NETFramework,Version=v4.0\"/> "
                             + " <requiredRuntime Version=\"v4.0.20506\"/>"
                             + " </startup>";
+
+                        MessageBox.Show(msg, "提示", MessageBoxButtons.OK);
                         break;
                     case "DB2":
                         break;
@@ -209,8 +212,7 @@ namespace NYear.ODA.DevTool
             }
             else
             {
-                lblExecuteRlt.Text = "无法连接目标数据库," + ConMsg;
-                this.tbc_ExecuteSqlResult.SelectedTab = this.tpgMsg;
+                MessageBox.Show("无法连接目标数据库," + ConMsg, "提示"); 
             }
         }
 
@@ -228,6 +230,8 @@ namespace NYear.ODA.DevTool
                     TransType = "Table"
                 };
                 bgw.ReportProgress(RS.Percent, RS);
+
+                ODAParameter[] Oprms = null;
                 if (prm.NeedTransTable)
                 {
                     DataRow[] drs = prm.SrcTables.Select("TABLE_NAME ='" + prm.TranTable[i] + "'");
@@ -235,121 +239,75 @@ namespace NYear.ODA.DevTool
                         continue;
 
                     DatabaseColumnInfo[] ColumnInfo = new DatabaseColumnInfo[drs.Length];
+                    Oprms = new ODAParameter[drs.Length];
+
                     for (int j = 0; j < drs.Length; j++)
                     {
                         ColumnInfo[j] = prm.TargetDB.ODAColumnToOrigin(drs[j]["COLUMN_NAME"].ToString(), drs[j]["ODA_DATATYPE"].ToString().Trim(), decimal.Parse(drs[j]["LENGTH"].ToString().Trim()));
                         ColumnInfo[j].NotNull = drs[j]["NOT_NULL"].ToString() == "Y";
-                    }
 
-                    string[] Pkeys = prm.SourceDB.GetPrimarykey(prm.TranTable[i]);
-                    DatabaseColumnInfo[] pInfo = null;
-                    if (Pkeys != null && Pkeys.Length > 0)
-                    {
-                        pInfo = new DatabaseColumnInfo[Pkeys.Length];
-                        for (int k = 0; k < Pkeys.Length; k++)
+                        Oprms[j] = new ODAParameter()
                         {
-                            pInfo[k] = prm.TargetDB.ODAColumnToOrigin(Pkeys[k], ODAdbType.OChar.ToString(), 10);
-                        }
+                            ColumnName = drs[j]["COLUMN_NAME"].ToString(),
+                            DBDataType = (ODAdbType)Enum.Parse(typeof(ODAdbType), drs[j]["ODA_DATATYPE"].ToString().Trim()),
+                            Direction = ParameterDirection.Input,
+                            ParamsName = drs[j]["COLUMN_NAME"].ToString(),
+                            Size = int.Parse(drs[j]["LENGTH"].ToString().Trim())
+                        }; 
                     }
 
-                    string tlt = CreateTable(prm.TargetDB, prm.TranTable[i], ColumnInfo, pInfo);
+                    string[] Pkeys = prm.SourceDB.GetPrimarykey(prm.TranTable[i]); 
+                    string tlt = this.CreateTable(prm.TargetDB, prm.TranTable[i], ColumnInfo, Pkeys);
                     if (!string.IsNullOrWhiteSpace(tlt))
                     {
                         sbrlt.AppendLine(tlt);
                         continue;
                     }
+                    ReportStatus RST = new ReportStatus()
+                    {
+                        Percent = (i + 1) * 100 / prm.TranTable.Count,
+                        TransObject = "Table [" + prm.TranTable[i] + "] Created",
+                        TransType = "Table"
+                    };
+                    bgw.ReportProgress(RS.Percent, RST);
                 }
-
-                ReportStatus RST = new ReportStatus()
-                {
-                    Percent = (i + 1) * 100 / prm.TranTable.Count,
-                    TransObject = "Table [" + prm.TranTable[i] + "] Created",
-                    TransType = "Table"
-                };
-                bgw.ReportProgress(RS.Percent, RST);
 
                 if (prm.NeedTransData)
                 {
-                    DataTable targetTablesInfo = prm.TargetDB.GetTableColumns();
-                    DataRow[] drs = targetTablesInfo.Select("TABLE_NAME ='" + prm.TranTable[i] + "'");
-
-                    string insertSQL = "INSERT INTO " + prm.TranTable[i];
-                    string col = "";
-                    string iprms = "";
-                    char paramMark = prm.TargetDB.ParamsMark;
-                    for (int c = 0; c < drs.Length; c++)
-                    {
-                        DatabaseColumnInfo ColumnInfo = prm.TargetDB.ODAColumnToOrigin(drs[c]["COLUMN_NAME"].ToString(), drs[c]["ODA_DATATYPE"].ToString().Trim(), decimal.Parse(drs[c]["LENGTH"].ToString().Trim()));
-
-                        col += ColumnInfo.Name + ",";
-                        iprms += paramMark + "P_" + this.MD5_16(drs[c]["COLUMN_NAME"].ToString()) + ",";
-                    }
-
-                    insertSQL += "(" + col.TrimEnd(',') + ") VALUES (" + iprms.TrimEnd(',') + ")";
-                    int total = 1001;
+                    int total = 0;
                     int maxR = 10000;
                     int startIndx = 0;
-                    do
+                    DataTable DT_total = CurrentDatabase.DataSource.Select("SELECT COUNT(*) FROM " + prm.TranTable[i], null);
+                    int.TryParse(DT_total.Rows[0][0].ToString(), out total);
+                    while (startIndx < total) 
                     {
                         ReportStatus RSData0 = new ReportStatus()
                         {
-                            Percent = startIndx * 100 / total,
-                            TransObject = "Preparing " + startIndx.ToString() + " ~ " + (startIndx + maxR).ToString() + " record ",
+                            Percent = total == 0? 0: startIndx * 100 / total,
+                            TransObject = prm.TranTable[i]+ " Preparing " + startIndx.ToString() + " ~ " + (startIndx + maxR).ToString() + "/" + total.ToString() + " record ",
                             TransType = "Data"
                         };
-                        bgw.ReportProgress(RS.Percent, RSData0);
-
-                        DataTable DT_total = CurrentDatabase.DataSource.Select("SELECT COUNT(*) FROM " + prm.TranTable[i], null);
-                        int.TryParse(DT_total.Rows[0][0].ToString(), out total);
+                        bgw.ReportProgress(RS.Percent, RSData0); 
                         DataTable Source = CurrentDatabase.DataSource.Select("SELECT * FROM " + prm.TranTable[i], null, startIndx, maxR,null);
+                        Source.TableName = prm.TranTable[i];
 
-                        TarDB.BeginTransaction();
-                        try
+                        int endIdx = (startIndx + maxR) > total ? total : startIndx + maxR;
+                        ReportStatus RSData1 = new ReportStatus()
                         {
-                            for (int k = 0; k < Source.Rows.Count; k++)
-                            {
-                                ODAParameter[] Oprms = new ODAParameter[drs.Length];
-                                for (int c = 0; c < drs.Length; c++)
-                                {
-                                    Oprms[c] = new ODAParameter();
-                                    Oprms[c].DBDataType = (ODAdbType)Enum.Parse(typeof(ODAdbType), drs[c]["ODA_DATATYPE"].ToString());
-                                    Oprms[c].Direction = ParameterDirection.Input;
-                                    Oprms[c].ParamsName = paramMark + "P_" + this.MD5_16(drs[c]["COLUMN_NAME"].ToString());
-                                    Oprms[c].Size = int.Parse(drs[c]["LENGTH"].ToString().Trim());
-                                    if (Source.Rows[k][drs[c]["COLUMN_NAME"].ToString()] == System.DBNull.Value)
-                                    {
-                                        Oprms[c].ParamsValue = System.DBNull.Value;
-                                    }
-                                    else
-                                    {
-                                        Oprms[c].ParamsValue = Source.Rows[k][drs[c]["COLUMN_NAME"].ToString()];
-                                    }
-                                }
-                                prm.TargetDB.ExecuteSQL(insertSQL, Oprms);
-                                ReportStatus RSData1 = new ReportStatus()
-                                {
-                                    Percent = (startIndx + k) * 100 / total,
-                                    TransObject = "Transfer Data : " + (startIndx + k).ToString() + "/" + total.ToString(),
-                                    TransType = "Data"
-                                };
-                                bgw.ReportProgress(RS.Percent, RSData1);
-                            }
-                            prm.TargetDB.Commit();
-                        }
-                        catch (Exception ex)
-                        {
-                            prm.TargetDB.RollBack();
-                            sbrlt.AppendLine("Tranfer data Error:" + ex.Message);
-                        }
+                            Percent = total == 0 ? 0 : endIdx * 100 / total,
+                            TransObject = prm.TranTable[i] + " Importing " + startIndx.ToString() + " ~ " + endIdx.ToString() + "/" + total.ToString() +" record ",
+                            TransType = "Data"
+                        };
+                        bgw.ReportProgress(RS.Percent, RSData1);
+
+                        TarDB.Import(Source, Oprms); 
                         startIndx = startIndx + maxR;
                     }
-                    while (startIndx + maxR < total);
                 }
             }
-
+            if (sbrlt.Length == 0)
+                sbrlt.Append("数据复制完成！");
             e.Result = sbrlt.ToString();
-
- 
         }
 
         void bgw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
@@ -357,14 +315,20 @@ namespace NYear.ODA.DevTool
             if (!this.InvokeRequired)
             {
                 this.pnlTranStatus.Visible = false;
-                this.lblExecuteRlt.Text = e.Result.ToString();
+                this.ckbxTarDB.Visible = true;
+                MessageBox.Show(e.Result.ToString(), "提示", MessageBoxButtons.OK);
+                this.ckbxTarDB.Items.Clear();
+                this.ckbxTarDB.Items.AddRange(TarDB.GetUserTables());
             }
             else
             {
                 this.BeginInvoke(new Action(() =>
                 {
                     this.pnlTranStatus.Visible = false;
-                    this.lblExecuteRlt.Text = e.Result.ToString();
+                    this.ckbxTarDB.Visible = true;
+                    MessageBox.Show(e.Result.ToString(), "提示", MessageBoxButtons.OK);
+                    this.ckbxTarDB.Items.Clear();
+                    this.ckbxTarDB.Items.AddRange(TarDB.GetUserTables()); 
                 }), null);
 
             }
@@ -385,12 +349,12 @@ namespace NYear.ODA.DevTool
         private void SetTranStatus(ReportStatus RS)
         {
             this.pnlTranStatus.Visible = true;
-            tbc_ExecuteSqlResult.SelectedTab = tpgMsg;
+            this.ckbxTarDB.Visible = false ; 
             if (RS.TransType == "Table")
             {
                 this.lblTransTable.Text = RS.TransObject;
                 this.lblTransData.Text = "Preparing Data";
-                pgbTable.Value = RS.Percent;
+                pgbTable.Value = RS.Percent; 
                 pgbTable.Update();
             }
             else if (RS.TransType == "Data")
@@ -400,8 +364,7 @@ namespace NYear.ODA.DevTool
                 this.pgbData.Update();
             }
         }
-
-        private string CreateTable(DBAccess TargetDB, string TableName, DatabaseColumnInfo[] ColumnInfo, DatabaseColumnInfo[]  Pkeys )
+        private string CreateTable(DBAccess TargetDB, string TableName, DatabaseColumnInfo[] ColumnInfo, string[]  Pkeys )
         {
             try
             {
@@ -436,7 +399,7 @@ namespace NYear.ODA.DevTool
                 {
                     string p = "";
                     for (int j = 0; j < Pkeys.Length; j++)
-                        p += Pkeys[j].Name + ",";
+                        p += Pkeys[j] + ",";
                     p = p.Remove(p.Length - ",".Length, ",".Length);
                     creatSQL.AppendLine(" , primary key (" + p + ") ");
                 }
@@ -452,12 +415,6 @@ namespace NYear.ODA.DevTool
             return "" ;
         }
 
-        private string MD5_16(string Str)
-        {
-            MD5CryptoServiceProvider md5 = new MD5CryptoServiceProvider();
-            string t2 = BitConverter.ToString(md5.ComputeHash(System.Text.Encoding.UTF8.GetBytes(Str)), 4, 8);
-            return  t2.Replace("-", "");
-        }
     }
      
 

@@ -31,13 +31,13 @@
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.lbxTableView = new System.Windows.Forms.ListBox();
             this.CantainerSQLExecuting = new System.Windows.Forms.SplitContainer();
-            this.rtbxSql = new System.Windows.Forms.RichTextBox();
             this.tbc_ExecuteSqlResult = new System.Windows.Forms.TabControl();
             this.tpgGrid = new System.Windows.Forms.TabPage();
             this.dgvExecuteSql = new System.Windows.Forms.DataGridView();
             this.tpgMsg = new System.Windows.Forms.TabPage();
             this.panel1 = new System.Windows.Forms.Panel();
             this.lblExecuteRlt = new System.Windows.Forms.Label();
+            this.rtbxSql = new ICSharpCode.TextEditor.TextEditorControl();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -101,17 +101,6 @@
             this.CantainerSQLExecuting.SplitterWidth = 6;
             this.CantainerSQLExecuting.TabIndex = 0;
             // 
-            // rtbxSql
-            // 
-            this.rtbxSql.DetectUrls = false;
-            this.rtbxSql.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.rtbxSql.Font = new System.Drawing.Font("宋体", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.rtbxSql.Location = new System.Drawing.Point(0, 0);
-            this.rtbxSql.Name = "rtbxSql";
-            this.rtbxSql.Size = new System.Drawing.Size(597, 199);
-            this.rtbxSql.TabIndex = 2;
-            this.rtbxSql.Text = "";
-            // 
             // tbc_ExecuteSqlResult
             // 
             this.tbc_ExecuteSqlResult.Controls.Add(this.tpgGrid);
@@ -129,7 +118,7 @@
             this.tpgGrid.Location = new System.Drawing.Point(4, 22);
             this.tpgGrid.Name = "tpgGrid";
             this.tpgGrid.Padding = new System.Windows.Forms.Padding(3);
-            this.tpgGrid.Size = new System.Drawing.Size(589, 251);
+            this.tpgGrid.Size = new System.Drawing.Size(589, 262);
             this.tpgGrid.TabIndex = 0;
             this.tpgGrid.Text = "Grid";
             this.tpgGrid.UseVisualStyleBackColor = true;
@@ -142,7 +131,7 @@
             this.dgvExecuteSql.Name = "dgvExecuteSql";
             this.dgvExecuteSql.RowTemplate.Height = 24;
             this.dgvExecuteSql.ShowCellErrors = false;
-            this.dgvExecuteSql.Size = new System.Drawing.Size(583, 245);
+            this.dgvExecuteSql.Size = new System.Drawing.Size(583, 256);
             this.dgvExecuteSql.TabIndex = 0;
             this.dgvExecuteSql.DataError += new System.Windows.Forms.DataGridViewDataErrorEventHandler(this.dgvExecuteSql_DataError);
             // 
@@ -177,6 +166,16 @@
             this.lblExecuteRlt.Size = new System.Drawing.Size(586, 257);
             this.lblExecuteRlt.TabIndex = 2;
             this.lblExecuteRlt.Text = "Message";
+            // 
+            // rtbxSql
+            // 
+            this.rtbxSql.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.rtbxSql.IsReadOnly = false;
+            this.rtbxSql.Location = new System.Drawing.Point(0, 0);
+            this.rtbxSql.Name = "rtbxSql";
+            this.rtbxSql.Size = new System.Drawing.Size(597, 199);
+            this.rtbxSql.TabIndex = 3;
+            this.rtbxSql.Text = "SELECT";
             // 
             // SQLDevlop
             // 
@@ -215,6 +214,6 @@
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.Label lblExecuteRlt;
         private System.Windows.Forms.ListBox lbxTableView;
-        private System.Windows.Forms.RichTextBox rtbxSql;
+        private ICSharpCode.TextEditor.TextEditorControl rtbxSql;
     }
 }

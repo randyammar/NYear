@@ -18,17 +18,17 @@ namespace NYear.ODA
         private int _MaxLevel = 32;
 
         protected bool _Distinct = false;
-        protected List<ODAColumns> _WhereList = new List<ODAColumns>();
-        protected List<ODAColumns> _OrList = new List<ODAColumns>();
+        protected List<IODAColumns> _WhereList = new List<IODAColumns>();
+        protected List<IODAColumns> _OrList = new List<IODAColumns>();
         protected List<SqlOrderbyScript> _Orderby = new List<SqlOrderbyScript>();
-        protected List<ODAColumns> _Groupby = new List<ODAColumns>();
-        protected List<ODAColumns> _Having = new List<ODAColumns>();
+        protected List<IODAColumns> _Groupby = new List<IODAColumns>();
+        protected List<IODAColumns> _Having = new List<IODAColumns>();
         protected List<ODACmd> _ListCmd = new List<ODACmd>();
         protected List<SqlJoinScript> _JoinCmd = new List<SqlJoinScript>();
         protected List<SqlUnionScript> _UnionCmd = new List<SqlUnionScript>();
 
-        protected List<ODAColumns> WhereColumns { get { return _WhereList; } }
-        protected List<ODAColumns> OrColumns { get { return _OrList; } }
+        protected List<IODAColumns> WhereColumns { get { return _WhereList; } }
+        protected List<IODAColumns> OrColumns { get { return _OrList; } }
         protected List<ODACmd> ListJoinCmd { get { return _ListCmd; } }
         protected List<SqlJoinScript> JoinCmd { get { return _JoinCmd; } }
         protected List<SqlUnionScript> UnionCmd { get { return _UnionCmd; } }
@@ -142,7 +142,7 @@ namespace NYear.ODA
         /// <summary>
         /// 这个表的所有字段,即 "*"
         /// </summary>
-        public ODAColumns AllColumn
+        public IODAColumns AllColumn
         {
             get
             {
@@ -155,7 +155,7 @@ namespace NYear.ODA
         /// </summary>
         /// <param name="Cols">子查询的字段</param>
         /// <returns></returns>
-        public virtual ODACmdView ToView(params ODAColumns[] Cols)
+        public virtual ODACmdView ToView(params IODAColumns[] Cols)
         {
             return new ODACmdView(this, Cols)
             {
@@ -185,7 +185,7 @@ namespace NYear.ODA
         /// <param name="JoinCmd">要连接的表</param>
         /// <param name="ONCols">连接条件</param>
         /// <returns></returns>
-        public virtual ODACmd LeftJoin(ODACmd JoinCmd, params ODAColumns[] ONCols)
+        public virtual ODACmd LeftJoin(ODACmd JoinCmd, params IODAColumns[] ONCols)
         {
             return Join(JoinCmd, " LEFT JOIN ", ONCols);
         }
@@ -195,7 +195,7 @@ namespace NYear.ODA
         /// <param name="JoinCmd">要连接的表</param>
         /// <param name="ONCols">连接条件</param>
         /// <returns></returns>
-        public virtual ODACmd RightJoin(ODACmd JoinCmd, params ODAColumns[] ONCols)
+        public virtual ODACmd RightJoin(ODACmd JoinCmd, params IODAColumns[] ONCols)
         {
             return Join(JoinCmd, " RIGHT JOIN ", ONCols);
         }
@@ -205,7 +205,7 @@ namespace NYear.ODA
         /// <param name="JoinCmd">要连接的表</param>
         /// <param name="ONCols">连接条件</param>
         /// <returns></returns>
-        public virtual ODACmd InnerJoin(ODACmd JoinCmd, params ODAColumns[] ONCols)
+        public virtual ODACmd InnerJoin(ODACmd JoinCmd, params IODAColumns[] ONCols)
         {
             return Join(JoinCmd, " INNER JOIN ", ONCols);
         }
@@ -216,7 +216,7 @@ namespace NYear.ODA
         /// <param name="Join"></param>
         /// <param name="ONCols"></param>
         /// <returns></returns>
-        protected virtual ODACmd Join(ODACmd JoinCmd, string Join, params ODAColumns[] ONCols)
+        protected virtual ODACmd Join(ODACmd JoinCmd, string Join, params IODAColumns[] ONCols)
         {
             if (JoinCmd == this)
                 throw new ODAException(10002, "Inner Join Instance Can't be itselft"); 
@@ -249,41 +249,41 @@ namespace NYear.ODA
             _MaxLevel = MaxLevel;
             return this;
         }
-        public virtual ODACmd OrderbyAsc(params ODAColumns[] ColumnNames)
+        public virtual ODACmd OrderbyAsc(params IODAColumns[] ColumnNames)
         {
             if (ColumnNames != null)
                 for (int i = 0; i < ColumnNames.Length; i++)
                     _Orderby.Add(new SqlOrderbyScript() { OrderbyCol = ColumnNames[i], OrderbyScript = " ASC " });
             return this;
         }
-        public virtual ODACmd OrderbyDesc(params ODAColumns[] ColumnNames)
+        public virtual ODACmd OrderbyDesc(params IODAColumns[] ColumnNames)
         {
             if (ColumnNames != null)
                 for (int i = 0; i < ColumnNames.Length; i++)
                     _Orderby.Add(new SqlOrderbyScript() { OrderbyCol = ColumnNames[i], OrderbyScript = " DESC " });
             return this;
         }
-        public virtual ODACmd Groupby(params ODAColumns[] ColumnNames)
+        public virtual ODACmd Groupby(params IODAColumns[] ColumnNames)
         {
             _Groupby.AddRange(ColumnNames);
             return this;
         }
-        public virtual ODACmd Having(params ODAColumns[] Params)
+        public virtual ODACmd Having(params IODAColumns[] Params)
         {
             _Having.AddRange(Params);
             return this;
         }
-        public virtual ODACmd Where(params ODAColumns[] Cols)
+        public virtual ODACmd Where(params IODAColumns[] Cols)
         {
             _WhereList.AddRange(Cols);
             return this;
         }
-        public virtual ODACmd And(params ODAColumns[] Cols)
+        public virtual ODACmd And(params IODAColumns[] Cols)
         {
             _WhereList.AddRange(Cols);
             return this;
         }
-        public virtual ODACmd Or(params ODAColumns[] Cols)
+        public virtual ODACmd Or(params IODAColumns[] Cols)
         {
             if (_WhereList.Count == 0)
                 throw new ODAException(10005, "Where Condition is null,Add Where first");
@@ -367,16 +367,16 @@ namespace NYear.ODA
         /// <param name="RelationStr"></param>
         /// <param name="SubSql"></param>
         /// <returns></returns>
-        protected virtual ODAScript GetWhereSubSql(List<ODAColumns> WhereList, string RelationStr)
+        protected virtual ODAScript GetWhereSubSql(List<IODAColumns> WhereList, string RelationStr)
         {
             var sql = new ODAScript();
             if (WhereList == null || WhereList.Count == 0)
                 return sql; 
             List<ODAParameter> ParamsList = new List<ODAParameter>();
           
-            foreach (ODAColumns W in WhereList)
+            foreach (IODAColumns W in WhereList)
             {
-                var sub = ((IODAColumns)W).GetWhereSubstring();
+                var sub = W.GetWhereSubstring();
                 sql.Merge(sub);
                 sql.SqlScript.Append(RelationStr); 
             }
@@ -392,14 +392,14 @@ namespace NYear.ODA
         /// <param name="SubSql"></param>
         /// <param name="ColList"></param>
         /// <returns></returns>
-        protected virtual ODAParameter[] GetSelectColumns(string ConnectStr, out string SubSql, params ODAColumns[] ColList)
+        protected virtual ODAParameter[] GetSelectColumns(string ConnectStr, out string SubSql, params IODAColumns[] ColList)
         {
             string Sql = "";
             List<ODAParameter> ParamList = new List<ODAParameter>();
-            foreach (ODAColumns Col in ColList)
+            foreach (IODAColumns Col in ColList)
             {
                 string SubSelectSql = "";
-                ODAParameter[] prms = ((IODAColumns)Col).GetSelectColumn(out SubSelectSql);
+                ODAParameter[] prms = Col.GetSelectColumn(out SubSelectSql);
                 ParamList.AddRange(prms);
                 Sql += SubSelectSql + ConnectStr;
             }
@@ -412,21 +412,20 @@ namespace NYear.ODA
         /// </summary>
         /// <param name="ColList"></param>
         /// <returns></returns>
-        protected ODAScript GetGroupByColumns(params ODAColumns[] ColList)
+        protected ODAScript GetGroupByColumns(params IODAColumns[] ColList)
         {
             var sql = new ODAScript();
             if (ColList == null || ColList.Length == 0)
                 return sql;
 
-            foreach (ODAColumns Col in ColList)
+            foreach (IODAColumns Col in ColList)
             {
                 string OSql = "";
-                var prms = ((IODAColumns)Col).GetSelectColumn(out OSql);
+                var prms = Col.GetSelectColumn(out OSql);
                 sql.ParamList.AddRange(prms);
                 sql.SqlScript.Append(OSql + ",");
             }
             sql.SqlScript.Remove(sql.SqlScript.Length - 1, 1);
-
             return sql;
         }
 
@@ -458,7 +457,7 @@ namespace NYear.ODA
         /// <param name="CountSql"></param>
         /// <param name="Col"></param>
         /// <returns></returns>
-        protected virtual ODAScript GetCountSql(ODAColumns Col)
+        protected virtual ODAScript GetCountSql(IODAColumns Col)
         {
             if (_Groupby.Count > 0 || _Having.Count > 0)
                 throw new ODAException(10006, "Do not count the [Group by] cmd,You should probably use [ ToView(Columns).Count()] instead.");
@@ -511,7 +510,7 @@ namespace NYear.ODA
         /// <param name="SelectSql">sql脚本</param>
         /// <param name="Cols">变量列表及变操作符</param>
         /// <returns>变量列表</returns>
-        public virtual ODAScript GetSelectSql( params ODAColumns[] Cols)
+        public virtual ODAScript GetSelectSql( params IODAColumns[] Cols)
         { 
             ODAScript sql = new ODAScript()
             {
@@ -625,7 +624,7 @@ namespace NYear.ODA
         /// <param name="Sql">脚本</param>
         /// <param name="Cols">变量列表及变操作符</param>
         /// <returns>变量列表</returns>
-        protected virtual ODAScript GetInsertSql(params ODAColumns[] Cols)
+        protected virtual ODAScript GetInsertSql(params IODAColumns[] Cols)
         {
             if(Cols == null || Cols.Length ==0)
                 throw new ODAException(10018, "NO Columns for Insert!");
@@ -659,7 +658,7 @@ namespace NYear.ODA
         /// <param name="Sql">脚本</param>
         /// <param name="Cols">变量列表及变操作符</param>
         /// <returns>变量列表</returns>
-        protected virtual ODAScript GetUpdateSql(params ODAColumns[] Cols)
+        protected virtual ODAScript GetUpdateSql(params IODAColumns[] Cols)
         {
             if(Cols == null || Cols.Length ==0)
                 throw new ODAException(10019, "NO Columns for update!");
@@ -675,7 +674,7 @@ namespace NYear.ODA
             for (int i = 0; i < Cols.Length; i++)
             {
                 string ColumnTmp = "";
-                ODAParameter[] P = ((IODAColumns)Cols[i]).GetUpdateSubstring(out ColumnTmp);
+                ODAParameter[] P = Cols[i].GetUpdateSubstring(out ColumnTmp);
                 if (P != null)
                     sql.ParamList.AddRange(P);
                 Column += ColumnTmp + ",";
@@ -703,13 +702,13 @@ namespace NYear.ODA
         /// <param name="Sql"></param>
         /// <param name="Cols"></param>
         /// <returns></returns>
-        protected virtual ODAParameter[] GetProcedureSql(out string Sql, params ODAColumns[] Cols)
+        protected virtual ODAParameter[] GetProcedureSql(out string Sql, params IODAColumns[] Cols)
         {
             List<ODAParameter> ParamList = new List<ODAParameter>();
             Sql = this.DBObjectMap;
             for (int i = 0; i < Cols.Length; i++)
             {
-                ParamList.Add(((IODAColumns)Cols[i]).GetProcedureParams());
+                ParamList.Add( Cols[i].GetProcedureParams());
             }
             return ParamList.ToArray();
         }
@@ -722,7 +721,7 @@ namespace NYear.ODA
         /// </summary>
         /// <param name="Col"></param>
         /// <returns></returns>
-        public virtual int Count(ODAColumns Col = null)
+        public virtual int Count(IODAColumns Col = null)
         {
             try
             { 
@@ -738,7 +737,7 @@ namespace NYear.ODA
         /// </summary>
         /// <param name="Col"></param>
         /// <returns></returns>
-        protected virtual int CountRecords(ODAColumns Col = null)
+        protected virtual int CountRecords(IODAColumns Col = null)
         {
             var sql = this.GetCountSql(Col);
             var db = this.GetDBAccess(sql);
@@ -753,7 +752,7 @@ namespace NYear.ODA
         /// </summary>
         /// <param name="Cols">要select的字段</param>
         /// <returns></returns>
-        public virtual DataTable Select(params ODAColumns[] Cols)
+        public virtual DataTable Select(params IODAColumns[] Cols)
         {
             try
             {
@@ -785,7 +784,7 @@ namespace NYear.ODA
         /// <param name="TotalRecord">查询得到的总记录数</param>
         /// <param name="Cols">查询的字段，可为空，空则返回所有字段</param>
         /// <returns></returns>
-        public virtual DataTable Select(int StartIndex, int MaxRecord, out int TotalRecord, params ODAColumns[] Cols)
+        public virtual DataTable Select(int StartIndex, int MaxRecord, out int TotalRecord, params IODAColumns[] Cols)
         {
             try
             {
@@ -855,7 +854,7 @@ namespace NYear.ODA
         /// <typeparam name="T">对象的类型</typeparam>
         /// <param name="Cols">查询的字段，可为空，空则返回所有字段</param>
         /// <returns></returns>
-        public virtual List<T> Select<T>(params ODAColumns[] Cols) where T : class
+        public virtual List<T> Select<T>(params IODAColumns[] Cols) where T : class
         {
             try
             {
@@ -887,7 +886,7 @@ namespace NYear.ODA
         /// <param name="TotalRecord">查询得到的总记录数</param>
         /// <param name="Cols">查询的字段，可为空，空则返回所有字段</param>
         /// <returns></returns>
-        public virtual List<T> Select<T>(int StartIndex, int MaxRecord, out int TotalRecord, params ODAColumns[] Cols) where T : class
+        public virtual List<T> Select<T>(int StartIndex, int MaxRecord, out int TotalRecord, params IODAColumns[] Cols) where T : class
         {
             try
             {
@@ -953,7 +952,7 @@ namespace NYear.ODA
         /// </summary>
         /// <param name="Cols">要查询的字段</param>
         /// <returns>第一行的数据据</returns>
-        public object[] SelectFirst(params ODAColumns[] Cols)
+        public object[] SelectFirst(params IODAColumns[] Cols)
         {
             try
             {
@@ -986,16 +985,17 @@ namespace NYear.ODA
                 sql.TableList.Add(this.CmdName);
                 sql.ParamList.AddRange(Prms);
                 sql.SqlScript.Append(this.CmdName);
+                Data.TableName = this.CmdName;
                 var db = this.GetDBAccess(sql);
                 if (db == null)
                     throw new ODAException(10012, "ODACmd Import 没有执行程序");
-                return db.Import(this.CmdName, Prms, Data);
+                return db.Import(Data,Prms);
             }
             finally
             {
                 this.Clear();
             }
-        }
+        } 
         /// <summary>
         /// 在数据库中执行Delete 语句
         /// </summary>
@@ -1021,7 +1021,7 @@ namespace NYear.ODA
         /// </summary>
         /// <param name="Cols">需要更新的字段及其值</param>
         /// <returns></returns>
-        public virtual bool Update(params ODAColumns[] Cols)
+        public virtual bool Update(params IODAColumns[] Cols)
         {
             try
             {
@@ -1043,7 +1043,7 @@ namespace NYear.ODA
         /// </summary>
         /// <param name="Cols">插件的字段及其值</param>
         /// <returns></returns>
-        public virtual bool Insert(params ODAColumns[] Cols)
+        public virtual bool Insert(params IODAColumns[] Cols)
         {
             try
             {
@@ -1065,7 +1065,7 @@ namespace NYear.ODA
         /// <param name="SelectCmd"></param>
         /// <param name="Cols">select的字段</param>
         /// <returns></returns>
-        public virtual bool Insert(ODACmd SelectCmd, params ODAColumns[] Cols)
+        public virtual bool Insert(ODACmd SelectCmd, params IODAColumns[] Cols)
         {
             try
             {
@@ -1098,7 +1098,7 @@ namespace NYear.ODA
         /// </summary>
         /// <param name="Cols">存储过程的参数及其值</param>
         /// <returns></returns>
-        public virtual DataSet Procedure(params ODAColumns[] Cols)
+        public virtual DataSet Procedure(params IODAColumns[] Cols)
         {
             try
             {

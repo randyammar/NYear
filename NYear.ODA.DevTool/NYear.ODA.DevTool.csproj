@@ -39,6 +39,10 @@
     <NoWin32Manifest>true</NoWin32Manifest>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="ICSharpCode.TextEditor, Version=3.2.1.6466, Culture=neutral, PublicKeyToken=4d61825e8dd49f1a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Reference\ICSharpCode.TextEditor.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Web.Extensions" />
@@ -118,6 +122,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <None Include="packages.config" />
     <None Include="Resources\CSharp_16x16.png" />
   </ItemGroup>
   <ItemGroup>
@@ -140,6 +145,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\BugReport_16x16.png" />
+    <None Include="Resources\database_refresh.png" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NYEAR.ODA\NYear.ODA.csproj">

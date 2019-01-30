@@ -33,32 +33,25 @@
             this.ckbxDatabaseobject = new System.Windows.Forms.CheckedListBox();
             this.Target = new System.Windows.Forms.GroupBox();
             this.label1 = new System.Windows.Forms.Label();
-            this.tbc_ExecuteSqlResult = new System.Windows.Forms.TabControl();
-            this.tpgGrid = new System.Windows.Forms.TabPage();
-            this.ckbxTarDB = new System.Windows.Forms.CheckedListBox();
-            this.tpgMsg = new System.Windows.Forms.TabPage();
-            this.panel1 = new System.Windows.Forms.Panel();
-            this.pnlTranStatus = new System.Windows.Forms.Panel();
-            this.lblTransData = new System.Windows.Forms.Label();
-            this.lblTransTable = new System.Windows.Forms.Label();
-            this.pgbData = new System.Windows.Forms.ProgressBar();
-            this.pgbTable = new System.Windows.Forms.ProgressBar();
             this.cbxCreateTable = new System.Windows.Forms.CheckBox();
             this.cbxTransData = new System.Windows.Forms.CheckBox();
             this.tbx_connectstring = new System.Windows.Forms.TextBox();
             this.cbbx_database = new System.Windows.Forms.ComboBox();
             this.lbl_database = new System.Windows.Forms.Label();
             this.lbl_connect_string = new System.Windows.Forms.Label();
-            this.lblExecuteRlt = new System.Windows.Forms.RichTextBox();
+            this.gbxInformation = new System.Windows.Forms.GroupBox();
+            this.ckbxTarDB = new System.Windows.Forms.CheckedListBox();
+            this.pnlTranStatus = new System.Windows.Forms.Panel();
+            this.lblTransData = new System.Windows.Forms.Label();
+            this.lblTransTable = new System.Windows.Forms.Label();
+            this.pgbData = new System.Windows.Forms.ProgressBar();
+            this.pgbTable = new System.Windows.Forms.ProgressBar();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
             this.Target.SuspendLayout();
-            this.tbc_ExecuteSqlResult.SuspendLayout();
-            this.tpgGrid.SuspendLayout();
-            this.tpgMsg.SuspendLayout();
-            this.panel1.SuspendLayout();
+            this.gbxInformation.SuspendLayout();
             this.pnlTranStatus.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -106,8 +99,8 @@
             this.Target.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.Target.Controls.Add(this.gbxInformation);
             this.Target.Controls.Add(this.label1);
-            this.Target.Controls.Add(this.tbc_ExecuteSqlResult);
             this.Target.Controls.Add(this.cbxCreateTable);
             this.Target.Controls.Add(this.cbxTransData);
             this.Target.Controls.Add(this.tbx_connectstring);
@@ -128,113 +121,6 @@
             this.label1.Size = new System.Drawing.Size(87, 20);
             this.label1.TabIndex = 35;
             this.label1.Text = "Copy Object";
-            // 
-            // tbc_ExecuteSqlResult
-            // 
-            this.tbc_ExecuteSqlResult.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.tbc_ExecuteSqlResult.Controls.Add(this.tpgGrid);
-            this.tbc_ExecuteSqlResult.Controls.Add(this.tpgMsg);
-            this.tbc_ExecuteSqlResult.Location = new System.Drawing.Point(1, 100);
-            this.tbc_ExecuteSqlResult.Name = "tbc_ExecuteSqlResult";
-            this.tbc_ExecuteSqlResult.SelectedIndex = 0;
-            this.tbc_ExecuteSqlResult.Size = new System.Drawing.Size(600, 301);
-            this.tbc_ExecuteSqlResult.TabIndex = 34;
-            // 
-            // tpgGrid
-            // 
-            this.tpgGrid.Controls.Add(this.ckbxTarDB);
-            this.tpgGrid.Location = new System.Drawing.Point(4, 22);
-            this.tpgGrid.Name = "tpgGrid";
-            this.tpgGrid.Padding = new System.Windows.Forms.Padding(3);
-            this.tpgGrid.Size = new System.Drawing.Size(592, 275);
-            this.tpgGrid.TabIndex = 0;
-            this.tpgGrid.Text = "Current";
-            this.tpgGrid.UseVisualStyleBackColor = true;
-            // 
-            // ckbxTarDB
-            // 
-            this.ckbxTarDB.ColumnWidth = 240;
-            this.ckbxTarDB.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.ckbxTarDB.Location = new System.Drawing.Point(3, 3);
-            this.ckbxTarDB.MultiColumn = true;
-            this.ckbxTarDB.Name = "ckbxTarDB";
-            this.ckbxTarDB.Size = new System.Drawing.Size(586, 269);
-            this.ckbxTarDB.TabIndex = 16;
-            // 
-            // tpgMsg
-            // 
-            this.tpgMsg.Controls.Add(this.panel1);
-            this.tpgMsg.Location = new System.Drawing.Point(4, 22);
-            this.tpgMsg.Name = "tpgMsg";
-            this.tpgMsg.Padding = new System.Windows.Forms.Padding(3);
-            this.tpgMsg.Size = new System.Drawing.Size(592, 275);
-            this.tpgMsg.TabIndex = 1;
-            this.tpgMsg.Text = "Message";
-            this.tpgMsg.UseVisualStyleBackColor = true;
-            // 
-            // panel1
-            // 
-            this.panel1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.panel1.Controls.Add(this.pnlTranStatus);
-            this.panel1.Controls.Add(this.lblExecuteRlt);
-            this.panel1.Location = new System.Drawing.Point(3, 3);
-            this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(589, 250);
-            this.panel1.TabIndex = 4;
-            // 
-            // pnlTranStatus
-            // 
-            this.pnlTranStatus.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.pnlTranStatus.Controls.Add(this.lblTransData);
-            this.pnlTranStatus.Controls.Add(this.lblTransTable);
-            this.pnlTranStatus.Controls.Add(this.pgbData);
-            this.pnlTranStatus.Controls.Add(this.pgbTable);
-            this.pnlTranStatus.Location = new System.Drawing.Point(0, 3);
-            this.pnlTranStatus.Name = "pnlTranStatus";
-            this.pnlTranStatus.Size = new System.Drawing.Size(583, 169);
-            this.pnlTranStatus.TabIndex = 4;
-            this.pnlTranStatus.Visible = false;
-            // 
-            // lblTransData
-            // 
-            this.lblTransData.AutoSize = true;
-            this.lblTransData.Location = new System.Drawing.Point(4, 72);
-            this.lblTransData.Name = "lblTransData";
-            this.lblTransData.Size = new System.Drawing.Size(59, 12);
-            this.lblTransData.TabIndex = 6;
-            this.lblTransData.Text = "TransData";
-            // 
-            // lblTransTable
-            // 
-            this.lblTransTable.AutoSize = true;
-            this.lblTransTable.Location = new System.Drawing.Point(4, 20);
-            this.lblTransTable.Name = "lblTransTable";
-            this.lblTransTable.Size = new System.Drawing.Size(65, 12);
-            this.lblTransTable.TabIndex = 5;
-            this.lblTransTable.Text = "TransTable";
-            // 
-            // pgbData
-            // 
-            this.pgbData.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.pgbData.Location = new System.Drawing.Point(0, 87);
-            this.pgbData.Name = "pgbData";
-            this.pgbData.Size = new System.Drawing.Size(580, 23);
-            this.pgbData.TabIndex = 4;
-            // 
-            // pgbTable
-            // 
-            this.pgbTable.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.pgbTable.Location = new System.Drawing.Point(0, 38);
-            this.pgbTable.Name = "pgbTable";
-            this.pgbTable.Size = new System.Drawing.Size(580, 23);
-            this.pgbTable.TabIndex = 3;
             // 
             // cbxCreateTable
             // 
@@ -296,15 +182,81 @@
             this.lbl_connect_string.TabIndex = 31;
             this.lbl_connect_string.Text = "Connect String";
             // 
-            // lblExecuteRlt
+            // gbxInformation
             // 
-            this.lblExecuteRlt.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.lblExecuteRlt.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.lblExecuteRlt.Location = new System.Drawing.Point(0, 0);
-            this.lblExecuteRlt.Name = "lblExecuteRlt";
-            this.lblExecuteRlt.Size = new System.Drawing.Size(589, 250);
-            this.lblExecuteRlt.TabIndex = 5;
-            this.lblExecuteRlt.Text = "";
+            this.gbxInformation.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.gbxInformation.Controls.Add(this.pnlTranStatus);
+            this.gbxInformation.Controls.Add(this.ckbxTarDB);
+            this.gbxInformation.Location = new System.Drawing.Point(6, 106);
+            this.gbxInformation.Name = "gbxInformation";
+            this.gbxInformation.Size = new System.Drawing.Size(589, 292);
+            this.gbxInformation.TabIndex = 18;
+            this.gbxInformation.TabStop = false;
+            this.gbxInformation.Text = "Information";
+            // 
+            // ckbxTarDB
+            // 
+            this.ckbxTarDB.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.ckbxTarDB.ColumnWidth = 240;
+            this.ckbxTarDB.Location = new System.Drawing.Point(6, 16);
+            this.ckbxTarDB.MultiColumn = true;
+            this.ckbxTarDB.Name = "ckbxTarDB";
+            this.ckbxTarDB.Size = new System.Drawing.Size(577, 260);
+            this.ckbxTarDB.TabIndex = 18;
+            // 
+            // pnlTranStatus
+            // 
+            this.pnlTranStatus.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.pnlTranStatus.Controls.Add(this.lblTransData);
+            this.pnlTranStatus.Controls.Add(this.lblTransTable);
+            this.pnlTranStatus.Controls.Add(this.pgbData);
+            this.pnlTranStatus.Controls.Add(this.pgbTable);
+            this.pnlTranStatus.Location = new System.Drawing.Point(6, 34);
+            this.pnlTranStatus.Name = "pnlTranStatus";
+            this.pnlTranStatus.Size = new System.Drawing.Size(577, 242);
+            this.pnlTranStatus.TabIndex = 19;
+            this.pnlTranStatus.Visible = false;
+            // 
+            // lblTransData
+            // 
+            this.lblTransData.AutoSize = true;
+            this.lblTransData.Location = new System.Drawing.Point(4, 72);
+            this.lblTransData.Name = "lblTransData";
+            this.lblTransData.Size = new System.Drawing.Size(59, 12);
+            this.lblTransData.TabIndex = 6;
+            this.lblTransData.Text = "TransData";
+            // 
+            // lblTransTable
+            // 
+            this.lblTransTable.AutoSize = true;
+            this.lblTransTable.Location = new System.Drawing.Point(4, 20);
+            this.lblTransTable.Name = "lblTransTable";
+            this.lblTransTable.Size = new System.Drawing.Size(65, 12);
+            this.lblTransTable.TabIndex = 5;
+            this.lblTransTable.Text = "TransTable";
+            // 
+            // pgbData
+            // 
+            this.pgbData.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.pgbData.Location = new System.Drawing.Point(0, 87);
+            this.pgbData.Name = "pgbData";
+            this.pgbData.Size = new System.Drawing.Size(574, 23);
+            this.pgbData.TabIndex = 4;
+            // 
+            // pgbTable
+            // 
+            this.pgbTable.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.pgbTable.Location = new System.Drawing.Point(0, 38);
+            this.pgbTable.Name = "pgbTable";
+            this.pgbTable.Size = new System.Drawing.Size(574, 23);
+            this.pgbTable.TabIndex = 3;
             // 
             // DBCopy
             // 
@@ -321,10 +273,7 @@
             this.splitContainer1.ResumeLayout(false);
             this.Target.ResumeLayout(false);
             this.Target.PerformLayout();
-            this.tbc_ExecuteSqlResult.ResumeLayout(false);
-            this.tpgGrid.ResumeLayout(false);
-            this.tpgMsg.ResumeLayout(false);
-            this.panel1.ResumeLayout(false);
+            this.gbxInformation.ResumeLayout(false);
             this.pnlTranStatus.ResumeLayout(false);
             this.pnlTranStatus.PerformLayout();
             this.ResumeLayout(false);
@@ -342,18 +291,14 @@
         private System.Windows.Forms.TextBox tbx_connectstring;
         private System.Windows.Forms.CheckBox cbxTransData;
         private System.Windows.Forms.CheckBox cbxCreateTable;
-        private System.Windows.Forms.TabControl tbc_ExecuteSqlResult;
-        private System.Windows.Forms.TabPage tpgGrid;
-        private System.Windows.Forms.TabPage tpgMsg;
-        private System.Windows.Forms.Panel panel1;
-        private System.Windows.Forms.CheckedListBox ckbxTarDB;
         private System.Windows.Forms.GroupBox Target;
         private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.GroupBox gbxInformation;
         private System.Windows.Forms.Panel pnlTranStatus;
         private System.Windows.Forms.Label lblTransData;
         private System.Windows.Forms.Label lblTransTable;
         private System.Windows.Forms.ProgressBar pgbData;
         private System.Windows.Forms.ProgressBar pgbTable;
-        private System.Windows.Forms.RichTextBox lblExecuteRlt;
+        private System.Windows.Forms.CheckedListBox ckbxTarDB;
     }
 }

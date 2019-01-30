@@ -128,118 +128,6 @@ namespace NYear.ODA.Adapter
             return Dt;
         }
 
-
-
-        /* 
-         * 
-         * 索引的脚本
-          WITH    idxcol
-        AS ( SELECT
-              i.object_id ,
-              i.index_id ,
-              OBJECT_NAME(i.object_id) AS objname ,
-              i.name AS idxname ,
-              ocol.name AS colname ,
-              i.type AS idxtype ,
-              i.type_desc AS idxtypedesc ,
-              i.is_unique ,
-              i.is_primary_key ,
-              i.is_unique_constraint ,
-              i.fill_factor ,
-              icol.key_ordinal AS idxcoloder ,
-              icol.is_descending_key ,
-              icol.is_included_column ,
-              pt.row_count ,
-              pt.used_page_count * 8 *1024.0 / POWER(1024, 2) AS [usedrowpage_mb] ,
-              pt.reserved_page_count * 8 *1024.0 / POWER(1024, 2) AS [allrowpage_MB]
-             FROM
-              sys.indexes i ,
-              sys.index_columns icol ,
-              sys.columns ocol ,
-              sys.dm_db_partition_stats pt
-             WHERE
-              i.object_id = icol.object_id
-              AND i.index_id = icol.index_id
-              AND icol.object_id = ocol.object_id
-              AND icol.column_id = ocol.column_id
-              AND i.object_id = pt.object_id
-              AND i.index_id = pt.index_id
-              AND EXISTS ( SELECT
-                              1
-                           FROM
-                              sys.objects o
-                           WHERE
-                              o.object_id = i.object_id
-                           AND o.type = 'U' ))
-
-SELECT
-  * ,
-  N'CREATE ' + t.idxtypedesc COLLATE Latin1_General_CI_AS_KS_WS + 
-N' INDEX ' + t.idxname COLLATE Latin1_General_CI_AS_KS_WS + 
-N' ON ' + t.objname COLLATE Latin1_General_CI_AS_KS_WS +
-N'(' + CASE WHEN t.colsinc IS NULL THEN 
-t.cols COLLATE Latin1_General_CI_AS_KS_WS 
-ELSE 
-SUBSTRING(cols,LEN(colsinc)+2,LEN(cols)-LEN(colsinc)) 
-END 
-+ N')'+CASE WHEN t.colsinc IS NOT NULL THEN ' INCLUDE('+t.colsinc+')' ELSE ' ' END 
-FROM
-  ( SELECT 
-DISTINCT
-      object_id ,
-      index_id ,
-      objname ,
-      idxname ,
-      idxtypedesc ,
-      CASE WHEN is_primary_key = 1 THEN 'prmiary key'
-           ELSE CASE WHEN is_unique_constraint = 1 THEN 'unique constraint'
-                     ELSE CASE WHEN is_unique = 1 THEN 'Unique '
-                               ELSE ''
-                          END + idxtypedesc
-                END
-      END AS typedesc ,
-      STUFF(( SELECT
-                  ',' + colname + CASE WHEN is_descending_key = 1 THEN ' desc'
-                                       ELSE ''
-                                  END
-              FROM
-                  idxcol
-              WHERE
-                  object_id = c.object_id
-                  AND index_id = c.index_id
-              ORDER BY
-                  idxcoloder
-            FOR
-              XML PATH('') ), 1, 1, '') AS cols ,
-      STUFF(( SELECT
-                  ',' + colname
-              FROM
-                  idxcol
-              WHERE
-                  object_id = c.object_id
-                  AND index_id = c.index_id
-                  AND is_included_column = 1
-              ORDER BY
-                  idxcoloder
-            FOR
-              XML PATH('') ), 1, 1, '') AS colsinc ,
-      row_count ,
-      [allrowpage_MB] ,
-      [usedrowpage_mb] ,
-      [allrowpage_MB] - [usedrowpage_mb] AS unusedrowpage_mb
-    FROM
-      idxcol c ) AS t
-      */
-
-
-        /*
-         * 视图的脚本
-                         SELECT o.NAME AS  VIEW_NAME , c.text AS VIEW_SCRIPT
-             FROM sys.objects o,sys.syscomments c 
-             WHERE   o.type = 'V'
-             and c.ID = OBJECT_ID(o.name)
-         */
-
         public override string[] GetPrimarykey(string TableName)
         {
             string PrimaryCols = new StringBuilder().Append("SELECT B.COLUMN_NAME ")
@@ -307,7 +195,7 @@ DISTINCT
             }
             else
             {
-                ColInof.ColumnType = "VARCHAR2";
+                ColInof.ColumnType = "VARCHAR";
             }
             return ColInof;
         }
@@ -387,10 +275,11 @@ DISTINCT
             return Select<T>("SELECT A_B_1.* FROM ( " + SQL + " ) AS A_B_1 WHERE A_B_1.R_ID_1 > " + StartIndex.ToString() + " AND A_B_1.R_ID_1 <= " + (StartIndex + MaxRecord).ToString(), ParamList);
         }
 
-        public override bool Import(string DbTable, ODAParameter[] prms, DataTable FormTable)
+        public override bool Import(DataTable Data, ODAParameter[] Prms)
         {
             SqlBulkCopy sqlbulkcopy = null;
             IDbConnection conn = null;
+            DataTable ImportData = Data.Copy();
             try
             {
                 if (this.Transaction == null)
@@ -402,18 +291,18 @@ DISTINCT
                 {
                     sqlbulkcopy = new SqlBulkCopy((SqlConnection)this.Transaction.Connection, SqlBulkCopyOptions.Default, (SqlTransaction)this.Transaction);
                 }
-                for (int i = 0; i < prms.Length; i++)
+                for (int i = 0; i < Prms.Length; i++)
                 {
-                    if (FormTable.Columns.Contains(prms[i].ParamsName))
+                    if (ImportData.Columns.Contains(Prms[i].ParamsName))
                     {
-                        SqlBulkCopyColumnMapping colMap = new SqlBulkCopyColumnMapping(FormTable.Columns[i].ColumnName, prms[i].ParamsName);
+                        SqlBulkCopyColumnMapping colMap = new SqlBulkCopyColumnMapping(ImportData.Columns[i].ColumnName, Prms[i].ParamsName);
                         sqlbulkcopy.ColumnMappings.Add(colMap);
                     }
                 }
                 //需要操作的数据库表名  
-                sqlbulkcopy.DestinationTableName = DbTable;
+                sqlbulkcopy.DestinationTableName = ImportData.TableName;
                 //将内存表表写入  
-                sqlbulkcopy.WriteToServer(FormTable);
+                sqlbulkcopy.WriteToServer(ImportData);
                 return true;
             }
             finally

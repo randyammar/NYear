@@ -17,6 +17,7 @@ namespace NYear.ODA.DevTool
 
             mncExcuteSQL.Enabled = false;
             tlbrExecuteSQL.Enabled = false;
+            tlbrDBRefresh.Enabled = false;
             mncDBCopy.Enabled = false;
             tlbrDBCopy.Enabled = false;
             mncORMCodeCreate.Enabled = false;
@@ -156,6 +157,31 @@ namespace NYear.ODA.DevTool
                 }
             }
         }
+
+        EventHandler _DbRefresh;
+        public override event EventHandler DbRefresh
+        {
+            add
+            {
+                _DbRefresh += value; 
+                tlbrDBRefresh.Click += value;
+                mncRefresh.Click += value;
+                tlbrDBRefresh.Enabled = true;
+                mncRefresh.Enabled = true;
+            }
+            remove
+            {
+                _DbRefresh -= value;
+                tlbrDBRefresh.Click -= value;
+                mncRefresh.Click -= value;
+                if (_DbRefresh == null)
+                {
+                    tlbrDBRefresh.Enabled = false;
+                    mncRefresh.Enabled = false;
+                }
+            }
+        }
+
         EventHandler _DBCopy;
         public override event EventHandler DBCopy
         {
@@ -179,6 +205,7 @@ namespace NYear.ODA.DevTool
                 }
             }
         }
+
         EventHandler _DBConnectTest;
         public override event EventHandler DBConnectTest
         {
@@ -204,6 +231,7 @@ namespace NYear.ODA.DevTool
 
             }
         }
+
         EventHandler _ORMCodeCreate;
         public override event EventHandler ORMCodeCreate
         {
@@ -253,9 +281,5 @@ namespace NYear.ODA.DevTool
             }
         }
         #endregion
-
-
-
-
     }
 }

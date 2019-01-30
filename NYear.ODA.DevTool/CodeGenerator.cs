@@ -129,17 +129,17 @@ namespace NYear.ODA.DevTool
                 System.Text.StringBuilder strCmd = new System.Text.StringBuilder();
                 System.Text.StringBuilder strModel = new System.Text.StringBuilder();
                 System.Text.StringBuilder GetColumnList = new StringBuilder();
-                GetColumnList.AppendLine("      public override List<ODAColumns> GetColumnList() ");
-                GetColumnList.AppendLine("      { ");
-                GetColumnList.Append("          return new List<ODAColumns>() { ");
+                GetColumnList.AppendLine("\t\t public override List<ODAColumns> GetColumnList() ");
+                GetColumnList.AppendLine("\t\t { ");
+                GetColumnList.Append("\t\t\t return new List<ODAColumns>() { ");
 
                 DataRow[] drs = pdt_tables.Select("TABLE_NAME ='" + TablesAndViews[i] + "'");
                 if (drs.Length < 1)
                 {
                     drs = pdt_views.Select("TABLE_NAME ='" + TablesAndViews[i] + "'");
-                    strCmd.AppendLine("     public override bool Insert(params ODA.ODAColumns[] Cols) { throw new ODAException(\"Not suport Insert CmdName \" + CmdName);}");
-                    strCmd.AppendLine("     public override bool Update(params ODAColumns[] Cols) {  throw new ODAException(\"Not Suport Update CmdName \" + CmdName);}");
-                    strCmd.AppendLine("     public override bool Delete() {  throw new ODAException(\"Not Suport Delete CmdName \" + CmdName);}");
+                    strCmd.AppendLine("\t\t public override bool Insert(params ODA.ODAColumns[] Cols) { throw new ODAException(\"Not suport Insert CmdName \" + CmdName);}");
+                    strCmd.AppendLine("\t\t public override bool Update(params ODAColumns[] Cols) {  throw new ODAException(\"Not Suport Update CmdName \" + CmdName);}");
+                    strCmd.AppendLine("\t\t public override bool Delete() {  throw new ODAException(\"Not Suport Delete CmdName \" + CmdName);}");
                 }
 
                 for (int j = 0; j < drs.Length; j++)
@@ -163,27 +163,27 @@ namespace NYear.ODA.DevTool
                     else if (drs[j]["ODA_DATATYPE"].ToString().Trim() == ODAdbType.OVarchar.ToString())
                         ColumnCSharpDatatype = "string";
 
-                    strModel.AppendLine("   public " + ColumnCSharpDatatype + " " + ColumnName + " {get; set;}");
-                    strCmd.AppendLine("     public ODAColumns " + ColumnPascalName + "{ get { return new ODAColumns(this, \"" + ColumnName + "\", ODAdbType." + drs[j]["ODA_DATATYPE"].ToString().Trim() + ", " + drs[j]["LENGTH"].ToString().Trim() + "," + (drs[j]["NOT_NULL"].ToString().Trim()=="Y"? "true":"false") +" ); } }");
+                    strModel.AppendLine("\t\t public " + ColumnCSharpDatatype + " " + ColumnName + " {get; set;}");
+                    strCmd.AppendLine("\t\t public ODAColumns " + ColumnPascalName + "{ get { return new ODAColumns(this, \"" + ColumnName + "\", ODAdbType." + drs[j]["ODA_DATATYPE"].ToString().Trim() + ", " + drs[j]["LENGTH"].ToString().Trim() + "," + (drs[j]["NOT_NULL"].ToString().Trim()=="Y"? "true":"false") +" ); } }");
                     GetColumnList.Append(ColumnPascalName + ",");
                 }
 
-                strCmd.AppendLine("     public override string CmdName { get { return \"" + TablesAndViews[i].ToUpper() + "\"; }}");
+                strCmd.AppendLine("\t\t public override string CmdName { get { return \"" + TablesAndViews[i].ToUpper() + "\"; }}");
                 strCmd.AppendLine( GetColumnList.Remove(GetColumnList.Length -1,1).ToString() + "};");
-                strCmd.AppendLine("         }");
+                strCmd.AppendLine("\t\t }");
 
-                ModelCode.AppendLine("public partial class " + TablePascalName);
-                ModelCode.AppendLine("{");
+                ModelCode.AppendLine("\tpublic partial class " + TablePascalName);
+                ModelCode.AppendLine("\t{");
                 ModelCode.Append(strModel);
-                ModelCode.AppendLine("} ");
+                ModelCode.AppendLine("\t}");
     
                 ////Cmd的代碼
-                strbldr.Append("internal partial class ");
+                strbldr.Append("\tinternal partial class ");
                 strbldr.Append("Cmd" + Pascal(TablePascalName));
                 strbldr.AppendLine(":ORMCmd<" + TablePascalName + ">");
-                strbldr.AppendLine("{"); 
+                strbldr.AppendLine("\t{"); 
                 strbldr.Append(strCmd);
-                strbldr.AppendLine("}");
+                strbldr.AppendLine("\t}");
             }
 
             strbldr.AppendLine("}");

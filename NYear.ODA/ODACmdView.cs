@@ -5,7 +5,7 @@ namespace NYear.ODA
     public class ODACmdView : ODACmd
     {
         private ODACmd _CmdView = null;
-        private ODAColumns[] SelectCols = null;
+        private IODAColumns[] SelectCols = null;
         public override string CmdName
         {
             get
@@ -55,7 +55,7 @@ namespace NYear.ODA
             return new ODAColumns(this, ColName, ColType, size);
         }
 
-        internal ODACmdView(ODACmd Cmd, params ODAColumns[] Cols)
+        internal ODACmdView(ODACmd Cmd, params IODAColumns[] Cols)
         { 
             _CmdView = Cmd;
             Alias = Cmd.GetAlias();

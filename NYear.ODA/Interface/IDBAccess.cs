@@ -62,6 +62,6 @@ namespace NYear.ODA
         [OperationContract]
         DataTable GetUserProcedureArguments(string ProcedureName);
         [OperationContract]
-        bool Import(string DbTable, ODAParameter[] prms, DataTable FormTable);
+        bool Import(DataTable Data, ODAParameter[] Prms);
     }
 }

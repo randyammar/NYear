@@ -198,10 +198,11 @@ namespace NYear.ODA.Adapter
                 CloseCommand(Cmd);
             }
         }
-        public override bool Import(string DbTable, ODAParameter[] prms, DataTable FormTable)
+        public override bool Import(DataTable Data, ODAParameter[] Prms)
         {
             DB2BulkCopy bulkcopy = null;
             IDbConnection conn = null;
+            DataTable ImportData = Data.Copy();
             try
             {
                 if (this.Transaction == null)
@@ -213,18 +214,18 @@ namespace NYear.ODA.Adapter
                 {
                     bulkcopy = new DB2BulkCopy((DB2Connection)this.Transaction.Connection, DB2BulkCopyOptions.Default);
                 }
-                for (int i = 0; i < prms.Length; i++)
+                for (int i = 0; i < Prms.Length; i++)
                 {
-                    if (FormTable.Columns.Contains(prms[i].ParamsName))
+                    if (ImportData.Columns.Contains(Prms[i].ParamsName))
                     {
-                        DB2BulkCopyColumnMapping colMap = new DB2BulkCopyColumnMapping(FormTable.Columns[i].ColumnName, prms[i].ParamsName);
+                        DB2BulkCopyColumnMapping colMap = new DB2BulkCopyColumnMapping(ImportData.Columns[i].ColumnName, Prms[i].ParamsName);
                         bulkcopy.ColumnMappings.Add(colMap);
                     }
                 }
                 //需要操作的数据库表名  
-                bulkcopy.DestinationTableName = DbTable;
+                bulkcopy.DestinationTableName = ImportData.TableName;
                 //将内存表表写入  
-                bulkcopy.WriteToServer(FormTable);
+                bulkcopy.WriteToServer(ImportData);
                 return true;
             }
             finally

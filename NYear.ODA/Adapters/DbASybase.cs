@@ -156,11 +156,11 @@ namespace NYear.ODA.Adapter
             }
             else if (ColumnType.Trim() == ODAdbType.OVarchar.ToString())
             {
-                ColInof.ColumnType = "VARCHAR2";
+                ColInof.ColumnType = "VARCHAR";
             }
             else
             {
-                ColInof.ColumnType = "VARCHAR2";
+                ColInof.ColumnType = "VARCHAR";
             }
             return ColInof;
         }
@@ -170,24 +170,25 @@ namespace NYear.ODA.Adapter
         //    string BlockStr = SQL + " limit " + StartIndex.ToString() + "," + MaxRecord.ToString();
         //    return Select(TransactionID, BlockStr, ParamList);
         //}
-        public override bool Import(string DbTable, ODAParameter[] prms, DataTable FormTable)
+        public override bool Import(DataTable Data,ODAParameter[] Prms)
         {
+            DataTable ImportData = Data.Copy();
             IDbCommand Cmd = OpenCommand();
             try
             {
                 AseBulkCopy sqlbulkcopy = new AseBulkCopy((AseConnection)Cmd.Connection);
-                for (int i = 0; i < prms.Length; i++)
+                for (int i = 0; i < Prms.Length; i++)
                 {
-                    if (FormTable.Columns.Contains(prms[i].ParamsName))
+                    if (ImportData.Columns.Contains(Prms[i].ParamsName))
                     {
-                        AseBulkCopyColumnMapping colMap = new AseBulkCopyColumnMapping(FormTable.Columns[i].ColumnName, prms[i].ParamsName);
+                        AseBulkCopyColumnMapping colMap = new AseBulkCopyColumnMapping(ImportData.Columns[i].ColumnName, Prms[i].ParamsName);
                         sqlbulkcopy.ColumnMappings.Add(colMap);
                     }
                 }
                 //需要操作的数据库表名  
-                sqlbulkcopy.DestinationTableName = DbTable;
+                sqlbulkcopy.DestinationTableName = ImportData.TableName;
                 //将内存表表写入  
-                sqlbulkcopy.WriteToServer(FormTable);
+                sqlbulkcopy.WriteToServer(ImportData);
                 sqlbulkcopy.Close();
                 return true;
             }

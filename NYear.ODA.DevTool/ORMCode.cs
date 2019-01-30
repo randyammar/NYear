@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.IO;
+using ICSharpCode.TextEditor.Document;
 
 namespace NYear.ODA.DevTool
 {
@@ -21,11 +22,16 @@ namespace NYear.ODA.DevTool
             this.ckbx_databaseobject.Items.Clear();
             this.ckbx_databaseobject.Items.AddRange(CurrentDatabase.DataSource.GetUserTables());
             this.ckbx_databaseobject.Items.AddRange(CurrentDatabase.DataSource.GetUserViews());
-            
+
             if (this.MdiParent is MdiParentForm)
             {
                 this.MdiParent.MdiChildActivate += MdiParent_MdiChildActivate;
             }
+            this.rtbxModel.Document.HighlightingStrategy = HighlightingStrategyFactory.CreateHighlightingStrategy("C#");
+            this.rtbxModel.Encoding = Encoding.GetEncoding("UTF-8");
+
+            this.rtbx_code.Document.HighlightingStrategy = HighlightingStrategyFactory.CreateHighlightingStrategy("C#");
+            this.rtbx_code.Encoding = Encoding.GetEncoding("UTF-8");
         }
         protected override void OnClosed(EventArgs e)
         {
@@ -56,9 +62,7 @@ namespace NYear.ODA.DevTool
                 creat[i] = this.ckbx_databaseobject.CheckedItems[i].ToString();
                 tranSeq += ",\"" + creat[i] + "\"";
             }
-            CodeGenerator codeGen = new CodeGenerator(CurrentDatabase.DataSource);
-            string code = codeGen.GenerateORMBase(CurrentDatabase.DBConnectString);
-            rtbx_ORMCmd.Text = code;
+            CodeGenerator codeGen = new CodeGenerator(CurrentDatabase.DataSource); 
             string[] Code = codeGen.Generate_Code(creat);
             this.rtbx_code.Text = Code[0];
             this.rtbxModel.Text = Code[1];
@@ -67,43 +71,46 @@ namespace NYear.ODA.DevTool
 
         private void SaveORMCode(object sender, System.EventArgs e)
         {
-            FolderBrowserDialog folderDlg = new FolderBrowserDialog();
-            folderDlg.SelectedPath = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
 
-            if (folderDlg.ShowDialog(this) == DialogResult.OK)
+            SaveFileDialog  SaveDlg = new SaveFileDialog();
+            SaveDlg.DefaultExt = ".cs";
+            SaveDlg.Filter = "指令(*.Cmd.cs),实体(*.Model.cs)|*.cs";
+            //“文本文件(*.txt) | *.txt | 所有文件(*.*) | *.*””
+
+            SaveDlg.InitialDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            if (SaveDlg.ShowDialog(this) == DialogResult.OK)
             {
-                if (MessageBox.Show("Create file for each Class ?", "Create file for each Class", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
+
+                var sfi = new FileInfo(SaveDlg.FileName);
+                var modelFile = sfi.FullName.Replace(sfi.Extension, "") + ".Model.cs";
+                var cmdFile = sfi.FullName.Replace(sfi.Extension, "") + ".Cmd.cs";
+                if (File.Exists(modelFile) )
                 {
-                    string[] creat = new string[this.ckbx_databaseobject.CheckedItems.Count];
-                    for (int i = 0; i < creat.Length; i++)
-                        creat[i] = this.ckbx_databaseobject.CheckedItems[i].ToString();
-
-                    CodeGenerator codeGen = new CodeGenerator(CurrentDatabase.DataSource);
-                    for (int i = 0; i < creat.Length; i++)
+                    if(MessageBox.Show("File ["+ sfi.Name.Replace(sfi.Extension, "") + ".Model.cs] is exists,Replace it ?","File exists", MessageBoxButtons.YesNo) == DialogResult.No)
                     {
-                        string[] Code = codeGen.Generate_Code(creat[i]);
-                        string CmdPascal = codeGen.Pascal(creat[i]);
-
-                        File.WriteAllText(Path.Combine(folderDlg.SelectedPath + "\\Cmd" + CmdPascal + ".cs"), Code[0], Encoding.UTF8);
-                        File.WriteAllText(Path.Combine(folderDlg.SelectedPath + "\\" + creat[i] + ".cs"), Code[1], Encoding.UTF8);
+                        return;
+                    }
+                    else
+                    {
+                        File.Delete(modelFile);
+                    } 
+                }
+                if (File.Exists(cmdFile))
+                {
+                    if (MessageBox.Show("File [" + sfi.Name.Replace(sfi.Extension, "") + ".Cmd.cs] is exists,Replace it ?", "File exists", MessageBoxButtons.YesNo) == DialogResult.No)
+                    {
+                        return;
+                    }
+                    else
+                    {
+                        File.Delete(cmdFile);
                     }
                 }
-                else
-                {
-                    if (File.Exists(Path.Combine(folderDlg.SelectedPath + "\\ORMBase.gen.cs"))
-                        || File.Exists(Path.Combine(folderDlg.SelectedPath + "\\Command.gen.cs"))
-                         || File.Exists(Path.Combine(folderDlg.SelectedPath + "\\Model.gen.cs"))
-                        )
-                    {
-                        if (MessageBox.Show("File Exists,Replace it?", "File Exists", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == System.Windows.Forms.DialogResult.No)
-                        {
-                            return;
-                        }
-                    }
-                    File.WriteAllText(Path.Combine(folderDlg.SelectedPath + "\\ORMBase.gen.cs"), rtbx_ORMCmd.Text);
-                    File.WriteAllText(Path.Combine(folderDlg.SelectedPath + "\\Command.gen.cs"), rtbx_code.Text);
-                    File.WriteAllText(Path.Combine(folderDlg.SelectedPath + "\\Model.gen.cs"), rtbxModel.Text);
-                }
+                if (!sfi.Directory.Exists)
+                    sfi.Directory.Create();
+
+                File.WriteAllText(Path.Combine(cmdFile), rtbx_code.Text);
+                File.WriteAllText(Path.Combine(modelFile), rtbxModel.Text); 
             }
         }
 

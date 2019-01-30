@@ -175,7 +175,7 @@ namespace NYear.ODA.Adapter
             }
             else
             {
-                ColInof.ColumnType = "VARCHAR2";
+                ColInof.ColumnType = "VARCHAR";
             }
             return ColInof;
         }
@@ -209,16 +209,15 @@ namespace NYear.ODA.Adapter
             }
         }
 
-        public override bool Import(string DbTable, ODAParameter[] prms, DataTable FormTable)
+        public override bool Import(DataTable Data, ODAParameter[] Prms)
         {
             int ImportCount = 0;
             MySqlConnection conn = null;
+            DataTable ImportData = Data.Copy();
             string tmpPath = Path.GetTempFileName();
             try
             {
                 MySqlBulkLoader bulk = null;
-                string csv = DataTableToCsv(FormTable, prms.Length);
-                File.WriteAllText(tmpPath, csv);
                 if (this.Transaction == null)
                 {
                     bulk = new MySqlBulkLoader((MySqlConnection)this.Transaction.Connection);
@@ -228,15 +227,40 @@ namespace NYear.ODA.Adapter
                     conn = (MySqlConnection)this.GetConnection();
                     bulk = new MySqlBulkLoader((MySqlConnection)conn);
                 }
+
+                bool haveCol = false;
+                for(int m = 0; m < Prms.Length; m ++ )
+                {
+                    haveCol = false;
+                    for (int n = 0; n < ImportData.Columns.Count; n ++ )
+                    {
+                        if(Prms[m].ColumnName == ImportData.Columns[n].ColumnName)
+                        {
+                            haveCol = true;
+                            break;
+                        } 
+                    }
+                    if(haveCol)
+                    {
+                        ImportData.Columns[Prms[m].ColumnName].SetOrdinal(m);
+                    }
+                    else
+                    {
+                        ImportData.Columns.Add(new DataColumn(Prms[m].ColumnName));
+                        ImportData.Columns[Prms[m].ColumnName].SetOrdinal(m);
+                    }
+                    bulk.Columns.Add(Prms[m].ParamsName);
+                } 
+                
+                string csv = DataTableToCsv(ImportData, Prms);
+                File.WriteAllText(tmpPath, csv); 
                 bulk.FieldTerminator = ",";
                 bulk.FieldQuotationCharacter = '"';
                 bulk.EscapeCharacter = '"';
                 bulk.LineTerminator = "\r\n";
                 bulk.FileName = tmpPath;
                 bulk.NumberOfLinesToSkip = 0;
-                bulk.TableName = DbTable;
-                for (int i = 0; i < prms.Length; i++)
-                    bulk.Columns.Add(prms[i].ParamsName);
+                bulk.TableName = ImportData.TableName; 
                 ImportCount = bulk.Load();
                 return ImportCount > 0;
             }
@@ -254,26 +278,30 @@ namespace NYear.ODA.Adapter
         /// <summary>
         ///将DataTable转换为标准的CSV
         /// </summary>
-        /// <param name="table">数据表</param>
+        /// <param name="Table">数据表</param>
         /// <returns>返回标准的CSV</returns>
-        private static string DataTableToCsv(DataTable table, int ColIdx)
+        private static string DataTableToCsv(DataTable Table, ODAParameter[] Prms)
         {
             //以半角逗号（即,）作分隔符，列为空也要表达其存在。
             //列内容如存在半角逗号（即,）则用半角引号（即""）将该字段值包含起来。
             //列内容如存在半角引号（即"）则应替换成半角双引号（""）转义，并用半角引号（即""）将该字段值包含起来。
             StringBuilder sb = new StringBuilder();
             DataColumn colum;
-            foreach (DataRow row in table.Rows)
+            foreach (DataRow row in Table.Rows)
             {
-                for (int i = 0; i <= ColIdx; i++)
+                for (int i = 0; i <= Prms.Length; i++)
                 {
-                    colum = table.Columns[i];
-                    if (i != 0) sb.Append(",");
+                    colum = Table.Columns[i]; 
+                    if (i != 0)
+                        sb.Append(",");
                     if (colum.DataType == typeof(string) && row[colum].ToString().Contains(","))
                     {
                         sb.Append("\"" + row[colum].ToString().Replace("\"", "\"\"") + "\"");
                     }
-                    else sb.Append(row[colum].ToString());
+                    else
+                    {
+                        sb.Append(row[colum].ToString());
+                    }
                 }
                 sb.AppendLine();
             }

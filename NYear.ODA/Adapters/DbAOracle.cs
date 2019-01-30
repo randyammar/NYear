@@ -315,34 +315,63 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
                 CloseCommand(Cmd);
             }
         }
-        public override bool Import(string DbTable, ODAParameter[] prms, DataTable FormTable)
+        public override bool Import(DataTable Data, ODAParameter[] Prms)
         {
             string Sqlcols = "";
             string Sqlprms = "";
+            DataTable ImportData = Data.Copy();
             IDbCommand Cmd = OpenCommand();
             try
             {
-                for (int i = 0; i < prms.Length; i++)
+                bool haveCol = false; 
+                for (int i = 0; i < Prms.Length; i++)
                 {
-                    Sqlcols += "," + prms[i].ParamsName;
-                    Sqlprms += "," + DbAOracle.DBParamsMark + prms[i].ParamsName;
+                    Sqlcols += "," + Prms[i].ParamsName;
+                    Sqlprms += "," + DbAOracle.DBParamsMark + Prms[i].ParamsName;
                     OracleParameter oraPrms = new OracleParameter();
-                    oraPrms.ParameterName = DbAOracle.DBParamsMark + prms[i].ParamsName;
-                    oraPrms.OracleDbType = GetOracleType(prms[i].DBDataType);
-                    oraPrms.Size = prms[i].Size;
+                    oraPrms.ParameterName = DbAOracle.DBParamsMark + Prms[i].ParamsName;
+                    oraPrms.OracleDbType = GetOracleType(Prms[i].DBDataType);
+                    oraPrms.Size = Prms[i].Size;
                     oraPrms.Direction = ParameterDirection.Input;
-                    oraPrms.Value = new object[FormTable.Rows.Count];
-                    Cmd.Parameters.Add(oraPrms);
+                    oraPrms.Value = new object[ImportData.Rows.Count];
+                    Cmd.Parameters.Add(oraPrms); 
+                    haveCol = false;
+                    for (int n = 0; n < ImportData.Columns.Count; n++)
+                    {
+                        if (Prms[i].ColumnName == ImportData.Columns[n].ColumnName)
+                        {
+                            haveCol = true;
+                            break;
+                        }
+                    }
+                    if (haveCol)
+                    {
+                        ImportData.Columns[Prms[i].ColumnName].SetOrdinal(i);
+                    }
+                    else
+                    {
+                        ImportData.Columns.Add(new DataColumn(Prms[i].ColumnName));
+                        ImportData.Columns[Prms[i].ColumnName].SetOrdinal(i);
+                    } 
                 }
-                string sql = "INSERT INTO " + DbTable + " ( " + Sqlcols.TrimStart(',') + ") VALUES (" + Sqlprms.TrimStart(',') + ") ";
 
-                for (int i = 0; i < FormTable.Rows.Count; i++)
+                if (ImportData.Columns.Count > Prms.Length)
+                {
+                    for(int k = ImportData.Columns.Count; k > Prms.Length; k --)
+                    {
+                        ImportData.Columns.RemoveAt(k - 1);
+                    }
+                }; 
+
+                string sql = "INSERT INTO " + ImportData.TableName + " ( " + Sqlcols.TrimStart(',') + ") VALUES (" + Sqlprms.TrimStart(',') + ") ";
+
+                for (int i = 0; i < ImportData.Rows.Count; i++)
                     for (int j = 0; j < Cmd.Parameters.Count; j++)
-                        ((object[])((OracleParameter)Cmd.Parameters[j]).Value)[i] = FormTable.Rows[i].ItemArray[j];
+                        ((object[])((OracleParameter)Cmd.Parameters[j]).Value)[i] = ImportData.Rows[i].ItemArray[j];
 
                 Cmd.CommandText = sql;
                 Cmd.CommandType = CommandType.Text;
-                ((OracleCommand)Cmd).ArrayBindCount = FormTable.Rows.Count;
+                ((OracleCommand)Cmd).ArrayBindCount = ImportData.Rows.Count;
                 return Cmd.ExecuteNonQuery() > 0;
             }
             finally
