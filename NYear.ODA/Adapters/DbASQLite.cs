@@ -163,20 +163,20 @@ namespace NYear.ODA.Adapter
                 CloseCommand(Cmd);
             }
         }
-        public override bool Import(string DbTable, ODAParameter[] prms, DataTable FormTable)
+        public override bool Import(DataTable Data, ODAParameter[] Prms)
         {
             int ImportCount = 0;
             string Sqlcols = "";
             string Sqlprms = "";
-            for (int i = 0; i < prms.Length; i++)
+            for (int i = 0; i < Prms.Length; i++)
             {
-                Sqlcols += "," + prms[i].ParamsName;
-                Sqlprms += "," + ODAParameter.ODAParamsMark + prms[i].ParamsName;
+                Sqlcols += "," + Prms[i].ParamsName;
+                Sqlprms += "," + ODAParameter.ODAParamsMark + Prms[i].ParamsName;
 
             }
             string sql = new StringBuilder()
                 .Append("INSERT INTO " )
-                .Append(DbTable )
+                .Append(Data.TableName)
                 .Append(" ( ")
                 .Append( Sqlcols.TrimStart(','))
                 .Append(") VALUES (" )
@@ -196,17 +196,17 @@ namespace NYear.ODA.Adapter
 
             try
             {
-                for (int i = 0; i < FormTable.Rows.Count; i++)
+                for (int i = 0; i < Data.Rows.Count; i++)
                 {
-                    for (int j = 0; j < prms.Length; j++)
+                    for (int j = 0; j < Prms.Length; j++)
                     {
-                        prms[j].ParamsValue = FormTable.Rows[i][j];
-                        prms[j].Direction = ParameterDirection.Input;
+                        Prms[j].ParamsValue = Data.Rows[i][j];
+                        Prms[j].Direction = ParameterDirection.Input;
                     }
 
                     var tmpCmd = conn.CreateCommand();
                     tmpCmd.CommandType = CommandType.Text;
-                    SetCmdParameters(ref tmpCmd, sql, prms);
+                    SetCmdParameters(ref tmpCmd, sql, Prms);
                     if (this.Transaction == null)
                         tmpCmd.Transaction = tmpTran;
                     else
