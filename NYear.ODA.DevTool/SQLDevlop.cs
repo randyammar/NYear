@@ -103,7 +103,8 @@ namespace NYear.ODA.DevTool
             {
                 if (Sql.Trim().ToUpper().StartsWith("SELECT "))
                 {
-                    DataTable Dt = CurrentDatabase.DataSource.Select( Sql, null,0,100,null);
+                    var cmd = CurrentDatabase.DataSource.Select(Sql); 
+                    DataTable Dt = ReadData(cmd);
                     this.dgvExecuteSql.DataSource = Dt;
                     this.dgvExecuteSql.Update();
                     this.dgvExecuteSql.Refresh();
@@ -112,7 +113,7 @@ namespace NYear.ODA.DevTool
                 }
                 else
                 {
-                    int i = CurrentDatabase.DataSource.ExecuteSQL( Sql, null);
+                    int i = CurrentDatabase.DataSource.ExecuteSQL(Sql, null);
                     ExSql = "執行SQL " + Sql + "\r\t 返回影響行數:  " + i.ToString();
                     this.tbc_ExecuteSqlResult.SelectedTab = this.tpgMsg;
                 }
@@ -123,6 +124,58 @@ namespace NYear.ODA.DevTool
                 this.tbc_ExecuteSqlResult.SelectedTab = this.tpgMsg;
             }
             this.lblExecuteRlt.Text = ExSql;
+        } 
+
+        private  DataTable ReadData(IDbCommand Cmd)
+        { 
+            try
+            {
+                int StartIndex = 0;
+                int MaxRecord = 100;
+                IDataReader Dr = Cmd.ExecuteReader();
+                DataTable dt = new DataTable("RECORDSET");
+                if (Dr.FieldCount > 0)
+                {
+                    for (int num = 0; num < Dr.FieldCount; num++)
+                    {
+                        DataColumn column = new DataColumn();
+                        if (dt.Columns.Contains(Dr.GetName(num)))
+                            column.ColumnName = Dr.GetName(num) + num.ToString();
+                        else
+                            column.ColumnName = Dr.GetName(num);
+                        column.DataType = Dr.GetFieldType(num);
+                        dt.Columns.Add(column);
+                    }
+                    while (StartIndex > 0)
+                    {
+                        if (!Dr.Read())
+                            return dt;
+                        StartIndex--;
+                    }
+                    int ReadRecord = MaxRecord;
+                    while (ReadRecord > 0 || MaxRecord == -1)
+                    {
+                        if (Dr.Read())
+                        {
+                            object[] rVal = new object[Dr.FieldCount];
+                            Dr.GetValues(rVal);
+                            dt.Rows.Add(rVal);
+                            ReadRecord--;
+                        }
+                        else
+                            break;
+                    }
+                }
+                if (Dr.Read()) 
+                    Cmd.Cancel();
+                Dr.Close();
+                Dr.Dispose();
+                return dt;
+            }
+            finally
+            {
+                Cmd.Dispose(); 
+            }
         }
 
         private void dgvExecuteSql_DataError(object sender, DataGridViewDataErrorEventArgs e)

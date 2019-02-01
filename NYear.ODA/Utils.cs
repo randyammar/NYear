@@ -212,10 +212,9 @@ namespace NYear.ODA
     public class DatabaseColumnInfo
     {
         public string Name { get; set; }
-        public decimal Length { get; set; }
+        public int Length { get; set; }
         public string ColumnType { get; set; }
-        public bool NoLength { get; set; }
-        public bool NotNull { get; set; }
+        public bool NoLength { get; set; } 
     }
     public enum SQLType
     {

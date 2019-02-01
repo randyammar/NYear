@@ -42,7 +42,7 @@ namespace NYear.ODA
         [OperationContract]
         DataTable GetUniqueIndex(string TableName);
         [OperationContract]
-        DatabaseColumnInfo ODAColumnToOrigin(string Name, string ColumnType,decimal Length);
+        DatabaseColumnInfo ODAColumnToOrigin(string Name, string ColumnType,int Length);
         [OperationContract]
         DataTable GetViewColumns(); 
         [OperationContract]
@@ -63,5 +63,7 @@ namespace NYear.ODA
         DataTable GetUserProcedureArguments(string ProcedureName);
         [OperationContract]
         bool Import(DataTable Data, ODAParameter[] Prms);
+
+      
     }
 }

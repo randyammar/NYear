@@ -164,7 +164,7 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
         }
         public override DbAType DBAType { get { return DbAType.Oracle; } }
 
-        public override DatabaseColumnInfo ODAColumnToOrigin(string Name, string ColumnType, decimal Length)
+        public override DatabaseColumnInfo ODAColumnToOrigin(string Name, string ColumnType, int Length)
         {
             DatabaseColumnInfo ColInof = new DatabaseColumnInfo();
             ColInof.Name = "\"" + Name + "\"";
@@ -175,6 +175,7 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
             {
                 ColInof.ColumnType = "BLOB";
                 ColInof.NoLength = true;
+                ColInof.Length = 0;
             }
             else if (ColumnType.Trim() == ODAdbType.ODatetime.ToString())
             {
@@ -184,12 +185,12 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
             else if (ColumnType.Trim() == ODAdbType.ODecimal.ToString())
             {
                 ColInof.ColumnType = "NUMBER";
-                ColInof.NoLength = true;
+                ColInof.NoLength = true; 
             }
             else if (ColumnType.Trim() == ODAdbType.OInt.ToString())
             {
                 ColInof.ColumnType = "INT";
-                ColInof.NoLength = true;
+                ColInof.NoLength = true; 
             }
             else if (ColumnType.Trim() == ODAdbType.OChar.ToString())
             {
@@ -326,10 +327,10 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
                 bool haveCol = false; 
                 for (int i = 0; i < Prms.Length; i++)
                 {
-                    Sqlcols += "," + Prms[i].ParamsName;
-                    Sqlprms += "," + DbAOracle.DBParamsMark + Prms[i].ParamsName;
+                    Sqlcols += "," + Prms[i].ColumnName;
+                    Sqlprms += "," + this.ParamsMark + Prms[i].ParamsName;
                     OracleParameter oraPrms = new OracleParameter();
-                    oraPrms.ParameterName = DbAOracle.DBParamsMark + Prms[i].ParamsName;
+                    oraPrms.ParameterName = this.ParamsMark + Prms[i].ParamsName;
                     oraPrms.OracleDbType = GetOracleType(Prms[i].DBDataType);
                     oraPrms.Size = Prms[i].Size;
                     oraPrms.Direction = ParameterDirection.Input;

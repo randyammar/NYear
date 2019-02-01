@@ -158,7 +158,7 @@ namespace NYear.ODA.Adapter
             return str;
         }
 
-        public override DatabaseColumnInfo ODAColumnToOrigin(string Name, string ColumnType, decimal Length)
+        public override DatabaseColumnInfo ODAColumnToOrigin(string Name, string ColumnType, int Length)
         {
             DatabaseColumnInfo ColInof = new DatabaseColumnInfo();
             ColInof.Name = "[" + Name + "]";

@@ -138,7 +138,7 @@ namespace NYear.ODA.Adapter
             return null;
         }
 
-        public override DatabaseColumnInfo ODAColumnToOrigin(string Name, string ColumnType, decimal Length)
+        public override DatabaseColumnInfo ODAColumnToOrigin(string Name, string ColumnType, int Length)
         {
             DatabaseColumnInfo ColInof = new DatabaseColumnInfo();
             ColInof.Name = Name;
@@ -211,6 +211,18 @@ namespace NYear.ODA.Adapter
 
         public override bool Import(DataTable Data, ODAParameter[] Prms)
         {
+            bool HaveBlob = false; 
+            for(int k = 0; k < Prms.Length;k ++)
+            {
+                if(Prms[k].DBDataType == ODAdbType.OBinary)
+                {
+                    HaveBlob = true;
+                    break;
+                }
+            } 
+            if (HaveBlob)
+                return base.Import(Data, Prms);
+
             int ImportCount = 0;
             MySqlConnection conn = null;
             DataTable ImportData = Data.Copy();

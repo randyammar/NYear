@@ -123,7 +123,7 @@ namespace NYear.ODA.Adapter
         // sysibm.syscolumns a
         //INNER JOIN sysibm.systables d on a.tbname=d.name
         //LEFT JOIN sysibm.sysindexes n on n.tbname= d.name and SUBSTR(colnames,2)=a.name
-        public override DatabaseColumnInfo ODAColumnToOrigin(string Name, string ColumnType, decimal Length)
+        public override DatabaseColumnInfo ODAColumnToOrigin(string Name, string ColumnType, int Length)
         {
             DatabaseColumnInfo ColInof = new DatabaseColumnInfo();
             ColInof.Name = "\"" + Name + "\"";

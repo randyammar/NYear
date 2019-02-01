@@ -59,11 +59,21 @@ namespace NYear.ODA.DevTool
         }
         private void btn_connect_Click(object sender, EventArgs e)
         {
-            string ConMsg = TarDBConnect();
-            this.pnlTranStatus.Visible = false;
-            this.ckbxTarDB.Visible = true;
-            if (TarDB != null)
-                this.ckbxTarDB.Items.AddRange(TarDB.GetUserTables()); 
+            try
+            {
+                string ConMsg = TarDBConnect();
+                this.pnlTranStatus.Visible = false;
+                this.ckbxTarDB.Visible = true;
+                if (TarDB != null)
+                {
+                    this.ckbxTarDB.Items.Clear();
+                    this.ckbxTarDB.Items.AddRange(TarDB.GetUserTables());
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
 
         private void cbbx_database_SelectedIndexChanged(object sender, System.EventArgs e)
@@ -218,96 +228,104 @@ namespace NYear.ODA.DevTool
 
         void bgw_DoWork(object sender, DoWorkEventArgs e)
         {
-            StringBuilder sbrlt = new StringBuilder();
-            TransferParams prm = e.Argument as TransferParams;
-            BackgroundWorker bgw = sender as BackgroundWorker;
-            for (int i = 0; i < prm.TranTable.Count; i++)
+            try
             {
-                ReportStatus RS = new ReportStatus()
+                StringBuilder sbrlt = new StringBuilder();
+                TransferParams prm = e.Argument as TransferParams;
+                BackgroundWorker bgw = sender as BackgroundWorker;
+
+                for (int i = 0; i < prm.TranTable.Count; i++)
                 {
-                    Percent = i * 100 / prm.TranTable.Count,
-                    TransObject = prm.TranTable[i],
-                    TransType = "Table"
-                };
-                bgw.ReportProgress(RS.Percent, RS);
-
-                ODAParameter[] Oprms = null;
-                if (prm.NeedTransTable)
-                {
-                    DataRow[] drs = prm.SrcTables.Select("TABLE_NAME ='" + prm.TranTable[i] + "'");
-                    if (drs == null || drs.Length == 0)
-                        continue;
-
-                    DatabaseColumnInfo[] ColumnInfo = new DatabaseColumnInfo[drs.Length];
-                    Oprms = new ODAParameter[drs.Length];
-
-                    for (int j = 0; j < drs.Length; j++)
+                    ReportStatus RS = new ReportStatus()
                     {
-                        ColumnInfo[j] = prm.TargetDB.ODAColumnToOrigin(drs[j]["COLUMN_NAME"].ToString(), drs[j]["ODA_DATATYPE"].ToString().Trim(), decimal.Parse(drs[j]["LENGTH"].ToString().Trim()));
-                        ColumnInfo[j].NotNull = drs[j]["NOT_NULL"].ToString() == "Y";
-
-                        Oprms[j] = new ODAParameter()
-                        {
-                            ColumnName = drs[j]["COLUMN_NAME"].ToString(),
-                            DBDataType = (ODAdbType)Enum.Parse(typeof(ODAdbType), drs[j]["ODA_DATATYPE"].ToString().Trim()),
-                            Direction = ParameterDirection.Input,
-                            ParamsName = drs[j]["COLUMN_NAME"].ToString(),
-                            Size = int.Parse(drs[j]["LENGTH"].ToString().Trim())
-                        }; 
-                    }
-
-                    string[] Pkeys = prm.SourceDB.GetPrimarykey(prm.TranTable[i]); 
-                    string tlt = this.CreateTable(prm.TargetDB, prm.TranTable[i], ColumnInfo, Pkeys);
-                    if (!string.IsNullOrWhiteSpace(tlt))
-                    {
-                        sbrlt.AppendLine(tlt);
-                        continue;
-                    }
-                    ReportStatus RST = new ReportStatus()
-                    {
-                        Percent = (i + 1) * 100 / prm.TranTable.Count,
-                        TransObject = "Table [" + prm.TranTable[i] + "] Created",
+                        Percent = i * 100 / prm.TranTable.Count,
+                        TransObject = prm.TranTable[i],
                         TransType = "Table"
                     };
-                    bgw.ReportProgress(RS.Percent, RST);
-                }
+                    bgw.ReportProgress(RS.Percent, RS);
 
-                if (prm.NeedTransData)
-                {
-                    int total = 0;
-                    int maxR = 10000;
-                    int startIndx = 0;
-                    DataTable DT_total = CurrentDatabase.DataSource.Select("SELECT COUNT(*) FROM " + prm.TranTable[i], null);
-                    int.TryParse(DT_total.Rows[0][0].ToString(), out total);
-                    while (startIndx < total) 
+                    ODAParameter[] Oprms = null;
+                    if (prm.NeedTransTable)
                     {
-                        ReportStatus RSData0 = new ReportStatus()
-                        {
-                            Percent = total == 0? 0: startIndx * 100 / total,
-                            TransObject = prm.TranTable[i]+ " Preparing " + startIndx.ToString() + " ~ " + (startIndx + maxR).ToString() + "/" + total.ToString() + " record ",
-                            TransType = "Data"
-                        };
-                        bgw.ReportProgress(RS.Percent, RSData0); 
-                        DataTable Source = CurrentDatabase.DataSource.Select("SELECT * FROM " + prm.TranTable[i], null, startIndx, maxR,null);
-                        Source.TableName = prm.TranTable[i];
+                        DataRow[] drs = prm.SrcTables.Select("TABLE_NAME ='" + prm.TranTable[i] + "'");
+                        if (drs == null || drs.Length == 0)
+                            continue;
 
-                        int endIdx = (startIndx + maxR) > total ? total : startIndx + maxR;
-                        ReportStatus RSData1 = new ReportStatus()
-                        {
-                            Percent = total == 0 ? 0 : endIdx * 100 / total,
-                            TransObject = prm.TranTable[i] + " Importing " + startIndx.ToString() + " ~ " + endIdx.ToString() + "/" + total.ToString() +" record ",
-                            TransType = "Data"
-                        };
-                        bgw.ReportProgress(RS.Percent, RSData1);
+                        DatabaseColumnInfo[] ColumnInfo = new DatabaseColumnInfo[drs.Length];
+                        Oprms = new ODAParameter[drs.Length];
 
-                        TarDB.Import(Source, Oprms); 
-                        startIndx = startIndx + maxR;
+                        for (int j = 0; j < drs.Length; j++)
+                        {
+                            ColumnInfo[j] = prm.TargetDB.ODAColumnToOrigin(drs[j]["COLUMN_NAME"].ToString(), drs[j]["ODA_DATATYPE"].ToString().Trim(), int.Parse(drs[j]["LENGTH"].ToString().Trim()));
+                            // ColumnInfo[j].NotNull = drs[j]["NOT_NULL"].ToString() == "Y";
+
+                            Oprms[j] = new ODAParameter()
+                            {
+                                ColumnName = drs[j]["COLUMN_NAME"].ToString(),
+                                DBDataType = (ODAdbType)Enum.Parse(typeof(ODAdbType), drs[j]["ODA_DATATYPE"].ToString().Trim()),
+                                Direction = ParameterDirection.Input,
+                                ParamsName = drs[j]["COLUMN_NAME"].ToString(),
+                                Size = ColumnInfo[j].Length
+                            };
+                        }
+
+                        string[] Pkeys = prm.SourceDB.GetPrimarykey(prm.TranTable[i]);
+                        string tlt = this.CreateTable(prm.TargetDB, prm.TranTable[i], ColumnInfo, Pkeys);
+                        if (!string.IsNullOrWhiteSpace(tlt))
+                        {
+                            sbrlt.AppendLine(tlt);
+                            continue;
+                        }
+                        ReportStatus RST = new ReportStatus()
+                        {
+                            Percent = (i + 1) * 100 / prm.TranTable.Count,
+                            TransObject = "Table [" + prm.TranTable[i] + "] Created",
+                            TransType = "Table"
+                        };
+                        bgw.ReportProgress(RS.Percent, RST);
+                    }
+
+                    if (prm.NeedTransData)
+                    {
+                        int total = 0;
+                        int maxR = 10000;
+                        int startIndx = 0;
+                        DataTable DT_total = CurrentDatabase.DataSource.Select("SELECT COUNT(*) FROM " + prm.TranTable[i], null);
+                        int.TryParse(DT_total.Rows[0][0].ToString(), out total);
+                        while (startIndx < total)
+                        {
+                            ReportStatus RSData0 = new ReportStatus()
+                            {
+                                Percent = total == 0 ? 0 : startIndx * 100 / total,
+                                TransObject = prm.TranTable[i] + " Preparing " + startIndx.ToString() + " ~ " + (startIndx + maxR).ToString() + "/" + total.ToString() + " record ",
+                                TransType = "Data"
+                            };
+                            bgw.ReportProgress(RS.Percent, RSData0);
+                            DataTable Source = CurrentDatabase.DataSource.Select("SELECT * FROM " + prm.TranTable[i], null, startIndx, maxR, null);
+                            Source.TableName = prm.TranTable[i];
+
+                            int endIdx = (startIndx + maxR) > total ? total : startIndx + maxR;
+                            ReportStatus RSData1 = new ReportStatus()
+                            {
+                                Percent = total == 0 ? 0 : endIdx * 100 / total,
+                                TransObject = prm.TranTable[i] + " Importing " + startIndx.ToString() + " ~ " + endIdx.ToString() + "/" + total.ToString() + " record ",
+                                TransType = "Data"
+                            };
+                            bgw.ReportProgress(RS.Percent, RSData1);
+
+                            TarDB.Import(Source, Oprms);
+                            startIndx = startIndx + maxR;
+                        }
                     }
                 }
+                if (sbrlt.Length == 0)
+                    sbrlt.Append("数据复制完成！");
+                e.Result = sbrlt.ToString();
             }
-            if (sbrlt.Length == 0)
-                sbrlt.Append("数据复制完成！");
-            e.Result = sbrlt.ToString();
+            catch(Exception ex)
+            {
+                e.Result = ex.ToString();
+            }
         }
 
         void bgw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
@@ -388,8 +406,8 @@ namespace NYear.ODA.DevTool
                         else
                             creatSQL.Append(ColumnInfo[i].Name + " " + ColumnInfo[i].ColumnType + "(" + ColumnInfo[i].Length.ToString() + ")");
 
-                        if (ColumnInfo[i].NotNull)
-                            creatSQL.Append(" NOT NULL ");
+                        //if (ColumnInfo[i].NotNull)
+                        //    creatSQL.Append(" NOT NULL ");
                         if (i + 1 < ColumnInfo.Length)
                             creatSQL.AppendLine(",");
                     }

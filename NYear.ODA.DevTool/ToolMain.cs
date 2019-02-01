@@ -48,8 +48,14 @@ namespace NYear.ODA.DevTool
             childForm.Text = "ORM代码生成";
             childForm.Show();
         }
-        private void ShowNewForm_SQLDevlop(object sender, EventArgs e)
+        private void ToolMain_Shown(object sender, EventArgs e)
         {
+            SessionStart start = new SessionStart();
+            start.ShowInTaskbar = false;
+            start.ShowDialog();
+        }
+        private void ShowNewForm_SQLDevlop(object sender, EventArgs e)        {
+
             SQLDevlop childForm = new SQLDevlop();
             childForm.MdiParent = this;
             childForm.Text = "SQL语脚本执行";
@@ -98,13 +104,6 @@ namespace NYear.ODA.DevTool
             {
                 childForm.Close();
             }
-        }
-
-        private void ToolMain_Shown(object sender, EventArgs e)
-        {
-            SessionStart start = new SessionStart();
-            start.ShowInTaskbar = false;
-            start.ShowDialog();
         }
 
         private void mncNewConnect_Click(object sender, EventArgs e)

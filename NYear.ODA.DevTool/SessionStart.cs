@@ -111,38 +111,40 @@ namespace NYear.ODA.DevTool
             try
             {
                 CurrentDatabase.DBConnectString = this.cbbxConnectstring.Text;
+                ODA.DBAccess CurrentDb = null;
                 switch (this.cbbx_database.Text)
                 {
                     case "MsSQL":
-                        CurrentDatabase.DataSource = new ODA.Adapter.DbAMsSQL(this.cbbxConnectstring.Text);
+                        CurrentDb = new ODA.Adapter.DbAMsSQL(this.cbbxConnectstring.Text);
                         break;
                     case "MySql":
-                        CurrentDatabase.DataSource = new ODA.Adapter.DbAMySql(this.cbbxConnectstring.Text);
+                        CurrentDb = new ODA.Adapter.DbAMySql(this.cbbxConnectstring.Text);
                         break;
                     case "OdbcInformix":
-                        CurrentDatabase.DataSource = new ODA.Adapter.DbAOdbcInformix(this.cbbxConnectstring.Text);
+                        CurrentDb = new ODA.Adapter.DbAOdbcInformix(this.cbbxConnectstring.Text);
                         break;
                     case "OledbAccess":
-                        CurrentDatabase.DataSource = new ODA.Adapter.DbAOledbAccess(this.cbbxConnectstring.Text);
+                        CurrentDb = new ODA.Adapter.DbAOledbAccess(this.cbbxConnectstring.Text);
                         break;
                     case "Oracle":
-                        CurrentDatabase.DataSource = new ODA.Adapter.DbAOracle(this.cbbxConnectstring.Text);
+                        CurrentDb = new ODA.Adapter.DbAOracle(this.cbbxConnectstring.Text);
                         break;
                     case "Sybase":
-                        CurrentDatabase.DataSource = new ODA.Adapter.DbASybase(this.cbbxConnectstring.Text);
+                        CurrentDb = new ODA.Adapter.DbASybase(this.cbbxConnectstring.Text);
                         break;
                     case "SQLite":
-                        CurrentDatabase.DataSource = new ODA.Adapter.DbASQLite(this.cbbxConnectstring.Text);
+                        CurrentDb  = new ODA.Adapter.DbASQLite(this.cbbxConnectstring.Text);
                         break;
                     case "DB2":
-                        CurrentDatabase.DataSource = new ODA.Adapter.DbADB2(this.cbbxConnectstring.Text);
+                        CurrentDb = new ODA.Adapter.DbADB2(this.cbbxConnectstring.Text);
                         break;
                     default:
                         break;
                 }
-                CurrentDatabase.UserTables = CurrentDatabase.DataSource.GetUserTables();
-                CurrentDatabase.UserViews = CurrentDatabase.DataSource.GetUserViews();
-
+                if (CurrentDb == null)
+                    return;
+                CurrentDatabase.UserTables = CurrentDb.GetUserTables();
+                CurrentDatabase.UserViews = CurrentDb.GetUserViews(); 
                 if (!_ConnectString.Contains(this.cbbxConnectstring.Text))
                 {
                     _ConnectString.Add(this.cbbxConnectstring.Text);
@@ -156,6 +158,7 @@ namespace NYear.ODA.DevTool
                     CurrentDatabase.UserProcedures = CurrentDatabase.DataSource.GetUserProcedure();
                 }
                 catch { }
+                CurrentDatabase.DataSource = CurrentDb;
                 this.Close();
             }
             catch (Exception ex)
