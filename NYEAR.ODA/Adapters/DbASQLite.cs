@@ -84,7 +84,7 @@ namespace NYear.ODA.Adapter
             return list.ToArray();
         }
 
-        public override DatabaseColumnInfo ODAColumnToOrigin(string Name, string ColumnType, decimal Length)
+        public override DatabaseColumnInfo ODAColumnToOrigin(string Name, string ColumnType, int Length)
         {
             DatabaseColumnInfo ColInof = new DatabaseColumnInfo();
             ColInof.Name = Name;
@@ -163,84 +163,7 @@ namespace NYear.ODA.Adapter
                 CloseCommand(Cmd);
             }
         }
-        public override bool Import(DataTable Data, ODAParameter[] Prms)
-        {
-            int ImportCount = 0;
-            string Sqlcols = "";
-            string Sqlprms = "";
-            for (int i = 0; i < Prms.Length; i++)
-            {
-                Sqlcols += "," + Prms[i].ParamsName;
-                Sqlprms += "," + ODAParameter.ODAParamsMark + Prms[i].ParamsName;
-
-            }
-            string sql = new StringBuilder()
-                .Append("INSERT INTO " )
-                .Append(Data.TableName)
-                .Append(" ( ")
-                .Append( Sqlcols.TrimStart(','))
-                .Append(") VALUES (" )
-                .Append( Sqlprms.TrimStart(','))
-                .Append( ")").ToString();
-            IDbTransaction tmpTran = null;
-            IDbConnection conn = null;
-            if (this.Transaction != null)
-            {
-                conn = this.Transaction.Connection;
-            }
-            else
-            {
-                conn = this.GetConnection();
-                tmpTran = conn.BeginTransaction();
-            }
-
-            try
-            {
-                for (int i = 0; i < Data.Rows.Count; i++)
-                {
-                    for (int j = 0; j < Prms.Length; j++)
-                    {
-                        Prms[j].ParamsValue = Data.Rows[i][j];
-                        Prms[j].Direction = ParameterDirection.Input;
-                    }
-
-                    var tmpCmd = conn.CreateCommand();
-                    tmpCmd.CommandType = CommandType.Text;
-                    SetCmdParameters(ref tmpCmd, sql, Prms);
-                    if (this.Transaction == null)
-                        tmpCmd.Transaction = tmpTran;
-                    else
-                        tmpCmd.Transaction = this.Transaction;
-                    ImportCount += tmpCmd.ExecuteNonQuery();
-                    tmpCmd.Dispose();
-                }
-                if (tmpTran != null)
-                {
-                    tmpTran.Commit();
-                    tmpTran.Dispose();
-                }
-                return ImportCount > 0;
-            }
-            catch (Exception ex)
-            {
-                if (tmpTran != null)
-                {
-                    tmpTran.Rollback();
-                    tmpTran.Dispose();
-                }
-                throw ex;
-            }
-            finally
-            {
-                if (conn != null && this.Transaction == null)
-                {
-                    conn.Close();
-                    conn.Dispose();
-                    conn = null;
-                }
-            }
-        }
-
+        
         public override object GetExpressResult(string ExpressionString)
         {
             IDbCommand Cmd = OpenCommand();

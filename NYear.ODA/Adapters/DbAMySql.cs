@@ -230,7 +230,7 @@ namespace NYear.ODA.Adapter
             try
             {
                 MySqlBulkLoader bulk = null;
-                if (this.Transaction == null)
+                if (this.Transaction != null)
                 {
                     bulk = new MySqlBulkLoader((MySqlConnection)this.Transaction.Connection);
                 }
@@ -301,7 +301,7 @@ namespace NYear.ODA.Adapter
             DataColumn colum;
             foreach (DataRow row in Table.Rows)
             {
-                for (int i = 0; i <= Prms.Length; i++)
+                for (int i = 0; i < Prms.Length; i++)
                 {
                     colum = Table.Columns[i]; 
                     if (i != 0)
