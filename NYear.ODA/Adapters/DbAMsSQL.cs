@@ -18,7 +18,7 @@ namespace NYear.ODA.Adapter
         {
             if (_DBConn == null)
             {
-                _DBConn = new SqlConnection(ConnString);
+                _DBConn = new SqlConnection(ConnString); 
                 _DBConn.Disposed += _DBConn_Disposed;
             }
             if (_DBConn.State == ConnectionState.Closed)
@@ -291,6 +291,7 @@ namespace NYear.ODA.Adapter
                 {
                     sqlbulkcopy = new SqlBulkCopy((SqlConnection)this.Transaction.Connection, SqlBulkCopyOptions.Default, (SqlTransaction)this.Transaction);
                 }
+                
                 for (int i = 0; i < Prms.Length; i++)
                 {
                     if (ImportData.Columns.Contains(Prms[i].ParamsName))
@@ -299,6 +300,7 @@ namespace NYear.ODA.Adapter
                         sqlbulkcopy.ColumnMappings.Add(colMap);
                     }
                 }
+                sqlbulkcopy.BulkCopyTimeout = 600000;
                 //需要操作的数据库表名  
                 sqlbulkcopy.DestinationTableName = ImportData.TableName;
                 //将内存表表写入  

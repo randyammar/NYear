@@ -185,6 +185,7 @@ namespace NYear.ODA.Adapter
                         sqlbulkcopy.ColumnMappings.Add(colMap);
                     }
                 }
+                sqlbulkcopy.BulkCopyTimeout = 600000;
                 //需要操作的数据库表名  
                 sqlbulkcopy.DestinationTableName = ImportData.TableName;
                 //将内存表表写入  

@@ -1,4 +1,5 @@
 ﻿using MySql.Data.MySqlClient;
+using MySql.Data.Types;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -10,6 +11,10 @@ namespace NYear.ODA.Adapter
 {
     public class DbAMySql : DBAccess
     {
+        //public static explicit operator DateTime?(MySqlDateTime val)
+        //{
+        //    return val.Value;
+        //}
         public DbAMySql(string ConnectionString)
             : base(ConnectionString)
         {
@@ -149,6 +154,7 @@ namespace NYear.ODA.Adapter
             {
                 ColInof.ColumnType = "LongBlob";
                 ColInof.NoLength = true;
+                ColInof.Length = 0;
             }
             else if (ColumnType.Trim() == ODAdbType.ODatetime.ToString())
             {
@@ -184,6 +190,73 @@ namespace NYear.ODA.Adapter
         {
             string BlockStr = SQL + " limit " + StartIndex.ToString() + "," + MaxRecord.ToString(); ///取出MaxRecord条记录
             return Select(BlockStr, ParamList);
+        }
+
+        public override DataTable Select(string SQL, ODAParameter[] ParamList)
+        {
+            IDbCommand Cmd = OpenCommand();
+            try
+            {
+                Cmd.CommandType = CommandType.Text;
+                SetCmdParameters(ref Cmd, SQL, ParamList);
+                IDataReader Dr = Cmd.ExecuteReader();
+                DataTable dt = new DataTable("RECORDSET");
+
+                List<int> mysqlDtIdx = new List<int>();
+                if (Dr.FieldCount > 0)
+                {
+                    for (int num = 0; num < Dr.FieldCount; num++)
+                    {
+                        DataColumn column = new DataColumn();
+                        if (dt.Columns.Contains(Dr.GetName(num)))
+                            column.ColumnName = Dr.GetName(num) + num.ToString();
+                        else
+                            column.ColumnName = Dr.GetName(num);
+
+                        var dtype = Dr.GetFieldType(num);
+
+                        if (dtype == typeof(MySqlDateTime))
+                        {
+                            mysqlDtIdx.Add(num);
+                            column.DataType = typeof(DateTime);
+                        }
+                        else
+                        {
+                            column.DataType = dtype;
+                        }
+                        dt.Columns.Add(column);
+                    }
+                    while (Dr.Read())
+                    {
+                        object[] val = new object[dt.Columns.Count];
+                        Dr.GetValues(val);
+
+                        for (int i = 0; i < mysqlDtIdx.Count; i++)
+                        {
+                            if (val[mysqlDtIdx[i]] is MySqlDateTime
+                                &&((MySqlDateTime)val[mysqlDtIdx[i]]).IsValidDateTime)
+                            {
+                                val[mysqlDtIdx[i]] = ((MySqlDateTime)val[mysqlDtIdx[i]]).Value; 
+                            }
+                            else
+                            {
+                                val[mysqlDtIdx[i]] = null;
+                            }
+                        }
+
+                        dt.Rows.Add(val);
+                    }
+                }
+                if (Dr.Read())
+                    Cmd.Cancel();
+                Dr.Close();
+                Dr.Dispose();
+                return dt;
+            }
+            finally
+            {
+                CloseCommand(Cmd);
+            }
         }
 
 

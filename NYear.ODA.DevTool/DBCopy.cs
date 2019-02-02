@@ -244,31 +244,25 @@ namespace NYear.ODA.DevTool
                     };
                     bgw.ReportProgress(RS.Percent, RS);
 
-                    ODAParameter[] Oprms = null;
-                    if (prm.NeedTransTable)
+                    DataRow[] drs = prm.SrcTables.Select("TABLE_NAME ='" + prm.TranTable[i] + "'");
+                    if (drs == null || drs.Length == 0)
+                        continue;
+                    DatabaseColumnInfo[] ColumnInfo = new DatabaseColumnInfo[drs.Length];
+                    ODAParameter[] Oprms = new ODAParameter[drs.Length];
+                    for (int j = 0; j < drs.Length; j++)
                     {
-                        DataRow[] drs = prm.SrcTables.Select("TABLE_NAME ='" + prm.TranTable[i] + "'");
-                        if (drs == null || drs.Length == 0)
-                            continue;
-
-                        DatabaseColumnInfo[] ColumnInfo = new DatabaseColumnInfo[drs.Length];
-                        Oprms = new ODAParameter[drs.Length];
-
-                        for (int j = 0; j < drs.Length; j++)
+                        ColumnInfo[j] = prm.TargetDB.ODAColumnToOrigin(drs[j]["COLUMN_NAME"].ToString(), drs[j]["ODA_DATATYPE"].ToString().Trim(), int.Parse(drs[j]["LENGTH"].ToString().Trim()));
+                        Oprms[j] = new ODAParameter()
                         {
-                            ColumnInfo[j] = prm.TargetDB.ODAColumnToOrigin(drs[j]["COLUMN_NAME"].ToString(), drs[j]["ODA_DATATYPE"].ToString().Trim(), int.Parse(drs[j]["LENGTH"].ToString().Trim()));
-                            // ColumnInfo[j].NotNull = drs[j]["NOT_NULL"].ToString() == "Y";
-
-                            Oprms[j] = new ODAParameter()
-                            {
-                                ColumnName = drs[j]["COLUMN_NAME"].ToString(),
-                                DBDataType = (ODAdbType)Enum.Parse(typeof(ODAdbType), drs[j]["ODA_DATATYPE"].ToString().Trim()),
-                                Direction = ParameterDirection.Input,
-                                ParamsName = drs[j]["COLUMN_NAME"].ToString(),
-                                Size = ColumnInfo[j].Length
-                            };
-                        }
-
+                            ColumnName = drs[j]["COLUMN_NAME"].ToString(),
+                            DBDataType = (ODAdbType)Enum.Parse(typeof(ODAdbType), drs[j]["ODA_DATATYPE"].ToString().Trim()),
+                            Direction = ParameterDirection.Input,
+                            ParamsName = drs[j]["COLUMN_NAME"].ToString(),
+                            Size = ColumnInfo[j].Length
+                        };
+                    }
+                    if (prm.NeedTransTable )
+                    {
                         string[] Pkeys = prm.SourceDB.GetPrimarykey(prm.TranTable[i]);
                         string tlt = this.CreateTable(prm.TargetDB, prm.TranTable[i], ColumnInfo, Pkeys);
                         if (!string.IsNullOrWhiteSpace(tlt))
@@ -284,9 +278,22 @@ namespace NYear.ODA.DevTool
                         };
                         bgw.ReportProgress(RS.Percent, RST);
                     }
+                    
 
                     if (prm.NeedTransData)
                     {
+                        for (int j = 0; j < drs.Length; j++)
+                        {
+                            Oprms[j] = new ODAParameter()
+                            {
+                                ColumnName = drs[j]["COLUMN_NAME"].ToString(),
+                                DBDataType = (ODAdbType)Enum.Parse(typeof(ODAdbType), drs[j]["ODA_DATATYPE"].ToString().Trim()),
+                                Direction = ParameterDirection.Input,
+                                ParamsName = drs[j]["COLUMN_NAME"].ToString(),
+                                Size = ColumnInfo[j].Length
+                            };
+                        }
+
                         int total = 0;
                         int maxR = 10000;
                         int startIndx = 0;

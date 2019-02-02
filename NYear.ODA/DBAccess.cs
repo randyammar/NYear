@@ -803,6 +803,7 @@ namespace NYear.ODA
                     }
 
                     var tmpCmd = conn.CreateCommand();
+                    tmpCmd.CommandTimeout = 60000;
                     tmpCmd.CommandType = CommandType.Text;
                     SetCmdParameters(ref tmpCmd, sql, Prms);
                     if (this.Transaction == null)
@@ -819,14 +820,14 @@ namespace NYear.ODA
                 }
                 return ImportCount > 0;
             }
-            catch (Exception ex)
+            catch 
             {
                 if (tmpTran != null)
                 {
                     tmpTran.Rollback();
                     tmpTran.Dispose();
                 }
-                throw ex;
+                throw;
             }
             finally
             {
