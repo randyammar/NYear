@@ -394,9 +394,10 @@ namespace NYear.ODA.DevTool
             try
             {
                 string dropSQL = "DROP TABLE " + TableName;
-                TargetDB.ExecuteSQL( dropSQL, null);
+                TargetDB.ExecuteSQL(dropSQL, null);
             }
             catch { }
+
 
             StringBuilder creatSQL = new StringBuilder();
             try
