@@ -132,15 +132,22 @@ namespace NYear.ODA.Adapter
 
         public override string[] GetPrimarykey(string TableName)
         {
-            string PrimaryCols = new StringBuilder().Append("SELECT  CU.COLUMN_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE CU,INFORMATION_SCHEMA.TABLE_CONSTRAINTS TC ")
-            .Append(" WHERE  CU.TABLE_NAME = TC.TABLE_NAME AND  TC.CONSTRAINT_TYPE = 'PRIMARY KEY' AND CU.TABLE_NAME ='").Append(TableName).Append("'").ToString();
+            var db = this.GetConnection();
+            string PrimaryCols = new StringBuilder().Append("SELECT CU.COLUMN_NAME ")
+                .Append(" FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE CU,INFORMATION_SCHEMA.TABLE_CONSTRAINTS TC ")
+            .Append(" WHERE  CU.TABLE_NAME = TC.TABLE_NAME ")
+            .Append(" AND CU.TABLE_SCHEMA = TC.TABLE_SCHEMA ")
+            .Append(" AND TC.TABLE_SCHEMA = '" + db.Database + "'")
+            .Append(" AND TC.CONSTRAINT_TYPE = 'PRIMARY KEY' ")
+            .Append(" AND CU.TABLE_NAME ='").Append(TableName).Append("'").ToString();
+
             DataTable Dt = this.Select(PrimaryCols, null);
             if (Dt != null && Dt.Rows.Count > 0)
             {
                 List<string> cols = new List<string>();
                 for (int i = 0; i < Dt.Rows.Count; i++)
                     cols.Add(Dt.Rows[i]["COLUMN_NAME"].ToString());
-                return cols.ToArray();
+                return cols.ToArray(); 
             }
             return null;
         }
