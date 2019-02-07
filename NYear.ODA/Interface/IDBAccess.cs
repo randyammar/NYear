@@ -42,7 +42,7 @@ namespace NYear.ODA
         [OperationContract]
         DataTable GetUniqueIndex(string TableName);
         [OperationContract]
-        DatabaseColumnInfo ODAColumnToOrigin(string Name, string ColumnType,int Length);
+        DatabaseColumnInfo ODAColumnToOrigin(string Name, string ColumnType,int Length,int Scale);
         [OperationContract]
         DataTable GetViewColumns(); 
         [OperationContract]

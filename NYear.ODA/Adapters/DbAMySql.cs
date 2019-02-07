@@ -93,7 +93,8 @@ namespace NYear.ODA.Adapter
             .Append(" WHEN 'date' THEN 'ODatetime' WHEN 'year' THEN 'ODatetime' WHEN 'time' THEN 'ODatetime' WHEN 'timestamp' THEN 'ODatetime' ")
             .Append(" WHEN 'datetime' THEN 'ODatetime' ")
             .Append(" END AS ODA_DATATYPE ,CASE C.IS_NULLABLE WHEN 'NO' THEN 'Y' ELSE 'N' END AS NOT_NULL, ")
-            .Append(" CASE WHEN C.CHARACTER_MAXIMUM_LENGTH IS NULL THEN 9 ELSE  CASE WHEN  C.CHARACTER_MAXIMUM_LENGTH > 65534 THEN 0 ELSE  C.CHARACTER_MAXIMUM_LENGTH END END LENGTH,'INPUT' DIRECTION  ")
+            .Append(" CASE WHEN C.CHARACTER_MAXIMUM_LENGTH IS NULL THEN 9 ELSE  CASE WHEN  C.CHARACTER_MAXIMUM_LENGTH > 65534 THEN 0 ELSE  C.CHARACTER_MAXIMUM_LENGTH END END LENGTH,")
+            .Append(" CASE WHEN C.NUMERIC_SCALE IS NULL THEN 0 ELSE C.NUMERIC_SCALE  END SCALE,'INPUT' DIRECTION  ")
             .Append(" FROM INFORMATION_SCHEMA.COLUMNS C ")
             .Append(" WHERE C.TABLE_NAME NOT IN (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS V WHERE V.TABLE_SCHEMA  = DATABASE() AND  C.TABLE_SCHEMA =DATABASE()) ")
             .Append(" AND C.TABLE_SCHEMA =DATABASE() ")
@@ -117,7 +118,8 @@ namespace NYear.ODA.Adapter
             .Append(" WHEN 'date' THEN 'ODatetime' WHEN 'year' THEN 'ODatetime' WHEN 'time' THEN 'ODatetime' WHEN 'timestamp' THEN 'ODatetime' ")
             .Append(" WHEN 'datetime' THEN 'ODatetime' ")
             .Append(" END AS ODA_DATATYPE ,CASE C.IS_NULLABLE WHEN 'NO' THEN 'Y' ELSE 'N' END AS NOT_NULL, ")
-            .Append(" CASE WHEN C.CHARACTER_MAXIMUM_LENGTH IS NULL THEN 9 ELSE  CASE WHEN  C.CHARACTER_MAXIMUM_LENGTH > 65534 THEN 0 ELSE  C.CHARACTER_MAXIMUM_LENGTH END  END LENGTH,'INPUT' DIRECTION  ")
+            .Append(" CASE WHEN C.CHARACTER_MAXIMUM_LENGTH IS NULL THEN 9 ELSE  CASE WHEN  C.CHARACTER_MAXIMUM_LENGTH > 65534 THEN 0 ELSE  C.CHARACTER_MAXIMUM_LENGTH END  END LENGTH,")
+            .Append(" CASE WHEN C.NUMERIC_SCALE IS NULL THEN 0 ELSE C.NUMERIC_SCALE  END SCALE ,'INPUT' DIRECTION  ")
             .Append(" FROM INFORMATION_SCHEMA.COLUMNS C, INFORMATION_SCHEMA.VIEWS V ")
             .Append(" WHERE C.TABLE_NAME = V.TABLE_NAME ")
             .Append(" AND C.TABLE_SCHEMA =DATABASE() ")
@@ -143,12 +145,13 @@ namespace NYear.ODA.Adapter
             return null;
         }
 
-        public override DatabaseColumnInfo ODAColumnToOrigin(string Name, string ColumnType, int Length)
+        public override DatabaseColumnInfo ODAColumnToOrigin(string Name, string ColumnType, int Length, int Scale)
         {
             DatabaseColumnInfo ColInof = new DatabaseColumnInfo();
             ColInof.Name = Name;
             ColInof.NoLength = false;
             ColInof.Length = Length > 2000 ? 2000 : Length < 0 ? 2000 : Length;
+            ColInof.Scale = Scale;
 
             if (ColumnType.Trim() == ODAdbType.OBinary.ToString())
             {
@@ -164,7 +167,7 @@ namespace NYear.ODA.Adapter
             else if (ColumnType.Trim() == ODAdbType.ODecimal.ToString())
             {
                 ColInof.ColumnType = "DECIMAL";
-                ColInof.NoLength = true;
+                ColInof.NoLength = false;
             }
             else if (ColumnType.Trim() == ODAdbType.OInt.ToString())
             {
@@ -174,14 +177,17 @@ namespace NYear.ODA.Adapter
             else if (ColumnType.Trim() == ODAdbType.OChar.ToString())
             {
                 ColInof.ColumnType = "CHAR";
+                ColInof.Scale = 0;
             }
             else if (ColumnType.Trim() == ODAdbType.OVarchar.ToString())
             {
                 ColInof.ColumnType = "VARCHAR";
+                ColInof.Scale = 0;
             }
             else
             {
                 ColInof.ColumnType = "VARCHAR";
+                ColInof.Scale = 0;
             }
             return ColInof;
         }

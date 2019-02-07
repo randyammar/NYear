@@ -99,8 +99,8 @@ namespace NYear.ODA.DevTool
                             + " </startup>";
                         break;
                     case "DB2":
-                        cbbxConnectstring.Text = "Server=192.168.1.1:50000;DataBase=;UID=admin;PWD=123;";
-                        this.lblExecuteRlt.Text = "Server=192.168.1.1:50000;DataBase=;UID=admin;PWD=123;";
+                        cbbxConnectstring.Text = "Server=localhost:50000;DataBase=;UID=db2admin;PWD=123;";
+                        this.lblExecuteRlt.Text = "Server=localhost:50000;DataBase=;UID=db2admin;PWD=123;";
                         break;
                 }
             }

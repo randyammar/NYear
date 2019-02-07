@@ -69,6 +69,7 @@ namespace NYear.ODA.DevTool
                     this.ckbxTarDB.Items.Clear();
                     this.ckbxTarDB.Items.AddRange(TarDB.GetUserTables());
                 }
+                MessageBox.Show("连接测试成功", "成功");
             }
             catch (Exception ex)
             {
@@ -136,14 +137,15 @@ namespace NYear.ODA.DevTool
                         tbx_connectstring.Text = "Data Source=./sqlite.db";
                         msg = "Data Source=./sqlite.db;Version=3;UseUTF16Encoding=True;Password=myPassword;Legacy Format=True;"
                         + " Pooling=False;Max Pool Size=100;Read Only=True;DateTimeFormat=Ticks;BinaryGUID=False;Cache Size=2000;Page Size=1024;\r\n"
-                            + "在FrameWork4.0上运行须要在<configuration>节点下加入以下配置： <startup useLegacyV2RuntimeActivationPolicy=\"true\" > "
-                            + " <supportedRuntime version=\"v4.0\" sku=\".NETFramework,Version=v4.0\"/> "
-                            + " <requiredRuntime Version=\"v4.0.20506\"/>"
-                            + " </startup>";
-
+                            //+ "在FrameWork4.0上运行须要在<configuration>节点下加入以下配置： <startup useLegacyV2RuntimeActivationPolicy=\"true\" > "
+                            //+ " <supportedRuntime version=\"v4.0\" sku=\".NETFramework,Version=v4.0\"/> "
+                            //+ " <requiredRuntime Version=\"v4.0.20506\"/>"
+                            //+ " </startup>";
+                            ;
                         MessageBox.Show(msg, "提示", MessageBoxButtons.OK);
                         break;
                     case "DB2":
+                        this.tbx_connectstring.Text = "Server=localhost:50000;DataBase=;UID=db2admin;PWD=123;";
                         break;
                 }
             }
@@ -251,7 +253,13 @@ namespace NYear.ODA.DevTool
                     ODAParameter[] Oprms = new ODAParameter[drs.Length];
                     for (int j = 0; j < drs.Length; j++)
                     {
-                        ColumnInfo[j] = prm.TargetDB.ODAColumnToOrigin(drs[j]["COLUMN_NAME"].ToString(), drs[j]["ODA_DATATYPE"].ToString().Trim(), int.Parse(drs[j]["LENGTH"].ToString().Trim()));
+                        int Scale = 0; 
+                        int.TryParse(drs[j]["SCALE"].ToString().Trim(), out Scale); 
+                        int length = 2000; 
+                        int.TryParse(drs[j]["LENGTH"].ToString().Trim(), out length);
+                        ColumnInfo[j] = prm.TargetDB.ODAColumnToOrigin(drs[j]["COLUMN_NAME"].ToString(), drs[j]["ODA_DATATYPE"].ToString().Trim(), length, Scale);
+
+                        ColumnInfo[j].NotNull = drs[j]["NOT_NULL"].ToString().Trim().ToUpper() == "Y";
                         Oprms[j] = new ODAParameter()
                         {
                             ColumnName = drs[j]["COLUMN_NAME"].ToString(),
@@ -277,8 +285,7 @@ namespace NYear.ODA.DevTool
                             TransType = "Table"
                         };
                         bgw.ReportProgress(RS.Percent, RST);
-                    }
-                    
+                    } 
 
                     if (prm.NeedTransData)
                     {
@@ -409,12 +416,23 @@ namespace NYear.ODA.DevTool
                     if (ColumnInfo[i] != null)
                     {
                         if (ColumnInfo[i].NoLength)
+                        {
                             creatSQL.Append(ColumnInfo[i].Name + " " + ColumnInfo[i].ColumnType);
+                        }
                         else
-                            creatSQL.Append(ColumnInfo[i].Name + " " + ColumnInfo[i].ColumnType + "(" + ColumnInfo[i].Length.ToString() + ")");
+                        {
+                            if (ColumnInfo[i].Scale == 0)
+                            {
+                                creatSQL.Append(ColumnInfo[i].Name + " " + ColumnInfo[i].ColumnType + "(" + ColumnInfo[i].Length.ToString() + ")");
+                            }
+                            else
+                            {
+                                creatSQL.Append(ColumnInfo[i].Name + " " + ColumnInfo[i].ColumnType + "(" + ColumnInfo[i].Length.ToString() + "," + ColumnInfo[i].Scale.ToString() + ")");
+                            }
+                        }
 
-                        //if (ColumnInfo[i].NotNull)
-                        //    creatSQL.Append(" NOT NULL ");
+                        if (ColumnInfo[i].NotNull)
+                            creatSQL.Append(" NOT NULL ");
                         if (i + 1 < ColumnInfo.Length)
                             creatSQL.AppendLine(",");
                     }

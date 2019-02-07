@@ -18,8 +18,7 @@ namespace NYear.ODA.DevTool
         }
 
         private void SQLDevlop_Load(object sender, EventArgs e)
-        {
-
+        { 
             //this.rtbxSql.ShowEOLMarkers = false;
             //this.rtbxSql.ShowHRuler = false;
             //this.rtbxSql.ShowInvalidLines = false;
@@ -73,7 +72,7 @@ namespace NYear.ODA.DevTool
         {
             this.lbxTableView.Items.Clear();
             this.lbxTableView.Items.AddRange(CurrentDatabase.DataSource.GetUserTables());
-            this.lbxTableView.Items.AddRange(CurrentDatabase.DataSource.GetUserViews());
+            this.lbxTableView.Items.AddRange(CurrentDatabase.DataSource.GetUserViews()); 
         }
 
 

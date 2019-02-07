@@ -109,12 +109,17 @@ namespace NYear.ODA.DevTool
         private void mncNewConnect_Click(object sender, EventArgs e)
         {
             if (this.MdiChildren.Length > 0)
-                if (MessageBox.Show("是否关闭当前所有子窗口", "关闭窗口", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
+            {
+                if (MessageBox.Show("是否关闭当前所有子窗口", "关闭窗口", MessageBoxButtons.YesNo)
+                    == System.Windows.Forms.DialogResult.Yes)
+                {
                     foreach (Form F in this.MdiChildren)
                         F.Close();
-            SessionStart start = new SessionStart();
-            start.ShowInTaskbar = false;
-            start.ShowDialog();
+                    SessionStart start = new SessionStart();
+                    start.ShowInTaskbar = false;
+                    start.ShowDialog();
+                }
+            }
         }
 
         void CurrentDatabase_DBConnected(object sender, EventArgs e)

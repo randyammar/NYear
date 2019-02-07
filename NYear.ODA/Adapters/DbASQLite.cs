@@ -84,12 +84,13 @@ namespace NYear.ODA.Adapter
             return list.ToArray();
         }
 
-        public override DatabaseColumnInfo ODAColumnToOrigin(string Name, string ColumnType, int Length)
+        public override DatabaseColumnInfo ODAColumnToOrigin(string Name, string ColumnType, int Length, int Scale)
         {
             DatabaseColumnInfo ColInof = new DatabaseColumnInfo();
             ColInof.Name = Name;
             ColInof.NoLength = false;
             ColInof.Length = Length;
+            ColInof.Scale = Scale;
 
             if (ColumnType.Trim() == ODAdbType.OBinary.ToString())
             {
@@ -104,7 +105,9 @@ namespace NYear.ODA.Adapter
             else if (ColumnType.Trim() == ODAdbType.ODecimal.ToString())
             {
                 ColInof.ColumnType = "DECIMAL";
-                ColInof.NoLength = true;
+                ColInof.NoLength = false;
+                ColInof.Length = 30;
+                ColInof.Scale = 12;
             }
             else if (ColumnType.Trim() == ODAdbType.OInt.ToString())
             {
@@ -114,14 +117,17 @@ namespace NYear.ODA.Adapter
             else if (ColumnType.Trim() == ODAdbType.OChar.ToString())
             {
                 ColInof.ColumnType = "CHAR";
+                ColInof.Scale = 0;
             }
             else if (ColumnType.Trim() == ODAdbType.OVarchar.ToString())
             {
                 ColInof.ColumnType = "VARCHAR";
+                ColInof.Scale = 0;
             }
             else
             {
                 ColInof.ColumnType = "VARCHAR";
+                ColInof.Scale = 0;
             }
             return ColInof;
         }

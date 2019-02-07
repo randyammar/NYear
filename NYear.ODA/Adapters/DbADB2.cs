@@ -75,11 +75,11 @@ namespace NYear.ODA.Adapter
         }
         public override DataTable GetTableColumns()
         {
-            StringBuilder sql = new StringBuilder().Append("SELECTT.NAME  TABLE_NAME,C.NAME AS COLUMN_NAME,C.COLNO COL_SEQ,")
+            StringBuilder sql = new StringBuilder().Append("SELECT T.NAME  TABLE_NAME,C.NAME AS COLUMN_NAME,C.COLNO COL_SEQ,")
                 .Append(" CASE C.COLTYPE WHEN 'CHAR' THEN 'OChar' WHEN 'VARCHAR' THEN 'OVarchar'")
                 .Append(" WHEN 'TIMESTMP' THEN 'ODatetime' WHEN 'DECIMAL' THEN 'ODecimal' WHEN 'INTEGER' THEN 'OInt'")
                 .Append(" WHEN 'BLOB' THEN 'OBinary' ELSE  C.COLTYPE END ODA_DATATYPE,")
-                .Append(" CASE c.nulls WHEN 'N' THEN 'Y' ELSE 'N' END NOT_NULL,C.LENGTH AS LENGTH, C.REMARKS DIRECTION ")
+                .Append(" CASE c.nulls WHEN 'N' THEN 'Y' ELSE 'N' END NOT_NULL,C.LENGTH AS LENGTH, C.SCALE, C.REMARKS DIRECTION ")
                 .Append(" FROM SYSIBM.SYSCOLUMNS C")
                 .Append(" INNER JOIN SYSIBM.SYSTABLES T ON C.TBNAME=T.NAME")
                 .Append(" WHERE T.TBSPACE ='USERSPACE1'")
@@ -95,10 +95,10 @@ namespace NYear.ODA.Adapter
                 .Append(" CASE C.COLTYPE WHEN 'CHAR' THEN 'OChar' WHEN 'VARCHAR' THEN 'OVarchar'")
                 .Append(" WHEN 'TIMESTMP' THEN 'ODatetime' WHEN 'DECIMAL' THEN 'ODecimal' WHEN 'INTEGER' THEN 'OInt'")
                 .Append(" WHEN 'BLOB' THEN 'OBinary' ELSE C.COLTYPE END ODA_DATATYPE,")
-                .Append(" CASE c.nulls WHEN 'N' THEN 'Y' ELSE 'N' END NOT_NULL, C.LENGTH AS LENGTH, C.REMARKS DIRECTION")
+                .Append(" CASE c.nulls WHEN 'N' THEN 'Y' ELSE 'N' END NOT_NULL, C.LENGTH AS LENGTH,C.SCALE, C.REMARKS DIRECTION")
                 .Append(" FROM SYSIBM.SYSCOLUMNS C")
                 .Append(" INNER JOIN SYSIBM.SYSVIEWS T ON C.TBNAME = T.NAME")
-                .Append(" WHERE T.DEFINERTYPE = 'U'ORDER BY T.NAME ,C.COLNO");
+                .Append(" WHERE T.DEFINERTYPE = 'U' ORDER BY T.NAME ,C.COLNO");
             DataTable Dt = this.Select(sql.ToString(), null);
             Dt.TableName = "TABLE_COLUMN";
             return Dt;
@@ -123,12 +123,13 @@ namespace NYear.ODA.Adapter
         // sysibm.syscolumns a
         //INNER JOIN sysibm.systables d on a.tbname=d.name
         //LEFT JOIN sysibm.sysindexes n on n.tbname= d.name and SUBSTR(colnames,2)=a.name
-        public override DatabaseColumnInfo ODAColumnToOrigin(string Name, string ColumnType, int Length)
+        public override DatabaseColumnInfo ODAColumnToOrigin(string Name, string ColumnType, int Length, int Scale)
         {
             DatabaseColumnInfo ColInof = new DatabaseColumnInfo();
             ColInof.Name = "\"" + Name + "\"";
             ColInof.NoLength = false;
             ColInof.Length = Length > 2000 ? 2000 : Length < 0 ? 2000 : Length;
+            ColInof.Scale = Scale;
 
             if (ColumnType.Trim() == ODAdbType.OBinary.ToString())
             {
@@ -143,7 +144,9 @@ namespace NYear.ODA.Adapter
             else if (ColumnType.Trim() == ODAdbType.ODecimal.ToString())
             {
                 ColInof.ColumnType = "DECIMAL";
-                ColInof.NoLength = true;
+                ColInof.NoLength = false;
+                ColInof.Length = 31;
+                ColInof.Scale = 12;
             }
             else if (ColumnType.Trim() == ODAdbType.OInt.ToString())
             {
@@ -153,14 +156,17 @@ namespace NYear.ODA.Adapter
             else if (ColumnType.Trim() == ODAdbType.OChar.ToString())
             {
                 ColInof.ColumnType = "CHAR";
+                ColInof.Scale = 0;
             }
             else if (ColumnType.Trim() == ODAdbType.OVarchar.ToString())
             {
                 ColInof.ColumnType = "VARCHAR";
+                ColInof.Scale = 0;
             }
             else
             {
                 ColInof.ColumnType = "VARCHAR";
+                ColInof.Scale = 0;
             }
             return ColInof;
         }

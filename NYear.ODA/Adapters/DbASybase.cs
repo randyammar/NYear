@@ -86,7 +86,7 @@ namespace NYear.ODA.Adapter
             .Append(" WHEN 'datetime'  THEN 'ODatetime'  WHEN 'smalldatetime'  THEN 'ODatetime'  WHEN 'smalldatetime'  THEN 'ODatetime'  ")
             .Append(" WHEN 'binary'  THEN 'OBinary'  WHEN 'image'  THEN 'OBinary'  WHEN 'timestamp'  THEN 'OBinary'    WHEN 'varbinary'  THEN 'OBinary' ")
             .Append(" ELSE  STYPE.name  END AS ODA_DATATYPE ,")
-            .Append(" SCOL.length AS LENGTH, 'INPUT' AS DIRECTION ")
+            .Append(" SCOL.length AS LENGTH,SCOL.scale AS SCALE, 'INPUT' AS DIRECTION ")
             .Append(" FROM sysobjects SOBJ,syscolumns SCOL,systypes STYPE ")
             .Append(" WHERE  SOBJ.type  = 'U' ")
             .Append(" AND SOBJ.id = SCOL.id")
@@ -107,7 +107,7 @@ namespace NYear.ODA.Adapter
             .Append(" WHEN 'datetime'  THEN 'ODatetime'  WHEN 'smalldatetime'  THEN 'ODatetime'  WHEN 'smalldatetime'  THEN 'ODatetime'  ")
             .Append(" WHEN 'binary'  THEN 'OBinary'  WHEN 'image'  THEN 'OBinary'  WHEN 'timestamp'  THEN 'OBinary'    WHEN 'varbinary'  THEN 'OBinary' ")
             .Append(" ELSE  STYPE.name  END AS ODA_DATATYPE ,")
-            .Append(" SCOL.length AS LENGTH, 'INPUT' AS DIRECTION ")
+            .Append(" SCOL.length AS LENGTH,SCOL.scale AS SCALE,  'INPUT' AS DIRECTION ")
             .Append(" FROM sysobjects SOBJ,syscolumns SCOL,systypes STYPE ")
             .Append(" WHERE  SOBJ.type  = 'V' ")
             .Append(" AND SOBJ.name <>'sysquerymetrics'")
@@ -123,12 +123,13 @@ namespace NYear.ODA.Adapter
         {
             return null;
         }
-        public override DatabaseColumnInfo ODAColumnToOrigin(string Name, string ColumnType, int Length)
+        public override DatabaseColumnInfo ODAColumnToOrigin(string Name, string ColumnType, int Length, int Scale)
         {
             DatabaseColumnInfo ColInof = new DatabaseColumnInfo();
             ColInof.Name = Name;
             ColInof.NoLength = false;
             ColInof.Length = Length;
+            ColInof.Scale = Scale;
 
             if (ColumnType.Trim() == ODAdbType.OBinary.ToString())
             {
@@ -143,7 +144,7 @@ namespace NYear.ODA.Adapter
             else if (ColumnType.Trim() == ODAdbType.ODecimal.ToString())
             {
                 ColInof.ColumnType = "DECIMAL";
-                ColInof.NoLength = true;
+                ColInof.NoLength = false;
             }
             else if (ColumnType.Trim() == ODAdbType.OInt.ToString())
             {
@@ -153,14 +154,17 @@ namespace NYear.ODA.Adapter
             else if (ColumnType.Trim() == ODAdbType.OChar.ToString())
             {
                 ColInof.ColumnType = "CHAR";
+                ColInof.Scale = 0;
             }
             else if (ColumnType.Trim() == ODAdbType.OVarchar.ToString())
             {
                 ColInof.ColumnType = "VARCHAR";
+                ColInof.Scale = 0;
             }
             else
             {
                 ColInof.ColumnType = "VARCHAR";
+                ColInof.Scale = 0;
             }
             return ColInof;
         }

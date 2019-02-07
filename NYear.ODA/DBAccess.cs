@@ -84,12 +84,13 @@ namespace NYear.ODA
             string[] UserView = this.GetUserViews();
             return GetColumns(UserView, "VIEW_COLUMN");
         }
-        public virtual DatabaseColumnInfo ODAColumnToOrigin(string Name, string ColumnType, int Length)
+        public virtual DatabaseColumnInfo ODAColumnToOrigin(string Name, string ColumnType, int Length, int Scale)
         {
             DatabaseColumnInfo ColInof = new DatabaseColumnInfo();
             ColInof.Name = Name;
             ColInof.NoLength = false;
             ColInof.Length = Length;
+            ColInof.Scale = Scale;
 
             if (ColumnType.Trim() == ODAdbType.OBinary.ToString())
             {
@@ -104,7 +105,7 @@ namespace NYear.ODA
             else if (ColumnType.Trim() == ODAdbType.ODecimal.ToString())
             {
                 ColInof.ColumnType = "DECIMAL";
-                ColInof.NoLength = true;
+                ColInof.NoLength = false;
             }
             else if (ColumnType.Trim() == ODAdbType.OInt.ToString())
             {
@@ -148,6 +149,8 @@ namespace NYear.ODA
                 Dt.Columns.Add(dcOdaDatatype);
                 DataColumn dcLength = new DataColumn("LENGTH");
                 Dt.Columns.Add(dcLength);
+                DataColumn dcScale = new DataColumn("SCALE");
+                Dt.Columns.Add(dcScale);
                 DataColumn dcDirection = new DataColumn("DIRECTION");
                 Dt.Columns.Add(dcDirection);
                 DataColumn NotNull = new DataColumn("NOT_NULL");
@@ -170,7 +173,8 @@ namespace NYear.ODA
                             dr_tmp["COLUMN_NAME"] = (string)sch.Rows[j]["ColumnName"];
                             int ln = (int)sch.Rows[j]["ColumnSize"];
                             ln = ln <= 0 ? 2000 : ln > 2000 ? 2000 : ln;
-                            dr_tmp["LENGTH"] = ln;
+                            dr_tmp["LENGTH"] = ln; 
+                            dr_tmp["SCALE"] = 0;
                             dr_tmp["DIRECTION"] = "";
                             dr_tmp["NOT_NULL"] = ((bool)sch.Rows[j]["AllowDBNull"]) ? "N" : "Y";
                             dr_tmp["COL_SEQ"] = j;
@@ -180,26 +184,37 @@ namespace NYear.ODA
                             if (Columntype == typeof(string))
                             {
                                 dr_tmp[ColumnDataType] = "OVarchar";
+                                dr_tmp["SCALE"] = 0;
                             }
                             else if (Columntype == typeof(int))
                             {
                                 dr_tmp[ColumnDataType] = ODAdbType.OInt;
+                                dr_tmp["LENGTH"] = 31;
+                                dr_tmp["SCALE"] = 0;
                             }
                             else if (Columntype == typeof(long))
                             {
                                 dr_tmp[ColumnDataType] = ODAdbType.ODecimal;
+                                dr_tmp["LENGTH"] = 31;
+                                dr_tmp["SCALE"] = 0;
                             }
                             else if (Columntype == typeof(double))
                             {
                                 dr_tmp[ColumnDataType] = ODAdbType.ODecimal;
+                                dr_tmp["LENGTH"] = 31;
+                                dr_tmp["SCALE"] = 12;
                             }
                             else if (Columntype == typeof(float))
                             {
                                 dr_tmp[ColumnDataType] = ODAdbType.ODecimal;
+                                dr_tmp["LENGTH"] = 31;
+                                dr_tmp["SCALE"] = 12;
                             }
                             else if (Columntype == typeof(decimal))
                             {
                                 dr_tmp[ColumnDataType] = ODAdbType.ODecimal;
+                                dr_tmp["LENGTH"] = 31;
+                                dr_tmp["SCALE"] = 12;
                             }
                             else if (Columntype == typeof(System.DateTime))
                             {
@@ -212,6 +227,7 @@ namespace NYear.ODA
                             else
                             {
                                 dr_tmp[ColumnDataType] = "OVarchar";
+                                dr_tmp["SCALE"] = 0;
                             }
                             Dt.Rows.Add(dr_tmp);
                         }

@@ -164,12 +164,13 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
         }
         public override DbAType DBAType { get { return DbAType.Oracle; } }
 
-        public override DatabaseColumnInfo ODAColumnToOrigin(string Name, string ColumnType, int Length)
+        public override DatabaseColumnInfo ODAColumnToOrigin(string Name, string ColumnType, int Length, int Scale)
         {
             DatabaseColumnInfo ColInof = new DatabaseColumnInfo();
             ColInof.Name = "\"" + Name + "\"";
             ColInof.NoLength = false;
             ColInof.Length = Length > 2000 ? 2000 : Length < 0 ? 2000 : Length;
+            ColInof.Scale = Scale;
 
             if (ColumnType.Trim() == ODAdbType.OBinary.ToString())
             {
@@ -195,14 +196,17 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
             else if (ColumnType.Trim() == ODAdbType.OChar.ToString())
             {
                 ColInof.ColumnType = "CHAR";
+                ColInof.Scale = 0;
             }
             else if (ColumnType.Trim() == ODAdbType.OVarchar.ToString())
             {
                 ColInof.ColumnType = "VARCHAR2";
+                ColInof.Scale = 0;
             }
             else
             {
                 ColInof.ColumnType = "VARCHAR2";
+                ColInof.Scale = 0;
             }
             return ColInof;
         }
@@ -224,8 +228,8 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
             .Append( " DECODE(TC.DATA_TYPE,'CHAR','OChar','VARCHAR','OVarchar','VARCHAR2','OVarchar','NVARCHAR2','OVarchar','MLSLABEL','OVarchar',")
             .Append(" 'UROWID','OVarchar','URITYPE','OVarchar','CHARACTER','OVarchar','CLOB','OVarchar','INTEGER','OInt','INT','OInt',")
             .Append(" 'SMALLINT','OInt','DATE','ODatetime','LONG','ODecimal','DECIMAL','ODecimal','NUMERIC','ODecimal','REAL','ODecimal',")
-            .Append(" 'NUMBER','ODecimal','BLOB','OBinary','BFILE','OBinary','OVarchar') ODA_DATATYPE, ")
-            .Append( " DECODE(TC.DATA_TYPE,'BLOB',2000000000,'CLOB',2000000000, TC.DATA_LENGTH)  LENGTH,")
+            .Append(" 'NUMBER','ODecimal','BLOB','OBinary','BFILE','OBinary','OVarchar') ODA_DATATYPE, DECODE(TC.NULLABLE ,'Y','N','Y') NOT_NULL, ")
+            .Append(" DECODE(TC.DATA_TYPE,'BLOB',2000000000,'CLOB',2000000000, TC.DATA_LENGTH)  LENGTH,TC.DATA_SCALE SCALE,")
             .Append(" TCC.COMMENTS DIRECTION ")
             .Append(" FROM USER_TABLES  TB,USER_TAB_COLUMNS TC ,USER_COL_COMMENTS  TCC")
             .Append(" WHERE TB.TABLE_NAME = TC.TABLE_NAME ")
@@ -241,8 +245,8 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
             string sql_view = new StringBuilder().Append("SELECT TC.TABLE_NAME,TC.COLUMN_NAME,CASE TC.NULLABLE WHEN 'N' THEN 'Y' ELSE 'N' END NOTNULL,")
                 .Append(" DECODE(TC.DATA_TYPE,'CHAR','OChar','VARCHAR','OVarchar','VARCHAR2','OVarchar','NVARCHAR2','OVarchar','MLSLABEL','OVarchar','UROWID','OVarchar','URITYPE','OVarchar','CHARACTER','OVarchar','CLOB','OVarchar', ")
                 .Append(" 'INTEGER','OInt','INT','OInt','SMALLINT','OInt','DATE','ODatetime','LONG','ODecimal','DECIMAL','ODecimal','NUMERIC','ODecimal','REAL','ODecimal','NUMBER','ODecimal','BLOB','OBinary','BFILE','OBinary','OVarchar') ODA_DATATYPE, ")
-                .Append(" DECODE(TC.DATA_TYPE,'BLOB',-1,'CLOB',-1, TC.DATA_LENGTH)  LENGTH,TCC.COMMENTS DIRECTION ")
-                .Append(" FROM USER_VIEWS TV,USER_TAB_COLUMNS TC ,'N' NOT_NULL,USER_COL_COMMENTS  TCC")
+                .Append(" DECODE(TC.DATA_TYPE,'BLOB',2000000000,'CLOB',2000000000, TC.DATA_LENGTH)  LENGTH,TC.DATA_SCALE SCALE,TCC.COMMENTS DIRECTION,DECODE(TC.NULLABLE ,'Y','N','Y') NOT_NULL ")
+                .Append(" FROM USER_VIEWS TV,USER_TAB_COLUMNS TC ,USER_COL_COMMENTS  TCC")
                 .Append(" WHERE TV.VIEW_NAME = TC.TABLE_NAME ")
                 .Append(" AND TC.TABLE_NAME = TCC.table_name(+) ")
                 .Append(" AND TC.COLUMN_NAME = TCC.column_name(+) ")
