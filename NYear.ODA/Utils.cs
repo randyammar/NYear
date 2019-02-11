@@ -289,7 +289,7 @@ namespace NYear.ODA
     }
 
 
-    public class OModel : DynamicObject, IEnumerable<KeyValuePair<string, object>>
+    public class ODynamicModel : DynamicObject, IEnumerable<KeyValuePair<string, object>>
     {
         private Dictionary<string, object> storage = new Dictionary<string, object>();
         public override bool TryGetMember(GetMemberBinder binder, out object result)

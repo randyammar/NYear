@@ -93,10 +93,11 @@ namespace NYear.ODA.DevTool
                         cbbxConnectstring.Text = "Data Source=./sqlite.db";
                         this.lblExecuteRlt.Text = "Data Source=./sqlite.db;Version=3;UseUTF16Encoding=True;Password=myPassword;Legacy Format=True;"
                         + " Pooling=False;Max Pool Size=100;Read Only=True;DateTimeFormat=Ticks;BinaryGUID=False;Cache Size=2000;Page Size=1024;\r\n"
-                            + "在FrameWork4.0上运行须要在<configuration>节点下加入以下配置： <startup useLegacyV2RuntimeActivationPolicy=\"true\" > "
-                            + " <supportedRuntime version=\"v4.0\" sku=\".NETFramework,Version=v4.0\"/> "
-                            + " <requiredRuntime Version=\"v4.0.20506\"/>"
-                            + " </startup>";
+                            //+ "在FrameWork4.0上运行须要在<configuration>节点下加入以下配置： <startup useLegacyV2RuntimeActivationPolicy=\"true\" > "
+                            //+ " <supportedRuntime version=\"v4.0\" sku=\".NETFramework,Version=v4.0\"/> "
+                            //+ " <requiredRuntime Version=\"v4.0.20506\"/>"
+                            //+ " </startup>";
+                            ;
                         break;
                     case "DB2":
                         cbbxConnectstring.Text = "Server=localhost:50000;DataBase=;UID=db2admin;PWD=123;";

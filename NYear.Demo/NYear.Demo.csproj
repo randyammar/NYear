@@ -8,9 +8,10 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace>NYear.Demo</RootNamespace>
     <AssemblyName>NYear.Demo</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -45,9 +46,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Gen\CmdTestBatchImport.cs" />
-    <Compile Include="Gen\Cmd\CmdOrgDepartment.cs" />
-    <Compile Include="Gen\Model\ORG_DEPARTMENT.cs" />
+    <Compile Include="Advance.cs" />
+    <Compile Include="FunctionDemo.cs" />
+    <Compile Include="Gen\Sys.Cmd.cs" />
+    <Compile Include="Gen\Sys.Model.cs" />
     <Compile Include="InsertDemo.cs" />
     <Compile Include="SelectDemo.cs" />
     <Compile Include="Demo.cs">
@@ -56,24 +58,8 @@
     <Compile Include="Demo.Designer.cs">
       <DependentUpon>Demo.cs</DependentUpon>
     </Compile>
-    <Compile Include="Gen\Cmd\CmdPrmPermission.cs" />
-    <Compile Include="Gen\Cmd\CmdPrmRole.cs" />
-    <Compile Include="Gen\Cmd\CmdPrmRoleAuthorize.cs" />
-    <Compile Include="Gen\Cmd\CmdPrmUserAuthorize.cs" />
-    <Compile Include="Gen\Cmd\CmdPrmUserRole.cs" />
-    <Compile Include="Gen\Cmd\CmdSequenceTable.cs" />
-    <Compile Include="Gen\Cmd\CmdVPrmUserAuthorize.cs" />
-    <Compile Include="Gen\Model\PRM_PERMISSION.cs" />
-    <Compile Include="Gen\Model\PRM_ROLE.cs" />
-    <Compile Include="Gen\Model\PRM_ROLE_AUTHORIZE.cs" />
-    <Compile Include="Gen\Model\PRM_USER_AUTHORIZE.cs" />
-    <Compile Include="Gen\Model\PRM_USER_ROLE.cs" />
-    <Compile Include="Gen\Model\SEQUENCE_TABLE.cs" />
-    <Compile Include="Gen\Model\V_PRM_USER_AUTHORIZE.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Test\CmdIqcResult.cs" />
-    <Compile Include="Test\ModelIqcResult.cs" />
     <Compile Include="UpdateDemo.cs" />
     <Compile Include="Utils.cs" />
     <EmbeddedResource Include="Demo.resx">
@@ -87,6 +73,7 @@
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
     </Compile>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -109,7 +96,7 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
-    <Content Include="DBScript\PERMISSION.sql" />
+    <Content Include="DBScript\SYS_TABLE.sql" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

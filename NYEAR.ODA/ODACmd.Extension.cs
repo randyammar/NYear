@@ -255,8 +255,9 @@ namespace NYear.ODA
             where C1 : ODACmd, new()
         {
             JoinCmd<C0, C1> cmd = new JoinCmd<C0, C1>();
+            cmd.Ctx = Ctx;
             cmd.Cmd0 = this.Cmd0;
-            cmd.Cmd1 = Ctx.GetCmd<C1>();
+            cmd.Cmd1 = Ctx.GetCmd<C1>(); 
             this.Cmd0.LeftJoin(cmd.Cmd1, On(this.Cmd0, cmd.Cmd1));
             return cmd;
         }
@@ -265,6 +266,7 @@ namespace NYear.ODA
             where C1 : ODACmd, new()
         {
             JoinCmd<C0, C1> cmd = new JoinCmd<C0, C1>();
+            cmd.Ctx = Ctx;
             cmd.Cmd0 = this.Cmd0;
             cmd.Cmd1 = Ctx.GetCmd<C1>();
             this.Cmd0.RightJoin(cmd.Cmd1, On(this.Cmd0, cmd.Cmd1));
@@ -275,6 +277,7 @@ namespace NYear.ODA
             where C1 : ODACmd, new()
         {
             JoinCmd<C0, C1> cmd = new JoinCmd<C0, C1>();
+            cmd.Ctx = Ctx;
             cmd.Cmd0 = this.Cmd0;
             cmd.Cmd1 = Ctx.GetCmd<C1>();
             this.Cmd0.InnerJoin(cmd.Cmd1, On(this.Cmd0, cmd.Cmd1));
@@ -366,6 +369,7 @@ namespace NYear.ODA
             where C2 : ODACmd, new()
         {
             JoinCmd<C0, C1, C2> cmd = new JoinCmd<C0, C1, C2>();
+            cmd.Ctx = Ctx;
             cmd.Cmd0 = this.Cmd0;
             cmd.Cmd1 = this.Cmd1;
             cmd.Cmd2 = Ctx.GetCmd<C2>();
@@ -377,6 +381,7 @@ namespace NYear.ODA
             where C2 : ODACmd, new()
         {
             JoinCmd<C0, C1, C2> cmd = new JoinCmd<C0, C1, C2>();
+            cmd.Ctx = Ctx;
             cmd.Cmd0 = this.Cmd0;
             cmd.Cmd1 = this.Cmd1;
             cmd.Cmd2 = Ctx.GetCmd<C2>();
@@ -388,6 +393,7 @@ namespace NYear.ODA
             where C2 : ODACmd, new()
         {
             JoinCmd<C0, C1, C2> cmd = new JoinCmd<C0, C1, C2>();
+            cmd.Ctx = Ctx;
             cmd.Cmd0 = this.Cmd0;
             cmd.Cmd1 = this.Cmd1;
             cmd.Cmd2 = Ctx.GetCmd<C2>();
@@ -480,6 +486,7 @@ namespace NYear.ODA
             where C3 : ODACmd, new()
         {
             JoinCmd<C0, C1, C2, C3> cmd = new JoinCmd<C0, C1, C2, C3>();
+            cmd.Ctx = Ctx;
             cmd.Cmd0 = this.Cmd0;
             cmd.Cmd1 = this.Cmd1;
             cmd.Cmd2 = this.Cmd2;
@@ -492,6 +499,7 @@ namespace NYear.ODA
             where C3 : ODACmd, new()
         {
             JoinCmd<C0, C1, C2, C3> cmd = new JoinCmd<C0, C1, C2, C3>();
+            cmd.Ctx = Ctx;
             cmd.Cmd0 = this.Cmd0;
             cmd.Cmd1 = this.Cmd1;
             cmd.Cmd2 = this.Cmd2;
@@ -504,6 +512,7 @@ namespace NYear.ODA
             where C3 : ODACmd, new()
         {
             JoinCmd<C0, C1, C2, C3> cmd = new JoinCmd<C0, C1, C2, C3>();
+            cmd.Ctx = Ctx;
             cmd.Cmd0 = this.Cmd0;
             cmd.Cmd1 = this.Cmd1;
             cmd.Cmd2 = this.Cmd2;
@@ -596,6 +605,7 @@ namespace NYear.ODA
             where C4 : ODACmd, new()
         {
             JoinCmd<C0, C1, C2, C3, C4> cmd = new JoinCmd<C0, C1, C2, C3, C4>();
+            cmd.Ctx = Ctx;
             cmd.Cmd0 = this.Cmd0;
             cmd.Cmd1 = this.Cmd1;
             cmd.Cmd2 = this.Cmd2;
@@ -609,6 +619,7 @@ namespace NYear.ODA
             where C4 : ODACmd, new()
         {
             JoinCmd<C0, C1, C2, C3, C4> cmd = new JoinCmd<C0, C1, C2, C3, C4>();
+            cmd.Ctx = Ctx;
             cmd.Cmd0 = this.Cmd0;
             cmd.Cmd1 = this.Cmd1;
             cmd.Cmd2 = this.Cmd2;
@@ -622,6 +633,7 @@ namespace NYear.ODA
             where C4 : ODACmd, new()
         {
             JoinCmd<C0, C1, C2, C3, C4> cmd = new JoinCmd<C0, C1, C2, C3, C4>();
+            cmd.Ctx = Ctx;
             cmd.Cmd0 = this.Cmd0;
             cmd.Cmd1 = this.Cmd1;
             cmd.Cmd2 = this.Cmd2;
@@ -716,6 +728,7 @@ namespace NYear.ODA
             where C5 : ODACmd, new()
         {
             JoinCmd<C0, C1, C2, C3, C4, C5> cmd = new JoinCmd<C0, C1, C2, C3, C4, C5>();
+            cmd.Ctx = Ctx;
             cmd.Cmd0 = this.Cmd0;
             cmd.Cmd1 = this.Cmd1;
             cmd.Cmd2 = this.Cmd2;
@@ -730,6 +743,7 @@ namespace NYear.ODA
             where C5 : ODACmd, new()
         {
             JoinCmd<C0, C1, C2, C3, C4, C5> cmd = new JoinCmd<C0, C1, C2, C3, C4, C5>();
+            cmd.Ctx = Ctx;
             cmd.Cmd0 = this.Cmd0;
             cmd.Cmd1 = this.Cmd1;
             cmd.Cmd2 = this.Cmd2;
@@ -744,6 +758,7 @@ namespace NYear.ODA
             where C5 : ODACmd, new()
         {
             JoinCmd<C0, C1, C2, C3, C4, C5> cmd = new JoinCmd<C0, C1, C2, C3, C4, C5>();
+            cmd.Ctx = Ctx;
             cmd.Cmd0 = this.Cmd0;
             cmd.Cmd1 = this.Cmd1;
             cmd.Cmd2 = this.Cmd2;
@@ -839,6 +854,7 @@ namespace NYear.ODA
             where C6 : ODACmd, new()
         {
             JoinCmd<C0, C1, C2, C3, C4, C5, C6> cmd = new JoinCmd<C0, C1, C2, C3, C4, C5, C6>();
+            cmd.Ctx = Ctx;
             cmd.Cmd0 = this.Cmd0;
             cmd.Cmd1 = this.Cmd1;
             cmd.Cmd2 = this.Cmd2;
@@ -854,6 +870,7 @@ namespace NYear.ODA
             where C6 : ODACmd, new()
         {
             JoinCmd<C0, C1, C2, C3, C4, C5, C6> cmd = new JoinCmd<C0, C1, C2, C3, C4, C5, C6>();
+            cmd.Ctx = Ctx;
             cmd.Cmd0 = this.Cmd0;
             cmd.Cmd1 = this.Cmd1;
             cmd.Cmd2 = this.Cmd2;
@@ -869,6 +886,7 @@ namespace NYear.ODA
             where C6 : ODACmd, new()
         {
             JoinCmd<C0, C1, C2, C3, C4, C5, C6> cmd = new JoinCmd<C0, C1, C2, C3, C4, C5, C6>();
+            cmd.Ctx = Ctx;
             cmd.Cmd0 = this.Cmd0;
             cmd.Cmd1 = this.Cmd1;
             cmd.Cmd2 = this.Cmd2;
@@ -967,6 +985,7 @@ namespace NYear.ODA
             where C7 : ODACmd, new()
         {
             JoinCmd<C0, C1, C2, C3, C4, C5, C6, C7> cmd = new JoinCmd<C0, C1, C2, C3, C4, C5, C6, C7>();
+            cmd.Ctx = Ctx;
             cmd.Cmd0 = this.Cmd0;
             cmd.Cmd1 = this.Cmd1;
             cmd.Cmd2 = this.Cmd2;
@@ -983,6 +1002,7 @@ namespace NYear.ODA
             where C7 : ODACmd, new()
         {
             JoinCmd<C0, C1, C2, C3, C4, C5, C6, C7> cmd = new JoinCmd<C0, C1, C2, C3, C4, C5, C6, C7>();
+            cmd.Ctx = Ctx;
             cmd.Cmd0 = this.Cmd0;
             cmd.Cmd1 = this.Cmd1;
             cmd.Cmd2 = this.Cmd2;
@@ -999,6 +1019,7 @@ namespace NYear.ODA
             where C7 : ODACmd, new()
         {
             JoinCmd<C0, C1, C2, C3, C4, C5, C6, C7> cmd = new JoinCmd<C0, C1, C2, C3, C4, C5, C6, C7>();
+            cmd.Ctx = Ctx;
             cmd.Cmd0 = this.Cmd0;
             cmd.Cmd1 = this.Cmd1;
             cmd.Cmd2 = this.Cmd2;
@@ -1100,6 +1121,7 @@ namespace NYear.ODA
             where C8 : ODACmd, new()
         {
             JoinCmd<C0, C1, C2, C3, C4, C5, C6, C7, C8> cmd = new JoinCmd<C0, C1, C2, C3, C4, C5, C6, C7, C8>();
+            cmd.Ctx = Ctx;
             cmd.Cmd0 = this.Cmd0;
             cmd.Cmd1 = this.Cmd1;
             cmd.Cmd2 = this.Cmd2;
@@ -1117,6 +1139,7 @@ namespace NYear.ODA
             where C8 : ODACmd, new()
         {
             JoinCmd<C0, C1, C2, C3, C4, C5, C6, C7, C8> cmd = new JoinCmd<C0, C1, C2, C3, C4, C5, C6, C7, C8>();
+            cmd.Ctx = Ctx;
             cmd.Cmd0 = this.Cmd0;
             cmd.Cmd1 = this.Cmd1;
             cmd.Cmd2 = this.Cmd2;
@@ -1134,6 +1157,7 @@ namespace NYear.ODA
             where C8 : ODACmd, new()
         {
             JoinCmd<C0, C1, C2, C3, C4, C5, C6, C7, C8> cmd = new JoinCmd<C0, C1, C2, C3, C4, C5, C6, C7, C8>();
+            cmd.Ctx = Ctx;
             cmd.Cmd0 = this.Cmd0;
             cmd.Cmd1 = this.Cmd1;
             cmd.Cmd2 = this.Cmd2;
@@ -1237,6 +1261,7 @@ namespace NYear.ODA
             where C9 : ODACmd, new()
         {
             JoinCmd<C0, C1, C2, C3, C4, C5, C6, C7, C8,C9> cmd = new JoinCmd<C0, C1, C2, C3, C4, C5, C6, C7, C8,C9>();
+            cmd.Ctx = Ctx;
             cmd.Cmd0 = this.Cmd0;
             cmd.Cmd1 = this.Cmd1;
             cmd.Cmd2 = this.Cmd2;
@@ -1255,6 +1280,7 @@ namespace NYear.ODA
             where C9 : ODACmd, new()
         {
             JoinCmd<C0, C1, C2, C3, C4, C5, C6, C7, C8, C9> cmd = new JoinCmd<C0, C1, C2, C3, C4, C5, C6, C7, C8, C9>();
+            cmd.Ctx = Ctx;
             cmd.Cmd0 = this.Cmd0;
             cmd.Cmd1 = this.Cmd1;
             cmd.Cmd2 = this.Cmd2;
@@ -1273,6 +1299,7 @@ namespace NYear.ODA
             where C9 : ODACmd, new()
         {
             JoinCmd<C0, C1, C2, C3, C4, C5, C6, C7, C8, C9> cmd = new JoinCmd<C0, C1, C2, C3, C4, C5, C6, C7, C8, C9>();
+            cmd.Ctx = Ctx;
             cmd.Cmd0 = this.Cmd0;
             cmd.Cmd1 = this.Cmd1;
             cmd.Cmd2 = this.Cmd2;

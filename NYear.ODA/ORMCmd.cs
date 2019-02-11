@@ -123,6 +123,10 @@ namespace NYear.ODA
         {
             return (ORMCmd<T>)base.Where(Cols);
         }
+        public new ORMCmd<T> And(params IODAColumns[] Cols)
+        {
+            return (ORMCmd<T>)base.And(Cols);
+        }
         public new ORMCmd<T> Or(params IODAColumns[] Cols)
         {
             return (ORMCmd<T>)base.Or(Cols);

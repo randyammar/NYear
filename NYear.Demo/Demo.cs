@@ -33,8 +33,8 @@ namespace NYear.Demo
         }
         private void InitNYearODA()
         {
-            //ODAContext.SetODAConfig(ODA.DbAType.SQLite, @"Data Source=./sqlite.db");
-            ODAContext.SetODAConfig(ODA.DbAType.MsSQL, @"server = localhost; database = MES; uid = sa; pwd = 123;");
+
+            ODAContext.SetODAConfig(ODA.DbAType.MsSQL, @"server = localhost; database = NYear; uid = sa; pwd = 123;");
         }
         private void InitFuncType()
         {
@@ -71,17 +71,21 @@ namespace NYear.Demo
                 MethodInfo[] mds = tp.GetMethods();
                 foreach (var md in mds)
                 {
-                    if (md.IsDefined(typeof(DemoAttribute)))
+                    if (md.IsDefined(typeof(DemoAttribute),false))
                     {
-                        var dmAttr = (DemoAttribute)md.GetCustomAttribute(typeof(DemoAttribute));
-                        DemoMethodInfo mi = new DemoMethodInfo()
+                         var att = md.GetCustomAttributes(typeof(DemoAttribute), false);
+                        if (att != null && att.Count() > 0)
                         {
-                            MethodName = dmAttr.MethodName,
-                            DemoFunc = dmAttr.Demo,
-                            MethodDescript = dmAttr.MethodDescript,
-                            DemoMethod = md
-                        };
-                        DemoMethods.Add(mi);
+                            DemoAttribute dmAttr = (DemoAttribute)att[0];
+                            DemoMethodInfo mi = new DemoMethodInfo()
+                            {
+                                MethodName = dmAttr.MethodName,
+                                DemoFunc = dmAttr.Demo,
+                                MethodDescript = dmAttr.MethodDescript,
+                                DemoMethod = md
+                            };
+                            DemoMethods.Add(mi);
+                        }
                     }
                 }
             }

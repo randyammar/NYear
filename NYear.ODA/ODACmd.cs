@@ -142,7 +142,7 @@ namespace NYear.ODA
         /// <summary>
         /// 这个表的所有字段,即 "*"
         /// </summary>
-        public IODAColumns AllColumn
+        public ODAColumns AllColumn
         {
             get
             {
@@ -568,7 +568,9 @@ namespace NYear.ODA
                 {
                     sql.SqlScript.AppendLine(" ");
                     sql.SqlScript.AppendLine(_UnionCmd[i].JoinScript);
-                    var Union = _UnionCmd[i].UnionCmd.BaseCmd.GetSelectSql(_UnionCmd[i].UnionCmd.ViewColumns);
+                    var Union = _UnionCmd[i].UnionCmd.GetCmdSql(); 
+                    Union.SqlScript.Remove(0, 1);
+                    Union.SqlScript.Remove(Union.SqlScript.Length - 1, 1);
                     sql.Merge(Union); 
                 }
             }

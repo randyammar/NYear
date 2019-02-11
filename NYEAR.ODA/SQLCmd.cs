@@ -76,7 +76,7 @@ namespace NYear.ODA
 
             var db = GetDBAccess(oSql);
             var dt = db.Select(Sql, Parameters, 0, 1, "");
-            OModel M = new OModel();
+            ODynamicModel M = new ODynamicModel();
             if (dt != null && dt.Rows.Count > 0)
             {
                 foreach (DataColumn c in dt.Columns)

@@ -12,14 +12,21 @@ namespace NYear.ODA
         {
             int total = 0;
             var dt = this.Select(0, 1, out total, Cols); 
-            OModel M = new OModel(); 
+            ODynamicModel M = new ODynamicModel(); 
             if (dt != null && dt.Rows.Count > 0)
             {
                 foreach (DataColumn c in dt.Columns)
                 {
                     M.Add(c.ColumnName, dt.Rows[0][c.ColumnName]);
                 }
-            } 
+            }
+            else
+            {
+                foreach (IODAColumns c in Cols)
+                {
+                    M.Add(c.ColumnName, null);
+                }
+            }
             return M;
         }
 
@@ -36,7 +43,7 @@ namespace NYear.ODA
                 }
                 foreach (DataRow r in dt.Rows)
                 {
-                    OModel M = new OModel();
+                    ODynamicModel M = new ODynamicModel();
                     for (int i = 0; i < CNames.Length; i++)
                     {
                         M.Add(CNames[i], r.ItemArray[i]);
@@ -59,7 +66,7 @@ namespace NYear.ODA
                 }
                 foreach (DataRow r in dt.Rows)
                 {
-                    OModel M = new OModel();
+                    ODynamicModel M = new ODynamicModel();
                     for (int i = 0; i < CNames.Length; i++)
                     {
                         M.Add(CNames[i], r.ItemArray[i]);

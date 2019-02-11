@@ -12,620 +12,309 @@ namespace NYear.Demo
 {
     public class SelectDemo
     {
-
-        [Demo(Demo = FuncType.Select, MethodName = "Test", MethodDescript = "测试")]
-        public static object Test()
-        {
-            DateTime dt1 = DateTime.Now;
-            ODAContext ctx = new ODAContext();
-            CmdTestBatchImport c = ctx.GetCmd<CmdTestBatchImport>();// new CmdTestBatchImport();
-            int total = 0;
-            DataTable dt = c.Select(2000000, 30, out total);
-            DateTime dt2 = DateTime.Now;
-            return dt;
-        }
-
-
-        private static DataTable DatetimeTable(int Days = 1)
-        {
-            DataTable dt = new DataTable();
-            dt.Columns.Add("SEQ", typeof(int));
-            dt.Columns.Add("DayOfYear", typeof(int));
-            dt.Columns.Add("DayOfMonth", typeof(int));
-            dt.Columns.Add("DayOfWeek", typeof(int));
-            dt.Columns.Add("HourMinute", typeof(string));
-            dt.Columns.Add("NEXT_DATE", typeof(DateTime));
-
-            DateTime dtNext = DateTime.Now.Date;
-            for (int i = 1; i < 24 * 60 * Days; i++)
-            {
-                DateTime NEXT_DATE = dtNext.AddMinutes(i);
-                dt.Rows.Add(i, NEXT_DATE.DayOfYear, NEXT_DATE.Day, NEXT_DATE.DayOfWeek.ToString("d"), NEXT_DATE.ToString("HHmm"), NEXT_DATE);
-            }
-            return dt;
-        }
-
-        [Demo(Demo = FuncType.Select, MethodName = "GetDBDatetime", MethodDescript = "获取数据库时间")]
-        public static object GetDBDatetime()
-        {
-            ODAContext ctx = new ODAContext();
-            var rlt = ctx.DBDatetime;
-            return rlt;
-        }
-        [Demo(Demo = FuncType.Select, MethodName = "SelectM", MethodDescript = "简单查询并返回数据模型")]
-        public static object SelectM()
-        {
-            ODAContext ctx = new ODAContext();
-            int total = 0; 
-            List<PRM_ROLE> rlt = ctx.GetCmd<CmdPrmRole>().SelectM(0,20,out total);
-            return rlt;
-        }
-        [Demo(Demo = FuncType.Select, MethodName = "SelectM_1", MethodDescript = "简单查询并返回数据模型")]
-        public static object SelectM_1()
-        {
-            ODAContext ctx = new ODAContext();
-            CmdPrmRole pr = ctx.GetCmd<CmdPrmRole>();
-            List<PRM_ROLE> rlt = pr.Where(pr.ColRoleName == "Administrator")
-                .SelectM(pr.ColRoleName,pr.ColIsSupperAdmin,pr.ColDescript);
-            return rlt;
-        }
-        [Demo(Demo = FuncType.Select, MethodName = "Select", MethodDescript = "简单查询并返回DataTable")]
+        [Demo(Demo = FuncType.Select, MethodName = "Select", MethodDescript = "简单查询")]
         public static object Select()
         {
             ODAContext ctx = new ODAContext();
-            DataTable rlt = ctx.GetCmd<CmdPrmRole>().Select();
-            return rlt;
+            var U = ctx.GetCmd<CmdSysUser>();
+            object data = U.Where(U.ColUserAccount == "User1")
+                  .And(U.ColIsLocked == "N")
+                  .And(U.ColStatus == "O")
+                  .And(U.ColEmailAddr.IsNotNull)  
+                 .Select(U.ColUserAccount, U.ColUserPassword.As("PWD"), U.ColUserName, U.ColPhoneNo, U.ColEmailAddr); 
+            return data;
         }
-        [Demo(Demo = FuncType.Select, MethodName = "Select<>", MethodDescript = "简单查询并返回泛型")]
-        public static object Select_()
+        [Demo(Demo = FuncType.Select, MethodName = "SelectM", MethodDescript = "查询默认实体")]
+        public static object SelectM()
         {
             ODAContext ctx = new ODAContext();
-            List<PRM_ROLE> rlt = ctx.GetCmd<CmdPrmRole>().Select<PRM_ROLE>();
-            return rlt;
+            var U = ctx.GetCmd<CmdSysUser>();
+            var data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColStatus == "O", U.ColEmailAddr.IsNotNull)
+                .SelectM(U.ColUserAccount, U.ColUserName, U.ColPhoneNo, U.ColEmailAddr);
+            return data;
         }
-        [Demo(Demo = FuncType.Select, MethodName = "SelectFirstAll", MethodDescript = "获取第一条数据")]
-        public static object SelectFirstAll()
+        [Demo(Demo = FuncType.Select, MethodName = "Select<>", MethodDescript = "查询并返回泛型")]
+        public static object SelectDefine()
         {
             ODAContext ctx = new ODAContext();
-            CmdPrmRole pr = ctx.GetCmd<CmdPrmRole>();
-            CmdPrmRoleAuthorize pra = ctx.GetCmd<CmdPrmRoleAuthorize>();
-            try
-            {
-                var rlt = pr
-                    .InnerJoin(pra, pr.ColRoleName == pra.ColRoleName)
-                    .Where(pra.ColIsForbidden == "Y", pra.ColResourceName == "resource")
-                    .SelectFirst();
-            }
-            catch { }
-
-            CmdPrmRole pr1 = ctx.GetCmd<CmdPrmRole>();
-            CmdPrmRoleAuthorize pra1 = ctx.GetCmd<CmdPrmRoleAuthorize>();
-            var rlt1 = pr
-                .InnerJoin(pra1, pr1.ColRoleName == pra1.ColRoleName)
-                .Where(pra1.ColIsForbidden == "Y", pra1.ColResourceName == "resource")
-                .SelectFirst<string,string,string>();
-            return rlt1;
+            var U = ctx.GetCmd<CmdSysUser>();
+            object data = U.Where(U.ColUserAccount == "User1")
+                  .And(U.ColIsLocked == "N")
+                  .And(U.ColStatus == "O")
+                  .And(U.ColEmailAddr.IsNotNull)
+                 .Select<SYS_USER>(U.ColUserAccount, U.ColUserName, U.ColPhoneNo, U.ColEmailAddr);
+            return data;
         }
 
-        [Demo(Demo = FuncType.Select, MethodName = "SelectFirst", MethodDescript = "获取第一条数据")]
+        [Demo(Demo = FuncType.Select, MethodName = "SelectPaging", MethodDescript = "查询分页")]
+        public static object SelectPaging()
+        {
+            ODAContext ctx = new ODAContext(); 
+            int total = 0; 
+            var U = ctx.GetCmd<CmdSysUser>();
+            var data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColEmailAddr.IsNotNull)
+            .SelectM(0,20,out total, U.ColUserAccount, U.ColUserName, U.ColPhoneNo, U.ColEmailAddr); 
+            return data;
+        }
+        [Demo(Demo = FuncType.Select, MethodName = "SelectFirst", MethodDescript = "查询第一行")]
         public static object SelectFirst()
         {
-            ODAContext ctx = new ODAContext();
-            CmdPrmRole pr = ctx.GetCmd<CmdPrmRole>();
-            CmdPrmRoleAuthorize pra = ctx.GetCmd<CmdPrmRoleAuthorize>();
-            var rlt = pr
-                .InnerJoin(pra, pr.ColRoleName == pra.ColRoleName)
-                .Where(pra.ColIsForbidden == "Y", pra.ColResourceName == "resource")
-                .SelectFirst<string, string, string>(pr.ColRoleName, pr.ColIsSupperAdmin, pr.ColDescript);
-            return rlt;
+            ODAContext ctx = new ODAContext(); 
+            var U = ctx.GetCmd<CmdSysUser>();
+            var data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColEmailAddr.IsNotNull)
+            .SelectDynamicFirst(U.ColUserAccount, U.ColUserName, U.ColPhoneNo, U.ColEmailAddr);
+
+            string UserName = data.USER_NAME; ///属性 USER_NAME 与 ColUserName 的ColumnName一致，如果没有数据则返回null
+            return data; 
         }
 
+         
         [Demo(Demo = FuncType.Select, MethodName = "SelectDynamic", MethodDescript = "返回动态数据模型")]
         public static object SelectDynamic()
         {
             ODAContext ctx = new ODAContext();
-            CmdPrmRole pr = ctx.GetCmd<CmdPrmRole>();
-            CmdPrmRoleAuthorize pra = ctx.GetCmd<CmdPrmRoleAuthorize>();
-            try
-            {
-                var rlt = pr
-                    .InnerJoin(pra, pr.ColRoleName == pra.ColRoleName)
-                    .Where(pra.ColIsForbidden == "Y", pra.ColResourceName == "resource")
-                    .Distinct.SelectDynamic<string, string, string>();
-            }
-            catch { }
+            var U = ctx.GetCmd<CmdSysUser>();
+            var data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColEmailAddr.IsNotNull)
+            .SelectDynamic(U.ColUserAccount, U.ColUserName, U.ColPhoneNo, U.ColEmailAddr);
 
-
-            CmdPrmRole pr1 = ctx.GetCmd<CmdPrmRole>();
-            CmdPrmRoleAuthorize pra1 = ctx.GetCmd<CmdPrmRoleAuthorize>();
-            var rlt1 = pr1
-                .InnerJoin(pra1, pr1.ColRoleName == pra1.ColRoleName)
-                .Where(pra1.ColIsForbidden == "Y", pra1.ColResourceName == "resource")
-                .Distinct.SelectDynamic<string, string, string>(pr.ColRoleName, pr.ColIsSupperAdmin, pr.ColDescript);
-
-            return rlt1;
+            string UserName = "";
+            if (data.Count > 0)
+                UserName =  data[0].USER_NAME; ///与 ColUserName  的 ColumnName一致.
+            return data;
         }
-        [Demo(Demo = FuncType.Select, MethodName = "ToModel", MethodDescript = "返回指定数据模型")]
-        public static object ToModel()
+
+        [Demo(Demo = FuncType.Select, MethodName = "Distinct", MethodDescript = "去重复")]
+        public static object Distinct()
         {
             ODAContext ctx = new ODAContext();
-            CmdPrmRole pr = ctx.GetCmd<CmdPrmRole>();
-            CmdPrmRoleAuthorize pra = ctx.GetCmd<CmdPrmRoleAuthorize>();
-            List<PRM_ROLE> rlt = pr
-                .InnerJoin(pra, pr.ColRoleName == pra.ColRoleName)
-                .Where(pra.ColIsForbidden == "Y", pra.ColResourceName == "resource")
-                .Select<PRM_ROLE>(pr.ColRoleName, pr.ColIsSupperAdmin, pr.ColDescript);
-            return rlt;
-        }
-        [Demo(Demo = FuncType.Select, MethodName = "ColumnAlias", MethodDescript = "字段别名")]
-        public static object ColumnAlias()
-        {
-            ODAContext ctx = new ODAContext();
-            CmdPrmRole pr = ctx.GetCmd<CmdPrmRole>();
-            CmdPrmRoleAuthorize pra = ctx.GetCmd<CmdPrmRoleAuthorize>();
-            var rlt = pr
-                 .InnerJoin(pra, pr.ColRoleName == pra.ColRoleName)
-                 .Where(pra.ColIsForbidden == "Y", pra.ColResourceName == "resource")
-                 .Select(pra.ColRoleName.As("ColumnAlias"), pr.ColIsSupperAdmin.As("AliasName_1"), pr.ColDescript.As("AliasName_2"));
-            return rlt;
-        }
-        [Demo(Demo = FuncType.Select, MethodName = "SelectPaging", MethodDescript = "查询分页")]
-        public static object SelectPaging()
-        {
-            ODAContext ctx = new ODAContext();
-            CmdPrmRole pr = ctx.GetCmd<CmdPrmRole>();
-            CmdPrmRoleAuthorize pra = ctx.GetCmd<CmdPrmRoleAuthorize>();
-
-            int PageIndex = 0;
-            int PageSize = 30;
-            int PageCount = 0;
-
-            int total = 0;
-            var rlt = pr
-                .InnerJoin(pra, pr.ColRoleName == pra.ColRoleName)
-                .Where(pra.ColIsForbidden == "Y", pra.ColResourceName == "resource")
-                .Distinct.SelectDynamic<string, string, string>(PageIndex * PageSize, PageSize, out total, pr.ColRoleName, pr.ColIsSupperAdmin, pr.ColDescript);
-            PageCount = total / PageSize + 1;
-            return rlt;
+            var U = ctx.GetCmd<CmdSysUser>();
+            var data = U.Where( U.ColIsLocked == "N", U.ColEmailAddr.IsNotNull)
+            .Distinct.Select(U.ColUserAccount, U.ColUserName, U.ColPhoneNo, U.ColEmailAddr);
+            return data;
         }
 
         [Demo(Demo = FuncType.Select, MethodName = "Join", MethodDescript = "连接查询")]
         public static object Join()
         {
             ODAContext ctx = new ODAContext();
-            CmdPrmRole pr = ctx.GetCmd<CmdPrmRole>();
-            CmdPrmRoleAuthorize pra = ctx.GetCmd<CmdPrmRoleAuthorize>();
-            List<PRM_ROLE> rlt = pr
-                .InnerJoin(pra, pr.ColRoleName == pra.ColRoleName)
-                .Where(pra.ColIsForbidden == "Y", pra.ColResourceName == "resource")
-                .Select<PRM_ROLE>(pr.ColRoleName, pr.ColIsSupperAdmin, pr.ColDescript);
-            return rlt;
-        }
+            var U = ctx.GetCmd<CmdSysUser>();
+            var R = ctx.GetCmd<CmdSysRole>();
+            var UR = ctx.GetCmd<CmdSysUserRole>();
 
-        [Demo(Demo = FuncType.Select, MethodName = "MultiJoin", MethodDescript = "多表连接查询")]
-        public static object MultiJoin()
+            var data = U.InnerJoin(UR, U.ColUserAccount == UR.ColUserAccount, UR.ColStatus == "O")
+                .InnerJoin(R, UR.ColRoleCode == R.ColRoleCode, R.ColStatus == "O")
+                .Where(U.ColStatus == "O",R.ColRoleCode == "Administrator")
+                 .Select<UserDefineModel>(U.ColUserAccount.As("UserAccount"), U.ColUserName.As("UserName"),R.ColRoleCode.As("Role"), R.ColRoleName.As("RoleName"));
+            return data;
+        }
+        [Demo(Demo = FuncType.Select, MethodName = "List", MethodDescript = "简单内连接")]
+        public static object List()
         {
             ODAContext ctx = new ODAContext();
-            CmdPrmRole pr = ctx.GetCmd<CmdPrmRole>();
-            CmdPrmRoleAuthorize pra = ctx.GetCmd<CmdPrmRoleAuthorize>();
-            CmdPrmUserRole ur = ctx.GetCmd<CmdPrmUserRole>();
-            CmdPrmPermission p = ctx.GetCmd<CmdPrmPermission>();
-            CmdVPrmUserAuthorize ua = ctx.GetCmd<CmdVPrmUserAuthorize>();
-            List<PRM_ROLE> rlt = pr.InnerJoin(pra, pr.ColRoleName == pra.ColRoleName)
-                .InnerJoin(ur, pr.ColRoleName == ur.ColRoleName)
-                .InnerJoin(ua, ur.ColUserId == ua.ColUserId)
-                .InnerJoin(p, ((p.ColResourceName == pra.ColResourceName).And(p.ColOperateName == pra.ColOperateName)).Or((ua.ColResourceName == p.ColResourceName).And(ua.ColOperateName == p.ColOperateName)))
-                .Where(pra.ColIsForbidden == "Y", pra.ColResourceName == "resource")
-                .Select<PRM_ROLE>(pr.ColRoleName, pr.ColIsSupperAdmin, pr.ColDescript);
-            return rlt;
-        }
-        [Demo(Demo = FuncType.Select, MethodName = "OtherInnerJoin", MethodDescript = "另一种形式的内连查询")]
-        public static object OtherInnerJoin()
-        {
-            ODAContext ctx = new ODAContext();
-            CmdPrmRole pr = ctx.GetCmd<CmdPrmRole>();
-            CmdPrmRoleAuthorize pra = ctx.GetCmd<CmdPrmRoleAuthorize>();
-            CmdPrmUserRole ur = ctx.GetCmd<CmdPrmUserRole>();
-            CmdPrmPermission p = ctx.GetCmd<CmdPrmPermission>();
-            CmdVPrmUserAuthorize ua = ctx.GetCmd<CmdVPrmUserAuthorize>();
-            List<PRM_ROLE> rlt = pr.ListCmd(pra, ur, ua, p)
-                .Where(
-                pr.ColRoleName == ur.ColRoleName,
-                ur.ColUserId == ua.ColUserId,
-                 ((p.ColResourceName == pra.ColResourceName).And(p.ColOperateName == pra.ColOperateName)).Or((ua.ColResourceName == p.ColResourceName).And(ua.ColOperateName == p.ColOperateName)),
-                 pra.ColIsForbidden == "Y",
-                 pra.ColResourceName == "resource"
-                 )
-                .Select<PRM_ROLE>(pr.ColRoleName, pr.ColIsSupperAdmin, pr.ColDescript);
-            return rlt;
-        }
-        [Demo(Demo = FuncType.Select, MethodName = "OrderBy", MethodDescript = "查询排序")]
-        public static object OrderBy()
-        {
-            ODAContext ctx = new ODAContext();
-            StringBuilder sb = new StringBuilder();
-       
-            CmdPrmRole pr = ctx.GetCmd<CmdPrmRole>();
-            CmdPrmRoleAuthorize pra = ctx.GetCmd<CmdPrmRoleAuthorize>();
+            var U = ctx.GetCmd<CmdSysUser>();
+            var R = ctx.GetCmd<CmdSysRole>();
+            var UR = ctx.GetCmd<CmdSysUserRole>();
+            var data =  U.ListCmd(UR,R)
+                .Where(U.ColUserAccount == UR.ColUserAccount, 
+                 UR.ColStatus == "O",
+                 UR.ColRoleCode == R.ColRoleCode,
+                 R.ColStatus == "O",
+                 U.ColStatus == "O",
+                 R.ColRoleCode == "Administrator")
+                 .Select< UserDefineModel>(U.ColUserAccount.As("UserAccount"), U.ColUserName.As("UserName"),U.ColEmailAddr.As("Email"), R.ColRoleCode.As("Role"), R.ColRoleName.As("RoleName"));
 
-            CmdPrmUserRole ur = ctx.GetCmd<CmdPrmUserRole>();
-            CmdPrmPermission p = ctx.GetCmd<CmdPrmPermission>();
-            CmdVPrmUserAuthorize ua = ctx.GetCmd<CmdVPrmUserAuthorize>();
-            List<PRM_ROLE> rlt = pr.InnerJoin(pra, pr.ColRoleName == pra.ColRoleName)
-                .InnerJoin(ur, pr.ColRoleName == ur.ColRoleName)
-                .InnerJoin(ua, ur.ColUserId == ua.ColUserId)
-                .InnerJoin(p, ((p.ColResourceName == pra.ColResourceName).And(p.ColOperateName == pra.ColOperateName)).Or((ua.ColResourceName == p.ColResourceName).And(ua.ColOperateName == p.ColOperateName)))
-                .Where(pra.ColIsForbidden == "Y", pra.ColResourceName == "resource")
-                .OrderbyAsc(pr.ColRoleName, ua.ColUserId)
-                .OrderbyDesc(ur.ColCreateDate, ur.ColUserId)
-                .Select<PRM_ROLE>(pr.ColRoleName, ua.ColUserId, pr.ColIsSupperAdmin, pr.ColDescript);
-            return rlt;
-        }
-        [Demo(Demo = FuncType.Select, MethodName = "GroupByHaving", MethodDescript = "分组统计")]
-        public static object GroupByHaving()
-        {
-            ODAContext ctx = new ODAContext();
-            CmdPrmRole pr = ctx.GetCmd<CmdPrmRole>();
-            CmdPrmRoleAuthorize pra = ctx.GetCmd<CmdPrmRoleAuthorize>();
-
-            CmdPrmUserRole ur = ctx.GetCmd<CmdPrmUserRole>();
-            CmdPrmPermission p = ctx.GetCmd<CmdPrmPermission>();
-            CmdVPrmUserAuthorize ua = ctx.GetCmd<CmdVPrmUserAuthorize>();
-            var rlt = pr.InnerJoin(pra, pr.ColRoleName == pra.ColRoleName)
-                .InnerJoin(ur, pr.ColRoleName == ur.ColRoleName)
-                .InnerJoin(ua, ur.ColUserId == ua.ColUserId)
-                .InnerJoin(p, ((p.ColResourceName == pra.ColResourceName).And(p.ColOperateName == pra.ColOperateName)).Or((ua.ColResourceName == p.ColResourceName).And(ua.ColOperateName == p.ColOperateName)))
-                .Where(pra.ColIsForbidden == "Y", pra.ColResourceName == "resource")
-                .Groupby(pr.ColRoleName, pra.ColResourceName, pra.ColOperateName)
-                .Having(pr.Function.Count > 2)
-                .Select(pr.Function.Count.As("CountData"), pr.ColRoleName, pra.ColResourceName, pra.ColOperateName);
-            return rlt;
-        }
-
-        [Demo(Demo = FuncType.Select, MethodName = "Distinct", MethodDescript = "Distinct查询去重复")]
-        public static object Distinct()
-        {
-            ODAContext ctx = new ODAContext();
-            CmdPrmRole pr = ctx.GetCmd<CmdPrmRole>();
-            CmdPrmRoleAuthorize pra = ctx.GetCmd<CmdPrmRoleAuthorize>();
-            int TotalRows = 0;
-            List<PRM_ROLE> rlt = pr
-                .InnerJoin(pra, pr.ColRoleName == pra.ColRoleName)
-                .Where(pra.ColIsForbidden == "Y", pra.ColResourceName == "resource")
-                .Distinct.Select<PRM_ROLE>(0, int.MaxValue, out TotalRows, pr.ColRoleName, pr.ColIsSupperAdmin, pr.ColDescript);
-            return rlt;
-        }
-        [Demo(Demo = FuncType.Select, MethodName = "Function", MethodDescript = " 数据库函数")]
-        public static object Function()
-        {
-            ODAContext ctx = new ODAContext();
-            CmdPrmRole pr = ctx.GetCmd<CmdPrmRole>();
-            var rlt = pr.Where(pr.ColRoleName == "Administrator")
-                .Select(pr.ColDescript.Upper, pr.ColIsSupperAdmin.Ascii, pr.Function.CreateFunc("myFunction", pr.ColRoleName, pr.ColDescript, "param0", 1).As("Funcresult"));
-            return rlt;
-        }
-
-        [Demo(Demo = FuncType.Select, MethodName = "Statistics ", MethodDescript = "统计运算")]
-        public static object Statistics()
-        {
-            ODAContext ctx = new ODAContext();
-            CmdPrmRole pr = ctx.GetCmd<CmdPrmRole>();
-            var rlt = pr.Where(pr.ColRoleName == "Administrator")
-                .Select(pr.ColDescript.Min.As("MIN_DESCRIPT"), pr.ColRoleName.Sum.As("SUM_ROLE_NAME"));
-            return rlt;
-        }
-
-        [Demo(Demo = FuncType.Select, MethodName = "VisualColumn", MethodDescript = "虚拟字段、临时字段")]
-        public static object VisualColumn()
-        {
-            ODAContext ctx = new ODAContext();
-            CmdPrmRole pr = ctx.GetCmd<CmdPrmRole>();
-            var rlt = pr.Where(pr.ColRoleName == "Administrator");
-                //.Select(pr.ColRoleName,pr.ColDescript,pr.ColIsSupperAdmin,pr.Function.VisualColumn("My Data").As("MyData"), pr.Function.VisualColumn("123", ODAdbType.ODecimal).As("MyCount"));
-            return rlt;
-        }
-
-        [Demo(Demo = FuncType.Select, MethodName = "NullDefault", MethodDescript = " 空值转换 ")]
-        public static object NullDefault()
-        {
-            ODAContext ctx = new ODAContext();
-            CmdPrmRole pr = ctx.GetCmd<CmdPrmRole>();
-            var rlt = pr.Select(pr.Function.NullDefault(pr.ColDescript, pr.ColRoleName).As(pr.ColDescript.ColumnName),
-                  pr.Function.NullDefault(pr.ColRoleName, "Administrator").As(pr.ColRoleName.ColumnName),
-                  pr.ColDescript);
-            return rlt;
-        }
-        [Demo(Demo = FuncType.Select, MethodName = "Decode", MethodDescript = "数据转换，与Oracle Decode函数的效果一样，ODA为了数据库通用，使用Case When 实现 ")]
-        public static object Decode()
-        {
-            ODAContext ctx = new ODAContext();
-            CmdPrmRole pr = ctx.GetCmd<CmdPrmRole>();
-            var rlt = pr.Select(pr.Function.Decode(pr.ColDescript, pr.ColRoleName, pr.ColRoleName, pr.ColCreateBy, pr.ColIsSupperAdmin, "Administrator").As("col1"),
-                  pr.Function.Decode(pr.ColDescript, "Default", "Is1", "then1", "is2", "then2", "is3", "then3").As("col2"),
-                  pr.ColDescript);
-            return rlt;
-        }
-
-        [Demo(Demo = FuncType.Select, MethodName = "FuncCase", MethodDescript = "数据库Case [column] When语句")]
-        public static object FuncCase()
-        {
-            ODAContext ctx = new ODAContext();
-            CmdPrmRole pr = ctx.GetCmd<CmdPrmRole>();
-            var whenThen1 = new Dictionary<object, object>();
-            whenThen1.Add(pr.ColRoleName, pr.ColRoleName);
-            whenThen1.Add("when11", "then11");
-            var whenThen2 = new Dictionary<object, object>();
-            whenThen2.Add("when21", "then21");
-            whenThen2.Add("when22", "then22");
-            var rlt = pr.Select(
-                  pr.Function.Case(pr.ColDescript, whenThen1, "Administrator").As("col1"),
-                  pr.Function.Case(pr.ColDescript, whenThen2, pr.ColRoleName).As("col2"),
-                  pr.ColDescript);
-            return rlt;
-        }
-        [Demo(Demo = FuncType.Select, MethodName = "FuncCaseWhen", MethodDescript = "数据库Case When [条件] 语句")]
-        public static object FuncCaseWhen()
-        {
-            ODAContext ctx = new ODAContext();
-            CmdPrmRole pr = ctx.GetCmd<CmdPrmRole>();
-            var whenThen1 = new Dictionary<ODAColumns, object>();
-            whenThen1.Add(pr.ColRoleName.IsNull, pr.ColRoleName);
-            whenThen1.Add(pr.ColRoleName == "value1", "then11");
-            var whenThen2 = new Dictionary<ODAColumns, object>();
-            whenThen2.Add(pr.ColRoleName == "abc", "then21");
-            whenThen2.Add(pr.ColRoleName == "abcd", "then22");
-            var rlt = pr.Select(
-                  pr.Function.CaseWhen(whenThen1, "Administrator").As("col1"),
-                  pr.Function.CaseWhen(whenThen2, pr.ColRoleName).As("col2"),
-                  pr.ColDescript);
-            return rlt;
-        }
-        [Demo(Demo = FuncType.Select, MethodName = "Where", MethodDescript = "数据库查询条件语法")]
-        public static object Where()
-        {
-            //================================================================================
-            ///语法1
-            ODAContext ctx = new ODAContext();
-            CmdPrmRole pr = ctx.GetCmd<CmdPrmRole>();
-            CmdPrmRoleAuthorize pra = ctx.GetCmd<CmdPrmRoleAuthorize>();
-
-            pr.InnerJoin(pra, pr.ColRoleName == pra.ColRoleName)
-            .Where(pr.ColRoleName == "Administrator")
-            .And((pra.ColIsForbidden == "Y").Or(pra.ColIsForbidden == "N"))
-            .Or(pr.ColCreateDate >= ctx.DBDatetime.AddDays(-300));
-
-            var rlt = pr.Select(pr.ColRoleName, pr.ColDescript, pra.ColResourceName, pra.ColOperateName, pra.ColIsForbidden);
-
-            //==================================================================================
-            //语法2
-            CmdPrmRole pr1 = ctx.GetCmd<CmdPrmRole>();
-            CmdPrmRoleAuthorize pra1 = ctx.GetCmd<CmdPrmRoleAuthorize>();
-            pr1.InnerJoin(pra1, pr1.ColRoleName == pra1.ColRoleName)
-            .Where(pr1.ColRoleName == "Administrator", (pra1.ColIsForbidden == "Y").Or(pra1.ColIsForbidden == "N"))
-            .Or(pr1.ColCreateDate >= ctx.DBDatetime.AddDays(-300));
-
-            var rlt1 = pr1.Select(pr1.ColRoleName, pr1.ColDescript, pra1.ColResourceName, pra1.ColOperateName, pra1.ColIsForbidden);
-            return rlt;
-        }
-        [Demo(Demo = FuncType.Select, MethodName = "Condition", MethodDescript = "复杂 where 条件关系")]
-        public static object Condition()
-        {
-            ODAContext ctx = new ODAContext();
-            CmdPrmRole pr = ctx.GetCmd<CmdPrmRole>();
-            CmdPrmRoleAuthorize pra = ctx.GetCmd<CmdPrmRoleAuthorize>();
-
-            ODAColumns operation = pra.ColOperateName == "Add";
-            operation.Or(pra.ColOperateName == "Del");
-            operation.Or((pra.ColOperateName == "Select").And(pra.ColOperateName == "View"));
-            operation.Or(pra.ColOperateName == "update");
-
-            List<PRM_ROLE> rlt = pr
-                .InnerJoin(pra, pr.ColRoleName == pra.ColRoleName)
-                .Where(pr.ColCreateDate >= System.DateTime.Now.AddDays(-30))
-                .And(operation)
-                .And(pr.ColRoleName.In("Administrator", "Admin", "System"))
-                .Or(pra.ColIsForbidden != "N")
-                .Select<PRM_ROLE>( pr.ColRoleName, pr.ColIsSupperAdmin, pr.ColDescript);
-            return rlt;
-
-        }
-        [Demo(Demo = FuncType.Select, MethodName = "Like", MethodDescript = "Like 条件")]
-        public static object Like()
-        {
-            ODAContext ctx = new ODAContext();
-            CmdPrmRole pr = ctx.GetCmd<CmdPrmRole>();
-            CmdPrmRoleAuthorize pra = ctx.GetCmd<CmdPrmRoleAuthorize>();
-
-            pr.InnerJoin(pra, pr.ColRoleName == pra.ColRoleName);
-
-            if (Guid.NewGuid().GetHashCode() % 1 == 0)
-                pr.Where(pr.ColRoleName.Like("%Administrator%"));
-            if (Guid.NewGuid().GetHashCode() % 2 == 1)
-                pr.Where(pr.ColRoleName.Like("%Admin"));
-            if (Guid.NewGuid().GetHashCode() % 2 == 1)
-                pr.Where(pra.ColResourceName.Like("source1%"));
-
-            if (Guid.NewGuid().GetHashCode() % 2 == 0)
-                pra.Where(pra.ColOperateName == "Add");
-            if (Guid.NewGuid().GetHashCode() % 2 == 1)
-                pra.Where(pra.ColIsForbidden == "Y");
-
-            var rlt = pr.Select(pr.ColRoleName, pr.ColDescript, pra.ColResourceName, pra.ColOperateName, pra.ColIsForbidden);
-            return rlt;
-        }
-
-        [Demo(Demo = FuncType.Select, MethodName = "WhereDynamic", MethodDescript = "跟据情况添加数据查询条件[ where 条件] ")]
-        public static object WhereDynamic()
-        {
-            ODAContext ctx = new ODAContext();
-            CmdPrmRole pr = ctx.GetCmd<CmdPrmRole>();
-            CmdPrmRoleAuthorize pra = ctx.GetCmd<CmdPrmRoleAuthorize>();
-
-            pr.InnerJoin(pra, pr.ColRoleName == pra.ColRoleName);
-
-            if (Guid.NewGuid().GetHashCode() % 1 == 0)
-                pr.Where(pr.ColRoleName == "Administrator");
-            if (Guid.NewGuid().GetHashCode() % 2 == 1)
-                pr.Where(pr.ColRoleName == "Admin");
-            if (Guid.NewGuid().GetHashCode() % 2 == 1)
-                pr.Where(pra.ColResourceName == "source1");
-
-            if (Guid.NewGuid().GetHashCode() % 2 == 0)
-                pra.Where(pra.ColOperateName == "Add");
-            if (Guid.NewGuid().GetHashCode() % 2 == 1)
-                pra.Where(pra.ColIsForbidden == "Y");
-
-            var rlt = pr.Select(pr.ColRoleName, pr.ColDescript, pra.ColResourceName, pra.ColOperateName, pra.ColIsForbidden);
-            return rlt;
-        }
- 
-        [Demo(Demo = FuncType.Select, MethodName = "Where Exists", MethodDescript = "Exists 子查询")]
-        public static object WhereExists()
-        {
-            ODAContext ctx = new ODAContext();
-            CmdPrmRole pr = ctx.GetCmd<CmdPrmRole>();
-            CmdPrmRoleAuthorize ra = ctx.GetCmd<CmdPrmRoleAuthorize>();
-            ra.Where(ra.ColIsForbidden == "Y", pr.ColRoleName == ra.ColRoleName);
-
-            var rlt = pr.Where(
-                  pr.ColRoleName == "Administrator"
-                 // pr.Function.Exists(ra, ra.Function.VisualColumn("1", ODAdbType.OInt))
-                  )
-                  .Select(pr.ColDescript, pr.ColIsSupperAdmin.Ascii);
-            return rlt;
-        }
-        [Demo(Demo = FuncType.Select, MethodName = "Where IN", MethodDescript = "IN 子查询")]
-        public static object WhereIN()
-        {
-            ODAContext ctx = new ODAContext();
-            CmdPrmRole pr = ctx.GetCmd<CmdPrmRole>();
-            CmdPrmRoleAuthorize ra = ctx.GetCmd<CmdPrmRoleAuthorize>();
-            ra.Where(ra.ColIsForbidden == "Y", pr.ColRoleName == ra.ColRoleName);
-
-            var rlt = pr.Where(
-                   pr.ColRoleName == "Administrator"
-                   //pr.ColRoleName.In(ra, ra.Function.VisualColumn("1", ODAdbType.OInt))
-                   )
-                   .Select(pr.ColDescript, pr.ColIsSupperAdmin.Ascii);
-            return rlt;
+            return data;
         }
 
         [Demo(Demo = FuncType.Select, MethodName = "SubQuery", MethodDescript = "嵌套子查询")]
         public static object SubQuery()
         {
             ODAContext ctx = new ODAContext();
-            CmdPrmRole rl = ctx.GetCmd<CmdPrmRole>();  
-            CmdPrmUserRole ur = ctx.GetCmd<CmdPrmUserRole>();　
+            var U = ctx.GetCmd<CmdSysUser>();
+            var R = ctx.GetCmd<CmdSysRole>();
+            var UR = ctx.GetCmd<CmdSysUserRole>();
 
-            var vwCmd = ur.InnerJoin(rl, rl.ColRoleName == "Admin",ur.ColRoleName == rl.ColRoleName)　
-                .Where(ur.ColUserName == "MyUserName")
-                .ToView(rl.ColRoleName, rl.ColIsSupperAdmin , rl.ColDescript,rl.ColIsSupperAdmin, ur.ColUserId, ur.ColUserName);
-            vwCmd.Alias = "V1";
+            var UA = ctx.GetCmd<CmdSysUserAuthorization>();
+            var RA = ctx.GetCmd<CmdSysRoleAuthorization>();
+
+            var Admin = U.InnerJoin(UR, U.ColUserAccount == UR.ColUserAccount, UR.ColStatus == "O")
+                .InnerJoin(R, UR.ColRoleCode == R.ColRoleCode, R.ColStatus == "O")
+                .Where(U.ColStatus == "O")
+                .ToView(U.ColUserAccount.As("SYS_USER"), U.ColUserName, R.ColRoleCode.As("SYS_ROLE"), R.ColRoleName); ////子查询
+
+           var data =  Admin.InnerJoin(UA, UA.ColUserAccount == Admin.ViewColumns[1],UA.ColIsForbidden == "N")
+                .InnerJoin(RA,RA.ColRoleCode == Admin.ViewColumns[2],RA.ColIsForbidden =="N") 
+                .Where(Admin.ViewColumns[1] == "张三",
+                Admin.ViewColumns[2] == "Administrator")
+                .Select(); 
+            return data;
+        }
+        [Demo(Demo = FuncType.Select, MethodName = "Union", MethodDescript = "Union")]
+        public static object Union()
+        {
+            ODAContext ctx = new ODAContext(); 
+            var U = ctx.GetCmd<CmdSysUser>(); 
+            var UR = ctx.GetCmd<CmdSysUserRole>();  
+            var RA = ctx.GetCmd<CmdSysRoleAuthorization>();
+            var RS = ctx.GetCmd<CmdSysResource>();
 
 
-            CmdPrmRole rl1 = ctx.GetCmd<CmdPrmRole>();
-            CmdPrmRoleAuthorize rla = ctx.GetCmd<CmdPrmRoleAuthorize>();
+            var U1 = ctx.GetCmd<CmdSysUser>();
+            var UA = ctx.GetCmd<CmdSysUserAuthorization>();
+            var RS1 = ctx.GetCmd<CmdSysResource>();
 
-           var vwCmd1 = rl1.InnerJoin(rla, rl1.ColRoleName == rla.ColRoleName, rl1.ColRoleName == "Admin")
-               .InnerJoin(rla, rl1.ColRoleName == ur.ColRoleName, rla.ColIsForbidden == "N")
-               .Where(ur.ColUserName == "MyUserName")
-               .ToView(rla.ColResourceName, rla.ColOperateName, rla.ColIsForbidden, rla.ColRoleName);
-            vwCmd1.Alias = "V2";
+            U.InnerJoin(UR, U.ColUserAccount == UR.ColUserAccount, UR.ColStatus == "O")
+                .InnerJoin(RA, RA.ColRoleCode == UR.ColRoleCode, RA.ColStatus == "O",RA.ColIsForbidden =="N")
+                .InnerJoin(RS, RS.ColId == RA.ColResourceId, RS.ColStatus == "O")
+                .Where(U.ColUserAccount == "User1");
 
+            U1.InnerJoin(UA, U1.ColUserAccount == UA.ColUserAccount, UA.ColStatus == "O")
+                .InnerJoin(RS1, RS1.ColId == UA.ColResourceId, UA.ColIsForbidden == "N")
+                .Where(U1.ColUserAccount == "User1");
 
-            CmdPrmPermission p = ctx.GetCmd<CmdPrmPermission>();
+           var data = U.Union(U1.ToView(U1.ColUserAccount, U1.ColUserName, UA.ColIsForbidden,
+                RS1.ColId, RS1.ColResourceType, RS1.ColResourceScope, RS1.ColResourceLocation
+                ))
+                .Select(U.ColUserAccount, U.ColUserName, RA.ColIsForbidden,
+                RS.ColId, RS.ColResourceType, RS.ColResourceScope, RS.ColResourceLocation
+                ); 
+            return data;
+        }
+        [Demo(Demo = FuncType.Select, MethodName = "OrderBy", MethodDescript = "查询排序")]
+        public static object OrderBy()
+        {
+            ODAContext ctx = new ODAContext();
 
-            var rlt = p.InnerJoin(vwCmd,
-                  p.ColResourceName == vwCmd.CreateColumn(rla.ColResourceName.ColumnName),
-                  p.ColOperateName == vwCmd.CreateColumn(rla.ColOperateName.ColumnName)
-                  ).
-                  InnerJoin(vwCmd1,
-                  p.ColResourceName == vwCmd1.CreateColumn(rla.ColResourceName.ColumnName),
-                  p.ColOperateName == vwCmd1.CreateColumn(rla.ColOperateName.ColumnName)
-                  ) 
-                  .Where(p.ColResourceName == "MyResource", p.ColCreateBy == "Admin", p.ColCreateDate > ctx.DBDatetime.AddDays(-300))
-                  .Select(p.ColResourceName,
-                  p.ColOperateName,
-                  p.ColDescript,
-                  vwCmd.ViewColumns[0],
-                  vwCmd.ViewColumns[1],
-                  vwCmd.ViewColumns[2],
-                  vwCmd.ViewColumns[3]
-                   );
+            var RS = ctx.GetCmd<CmdSysResource>();
+           var datra = RS.Where(RS.ColResourceType == "WEB", RS.ColStatus == "O")
+                .OrderbyAsc(RS.ColResourceIndex)
+                .SelectM();
+            return datra;
+        }
+        [Demo(Demo = FuncType.Select, MethodName = "GroupByHaving", MethodDescript = "分组统计")]
+        public static object GroupByHaving()
+        {
+            ODAContext ctx = new ODAContext();
+            var U = ctx.GetCmd<CmdSysUser>();
+            var UR = ctx.GetCmd<CmdSysUserRole>();
+           var data =  U.InnerJoin(UR, U.ColUserAccount == UR.ColUserAccount, UR.ColStatus == "O")
+              .Where(U.ColStatus == "O", UR.ColRoleCode.In("Administrator","Admin","PowerUser","User","Guest"))
+              .Groupby(UR.ColRoleCode)
+              .Having(U.ColUserAccount.Count > 2)
+              .OrderbyAsc(U.ColUserAccount.Count)
+              .Select(U.ColUserAccount.Count.As("USER_COUNT"), UR.ColRoleCode); 
+            return data;
+        }
 
-            return rlt;
+        [Demo(Demo = FuncType.Select, MethodName = "Where", MethodDescript = "数据库查询条件语法")]
+        public static object Where()
+        {
+            ODAContext ctx = new ODAContext();
+            var U = ctx.GetCmd<CmdSysUser>();
+            U.Where(U.ColUserAccount == "User1");
+            U.Where(U.ColIsLocked == "N");
+            U.Where(U.ColEmailAddr.IsNotNull | U.ColEmailAddr == "riwfnsse@163.com" );
+            U.Or(U.ColUserAccount == "User2");
+             
+            var data = U .SelectM( U.ColUserAccount, U.ColUserName, U.ColPhoneNo, U.ColEmailAddr);
+
+            return data; ;
+        }
+        [Demo(Demo = FuncType.Select, MethodName = "Like", MethodDescript = "Like 条件")]
+        public static object Like()
+        {
+            ODAContext ctx = new ODAContext(); 
+            var R = ctx.GetCmd<CmdSysRole>(); 
+            var data = R.Where(R.ColStatus == "O", R.ColRoleCode.Like("Admin%"))
+                .SelectM(); 
+            return data;
+        }
+        [Demo(Demo = FuncType.Select, MethodName = "IN/NOT IN", MethodDescript = "IN 条件")]
+        public static object In()
+        {
+            ODAContext ctx = new ODAContext(); 
+            var RA = ctx.GetCmd<CmdSysRoleAuthorization>();
+            var RS = ctx.GetCmd<CmdSysResource>(); 
+            ///IN 数组
+            RA.Where(RA.ColIsForbidden == "N", RA.ColStatus == "O", RA.ColRoleCode.In("Administrator", "Admin", "PowerUser"));
+
+            ///IN 子查询
+            var data = RS.Where(RS.ColStatus == "O", RS.ColId.In(RA, RA.ColResourceId)) 
+                .SelectM(); 
+            return data;  
+        }
+
+        [Demo(Demo = FuncType.Select, MethodName = "Exists/NOT Exists", MethodDescript = "Exists 子查询")]
+        public static object Exists()
+        {
+            ODAContext ctx = new ODAContext();
+            var RA = ctx.GetCmd<CmdSysRoleAuthorization>();
+            var RS = ctx.GetCmd<CmdSysResource>();
+
+            //Exists 子查询的条件
+            RA.Where(RA.ColIsForbidden == "N", RA.ColStatus == "O", RA.ColResourceId == RS.ColId); 
+            var data = RS.Where(RS.ColStatus == "O", RS.Function.Exists(RA, RA.AllColumn)) 
+                .SelectM();
+            return data;
         }
 
         [Demo(Demo = FuncType.Select, MethodName = "RecursionSelect", MethodDescript = "递归查询,效果与oracle的StartWithConnectBy语句一致，ODA原理：先查询出来然后再递归筛选")]
         public static object RecursionSelect()
         {
             ODAContext ctx = new ODAContext();
-            CmdOrgDepartment dpt = ctx.GetCmd<CmdOrgDepartment>();
+            CmdSysResource RS = ctx.GetCmd<CmdSysResource>();
 
-            CmdOrgDepartment dpt1 = ctx.GetCmd<CmdOrgDepartment>();
+            CmdSysResource RS1 = ctx.GetCmd<CmdSysResource>();
             ///由于是在内存递归，所以 StartWithConnectBy使用到的所有字段必须包含在Seclect字段里
 
             ////由上而下递归
-            var rlt = dpt.Where(dpt.ColStatue == "O")
-                .StartWithConnectBy(dpt.ColDeptId.ColumnName + "='公司1'", dpt.ColParentDept.ColumnName, dpt.ColDeptId.ColumnName, "DEPT_FULL_NAME", "->", 10)
-                .Select(dpt.ColDeptName.As("DEPT_FULL_NAME"),
-                 dpt.ColDeptId,dpt.ColDeptName, dpt.ColParentDept,dpt.ColAssistantName,dpt.ColAssistantId,dpt.ColBossId,dpt.ColBossName);
+            var rlt = RS.Where(RS.ColStatus == "O", RS.ColResourceType == "MENU")
+                .StartWithConnectBy(RS.ColParentId.ColumnName + "=''", RS.ColParentId.ColumnName, RS.ColId.ColumnName, "MENU_PATH", "->", 10)
+                .Select(RS.ColResourceName.As("MENU_PATH"), RS.ColId, RS.ColParentId, RS.ColResourceName, RS.ColResourceType, RS.ColResourceScope, RS.ColResourceLocation, RS.ColResourceIndex);
 
-            ////由下而上递归
-            var rlt1 = dpt1.Where(dpt1.ColStatue == "O")
-              .StartWithConnectBy(dpt1.ColDeptId.ColumnName + "='公司1'", dpt1.ColDeptId.ColumnName, dpt1.ColParentDept.ColumnName, "DEPT_FULL_NAME", "<-", 10)
-              .Select(dpt1.ColDeptName.As("DEPT_FULL_NAME"),
-               dpt1.ColDeptId, dpt1.ColDeptName, dpt1.ColParentDept, dpt1.ColAssistantName, dpt1.ColAssistantId, dpt1.ColBossId, dpt1.ColBossName);
-
+            ////由下而上递归 
+            var rlt1 = RS.Where(RS.ColStatus == "O", RS.ColResourceType == "MENU")
+                .StartWithConnectBy(RS.ColResourceName.ColumnName + "='叶子1'", RS.ColParentId.ColumnName, RS.ColId.ColumnName, "MENU_PATH", "<-", 10)
+                .Select(RS.ColResourceName.As("MENU_PATH"), RS.ColId, RS.ColParentId, RS.ColResourceName, RS.ColResourceType, RS.ColResourceScope, RS.ColResourceLocation, RS.ColResourceIndex);
             rlt1.Merge(rlt);
-            return rlt1;
+            return null;
         }
+ 
 
-        [Demo(Demo = FuncType.Select, MethodName = "ColumnCompute", MethodDescript = "字段之间的连接与运算")]
-        public static object ColumnCompute()
+        [Demo(Demo = FuncType.Select, MethodName = "ComplexQuery", MethodDescript = "复杂查询")]
+        public static object ComplexQuery()
         {
-            DataTable dt = new DataTable();
-            dt.Columns.Add(new DataColumn("COL_ID", typeof(string)));
-            dt.Columns.Add(new DataColumn("COL_NUM", typeof(int)));
-            dt.Columns.Add(new DataColumn("COL_TEST", typeof(string)));
-            dt.Columns.Add(new DataColumn("COL_NUM2", typeof(int)));
+            ODAContext ctx = new ODAContext();
 
-            for (int i = 0; i < 100; i++)
-                dt.Rows.Add(Guid.NewGuid().ToString("N").ToUpper(), i + 1, string.Format("this is {0} Rows", i + 1),1000);
 
-            dt.Columns.Add("CONNECT_COL", typeof(string), "COL_ID+'  +  '+COL_TEST");
-            dt.Columns.Add("ADD_COL", typeof(decimal), "COL_NUM+COL_NUM2");
-            return dt;
+            return null;
         }
 
 
-
-        internal partial class CmdSfcBarcodeWipSerials : ORMCmd<object>
+        [Demo(Demo = FuncType.Select, MethodName = "Lambda", MethodDescript = "Lambda语法支持")]
+        public static object Lambda()
         {
-            public ODAColumns ColBalanceQty { get { return new ODAColumns(this, "BALANCE_QTY", ODAdbType.ODecimal, 9); } }
-            public ODAColumns ColBarcodeType { get { return new ODAColumns(this, "BARCODE_TYPE", ODAdbType.OVarchar, 80); } }
-            public ODAColumns ColDatetimeCreated { get { return new ODAColumns(this, "DATETIME_CREATED", ODAdbType.ODatetime, 8); } }
-            public ODAColumns ColDatetimeModified { get { return new ODAColumns(this, "DATETIME_MODIFIED", ODAdbType.ODatetime, 8); } }
-            public ODAColumns ColEnterpriseId { get { return new ODAColumns(this, "ENTERPRISE_ID", ODAdbType.OVarchar, 36); } }
-            public ODAColumns ColId { get { return new ODAColumns(this, "ID", ODAdbType.OVarchar, 36); } }
-            public ODAColumns ColIsCompleted { get { return new ODAColumns(this, "IS_COMPLETED", ODAdbType.OVarchar, 1); } }
-            public ODAColumns ColMoCode { get { return new ODAColumns(this, "MO_CODE", ODAdbType.OVarchar, 80); } }
-            public ODAColumns ColOrgId { get { return new ODAColumns(this, "ORG_ID", ODAdbType.OVarchar, 36); } }
-            public ODAColumns ColPrintoutCount { get { return new ODAColumns(this, "PRINTOUT_COUNT", ODAdbType.OInt, 4); } }
-            public ODAColumns ColQty { get { return new ODAColumns(this, "QTY", ODAdbType.ODecimal, 9); } }
-            public ODAColumns ColRunCard { get { return new ODAColumns(this, "RUN_CARD", ODAdbType.OVarchar, 480); } }
-            public ODAColumns ColScheId { get { return new ODAColumns(this, "SCHE_ID", ODAdbType.OVarchar, 36); } }
-            public ODAColumns ColSeq { get { return new ODAColumns(this, "SEQ", ODAdbType.OInt, 4); } }
-            public ODAColumns ColSerialNumber { get { return new ODAColumns(this, "SERIAL_NUMBER", ODAdbType.OVarchar, 480); } }
-            public ODAColumns ColState { get { return new ODAColumns(this, "STATE", ODAdbType.OVarchar, 1); } }
-            public ODAColumns ColUserCreated { get { return new ODAColumns(this, "USER_CREATED", ODAdbType.OVarchar, 80); } }
-            public ODAColumns ColUserModified { get { return new ODAColumns(this, "USER_MODIFIED", ODAdbType.OVarchar, 80); } }
-            public override string CmdName { get { return "SFC_BARCODE_WIP_SERIALS"; } }
-            public override DataSet Procedure(params ODAColumns[] Cols) { throw new ODAException("Not Suport Procedure CmdName " + CmdName); }
-            public override List<ODAColumns> GetColumnList()
-            {
-                return new List<ODAColumns>() { ColBalanceQty, ColBarcodeType, ColDatetimeCreated, ColDatetimeModified, ColEnterpriseId, ColId, ColIsCompleted, ColMoCode, ColOrgId, ColPrintoutCount, ColQty, ColRunCard, ColScheId, ColSeq, ColSerialNumber, ColState, ColUserCreated, ColUserModified };
-            }
+            ///Lambda语法支持最多九个表连接查询
+            int total = 0;
+            var data = new ODAContext().GetJoinCmd<CmdSysUser>()
+                .InnerJoin<CmdSysUserRole>((u, ur) => u.ColUserAccount == ur.ColUserAccount & ur.ColStatus == "O")
+                 .InnerJoin<CmdSysRole>((u, ur, r) => ur.ColRoleCode == r.ColRoleCode & r.ColStatus == "O" )
+                 .Where((u, ur, r) => u.ColStatus == "O" & (r.ColRoleCode == "Administrator" | r.ColRoleCode =="Admin") & u.ColIsLocked =="N" )
+                 .Select<UserDefineModel>(0, 20, out total, (u, ur, r) => new IODAColumns[] { u.ColUserAccount.As("UserAccount"), u.ColUserName.As("UserName"), r.ColRoleCode.As("Role"), r.ColRoleName.As("RoleName") });
+             
+            return data;
         }
+
+    }
+
+
+
+    public class UserDefineModel
+    {
+        public string UserAccount{get;set;}
+        public string UserName { get; set; }
+        public string Email { get; set; }
+        public string Role { get; set; }
+        public string RoleName { get; set; }
     }
 }
