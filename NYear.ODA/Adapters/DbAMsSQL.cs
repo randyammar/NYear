@@ -300,7 +300,7 @@ namespace NYear.ODA.Adapter
                 {
                     if (ImportData.Columns.Contains(Prms[i].ParamsName))
                     {
-                        SqlBulkCopyColumnMapping colMap = new SqlBulkCopyColumnMapping(ImportData.Columns[i].ColumnName, Prms[i].ParamsName);
+                        SqlBulkCopyColumnMapping colMap = new SqlBulkCopyColumnMapping(Prms[i].ParamsName, Prms[i].ParamsName);
                         sqlbulkcopy.ColumnMappings.Add(colMap);
                     }
                 }

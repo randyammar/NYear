@@ -228,7 +228,7 @@ namespace NYear.ODA.Adapter
                 {
                     if (ImportData.Columns.Contains(Prms[i].ParamsName))
                     {
-                        DB2BulkCopyColumnMapping colMap = new DB2BulkCopyColumnMapping(ImportData.Columns[i].ColumnName, Prms[i].ParamsName);
+                        DB2BulkCopyColumnMapping colMap = new DB2BulkCopyColumnMapping(Prms[i].ParamsName, Prms[i].ParamsName);
                         bulkcopy.ColumnMappings.Add(colMap);
                     }
                 }

@@ -33,8 +33,8 @@ namespace NYear.Demo
         }
         private void InitNYearODA()
         {
-
-            ODAContext.SetODAConfig(ODA.DbAType.MsSQL, @"server = localhost; database = NYear; uid = sa; pwd = 123;");
+            SessionStart ss = new SessionStart();
+            ss.ShowDialog(); 
         }
         private void InitFuncType()
         {

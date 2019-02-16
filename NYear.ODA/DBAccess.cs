@@ -785,8 +785,15 @@ namespace NYear.ODA
             string Sqlprms = "";
             for (int i = 0; i < Prms.Length; i++)
             {
-                Sqlcols += "," + Prms[i].ColumnName;
-                Sqlprms += "," + this.ParamsMark + Prms[i].ParamsName; 
+                if (Data.Columns.Contains(Prms[i].ColumnName))
+                {
+                    Sqlcols += "," + Prms[i].ColumnName;
+                    Sqlprms += "," + this.ParamsMark + Prms[i].ParamsName;
+                }
+                else
+                {
+                    throw new ODAException(106, "Data Should be contain Column ["+ Prms[i].ColumnName + "]");
+                }
             }
             string sql = new StringBuilder()
                 .Append("INSERT INTO ")
@@ -814,7 +821,7 @@ namespace NYear.ODA
                 {
                     for (int j = 0; j < Prms.Length; j++)
                     {
-                        Prms[j].ParamsValue = Data.Rows[i][j];
+                        Prms[j].ParamsValue = Data.Rows[i][Prms[j].ColumnName];
                         Prms[j].Direction = ParameterDirection.Input;
                     }
 
@@ -822,6 +829,7 @@ namespace NYear.ODA
                     tmpCmd.CommandTimeout = 60000;
                     tmpCmd.CommandType = CommandType.Text;
                     SetCmdParameters(ref tmpCmd, sql, Prms);
+
                     if (this.Transaction == null)
                         tmpCmd.Transaction = tmpTran;
                     else

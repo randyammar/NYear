@@ -105,9 +105,8 @@ namespace NYear.ODA.Adapter
             else if (ColumnType.Trim() == ODAdbType.ODecimal.ToString())
             {
                 ColInof.ColumnType = "DECIMAL";
-                ColInof.NoLength = false;
-                ColInof.Length = 30;
-                ColInof.Scale = 12;
+                ColInof.NoLength = true;
+
             }
             else if (ColumnType.Trim() == ODAdbType.OInt.ToString())
             {
