@@ -1,4 +1,8 @@
-﻿using IBM.Data.DB2;
+﻿#if Std
+using IBM.Data.DB2.Core;
+#elif FW
+using IBM.Data.DB2;
+#endif
 using System;
 using System.Collections.Generic;
 using System.Data;

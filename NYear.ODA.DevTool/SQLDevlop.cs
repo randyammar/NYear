@@ -19,14 +19,6 @@ namespace NYear.ODA.DevTool
 
         private void SQLDevlop_Load(object sender, EventArgs e)
         { 
-            //this.rtbxSql.ShowEOLMarkers = false;
-            //this.rtbxSql.ShowHRuler = false;
-            //this.rtbxSql.ShowInvalidLines = false;
-            //this.rtbxSql.ShowMatchingBracket = true;
-            //this.rtbxSql.ShowSpaces = false;
-            //this.rtbxSql.ShowTabs = false;
-            //this.rtbxSql.ShowVRuler = false;
-            //this.rtbxSql.AllowCaretBeyondEOL = false;
             this.rtbxSql.Document.HighlightingStrategy = HighlightingStrategyFactory.CreateHighlightingStrategy("TSQL");
             this.rtbxSql.Encoding = Encoding.GetEncoding("UTF-8");
 

@@ -491,7 +491,7 @@ namespace NYear.ODA
             cmd.Cmd1 = this.Cmd1;
             cmd.Cmd2 = this.Cmd2;
             cmd.Cmd3 = Ctx.GetCmd<C3>();
-            this.Cmd0.LeftJoin(cmd.Cmd2, On(this.Cmd0, cmd.Cmd1, cmd.Cmd2, cmd.Cmd3));
+            this.Cmd0.LeftJoin(cmd.Cmd3, On(this.Cmd0, cmd.Cmd1, cmd.Cmd2, cmd.Cmd3));
             return cmd;
         }
 
@@ -504,7 +504,7 @@ namespace NYear.ODA
             cmd.Cmd1 = this.Cmd1;
             cmd.Cmd2 = this.Cmd2;
             cmd.Cmd3 = Ctx.GetCmd<C3>();
-            this.Cmd0.RightJoin(cmd.Cmd2, On(this.Cmd0, cmd.Cmd1, cmd.Cmd2, cmd.Cmd3));
+            this.Cmd0.RightJoin(cmd.Cmd3, On(this.Cmd0, cmd.Cmd1, cmd.Cmd2, cmd.Cmd3));
             return cmd;
         }
 
@@ -517,7 +517,7 @@ namespace NYear.ODA
             cmd.Cmd1 = this.Cmd1;
             cmd.Cmd2 = this.Cmd2;
             cmd.Cmd3 = Ctx.GetCmd<C3>();
-            this.Cmd0.InnerJoin(cmd.Cmd2, On(this.Cmd0, cmd.Cmd1, cmd.Cmd2, cmd.Cmd3));
+            this.Cmd0.InnerJoin(cmd.Cmd3, On(this.Cmd0, cmd.Cmd1, cmd.Cmd2, cmd.Cmd3));
             return cmd;
         }
         #endregion
@@ -611,7 +611,7 @@ namespace NYear.ODA
             cmd.Cmd2 = this.Cmd2;
             cmd.Cmd3 = this.Cmd3;
             cmd.Cmd4 = Ctx.GetCmd<C4>();
-            this.Cmd0.LeftJoin(cmd.Cmd2, On(this.Cmd0, cmd.Cmd1, cmd.Cmd2, cmd.Cmd3, cmd.Cmd4));
+            this.Cmd0.LeftJoin(cmd.Cmd4, On(this.Cmd0, cmd.Cmd1, cmd.Cmd2, cmd.Cmd3, cmd.Cmd4));
             return cmd;
         }
 
@@ -625,7 +625,7 @@ namespace NYear.ODA
             cmd.Cmd2 = this.Cmd2;
             cmd.Cmd3 = this.Cmd3;
             cmd.Cmd4 = Ctx.GetCmd<C4>();
-            this.Cmd0.RightJoin(cmd.Cmd2, On(this.Cmd0, cmd.Cmd1, cmd.Cmd2, cmd.Cmd3, cmd.Cmd4));
+            this.Cmd0.RightJoin(cmd.Cmd4, On(this.Cmd0, cmd.Cmd1, cmd.Cmd2, cmd.Cmd3, cmd.Cmd4));
             return cmd;
         }
 
@@ -639,7 +639,7 @@ namespace NYear.ODA
             cmd.Cmd2 = this.Cmd2;
             cmd.Cmd3 = this.Cmd3;
             cmd.Cmd4 = Ctx.GetCmd<C4>();
-            this.Cmd0.InnerJoin(cmd.Cmd2, On(this.Cmd0, cmd.Cmd1, cmd.Cmd2, cmd.Cmd3, cmd.Cmd4));
+            this.Cmd0.InnerJoin(cmd.Cmd4, On(this.Cmd0, cmd.Cmd1, cmd.Cmd2, cmd.Cmd3, cmd.Cmd4));
             return cmd;
         }
         #endregion
@@ -735,7 +735,7 @@ namespace NYear.ODA
             cmd.Cmd3 = this.Cmd3;
             cmd.Cmd4 = this.Cmd4;
             cmd.Cmd5 = Ctx.GetCmd<C5>();
-            this.Cmd0.LeftJoin(cmd.Cmd2, On(this.Cmd0, cmd.Cmd1, cmd.Cmd2, cmd.Cmd3, cmd.Cmd4, cmd.Cmd5));
+            this.Cmd0.LeftJoin(cmd.Cmd5, On(this.Cmd0, cmd.Cmd1, cmd.Cmd2, cmd.Cmd3, cmd.Cmd4, cmd.Cmd5));
             return cmd;
         }
 
@@ -750,7 +750,7 @@ namespace NYear.ODA
             cmd.Cmd3 = this.Cmd3;
             cmd.Cmd4 = this.Cmd4;
             cmd.Cmd5 = Ctx.GetCmd<C5>();
-            this.Cmd0.RightJoin(cmd.Cmd2, On(this.Cmd0, cmd.Cmd1, cmd.Cmd2, cmd.Cmd3, cmd.Cmd4, cmd.Cmd5));
+            this.Cmd0.RightJoin(cmd.Cmd5, On(this.Cmd0, cmd.Cmd1, cmd.Cmd2, cmd.Cmd3, cmd.Cmd4, cmd.Cmd5));
             return cmd;
         }
 
@@ -764,7 +764,7 @@ namespace NYear.ODA
             cmd.Cmd2 = this.Cmd2;
             cmd.Cmd3 = this.Cmd3;
             cmd.Cmd4 = Ctx.GetCmd<C4>();
-            this.Cmd0.InnerJoin(cmd.Cmd2, On(this.Cmd0, cmd.Cmd1, cmd.Cmd2, cmd.Cmd3, cmd.Cmd4, cmd.Cmd5));
+            this.Cmd0.InnerJoin(cmd.Cmd5, On(this.Cmd0, cmd.Cmd1, cmd.Cmd2, cmd.Cmd3, cmd.Cmd4, cmd.Cmd5));
             return cmd;
         }
         #endregion
@@ -862,7 +862,7 @@ namespace NYear.ODA
             cmd.Cmd4 = this.Cmd4;
             cmd.Cmd5 = this.Cmd5;
             cmd.Cmd6 = Ctx.GetCmd<C6>();
-            this.Cmd0.LeftJoin(cmd.Cmd2, On(this.Cmd0, cmd.Cmd1, cmd.Cmd2, cmd.Cmd3, cmd.Cmd4, cmd.Cmd5, cmd.Cmd6));
+            this.Cmd0.LeftJoin(cmd.Cmd6, On(this.Cmd0, cmd.Cmd1, cmd.Cmd2, cmd.Cmd3, cmd.Cmd4, cmd.Cmd5, cmd.Cmd6));
             return cmd;
         }
 
@@ -878,7 +878,7 @@ namespace NYear.ODA
             cmd.Cmd4 = this.Cmd4;
             cmd.Cmd5 = this.Cmd5;
             cmd.Cmd6 = Ctx.GetCmd<C6>();
-            this.Cmd0.RightJoin(cmd.Cmd2, On(this.Cmd0, cmd.Cmd1, cmd.Cmd2, cmd.Cmd3, cmd.Cmd4, cmd.Cmd5, cmd.Cmd6));
+            this.Cmd0.RightJoin(cmd.Cmd6, On(this.Cmd0, cmd.Cmd1, cmd.Cmd2, cmd.Cmd3, cmd.Cmd4, cmd.Cmd5, cmd.Cmd6));
             return cmd;
         }
 
@@ -894,7 +894,7 @@ namespace NYear.ODA
             cmd.Cmd4 = this.Cmd4;
             cmd.Cmd5 = this.Cmd5;
             cmd.Cmd6 = Ctx.GetCmd<C6>();
-            this.Cmd0.InnerJoin(cmd.Cmd2, On(this.Cmd0, cmd.Cmd1, cmd.Cmd2, cmd.Cmd3, cmd.Cmd4, cmd.Cmd5, cmd.Cmd6));
+            this.Cmd0.InnerJoin(cmd.Cmd6, On(this.Cmd0, cmd.Cmd1, cmd.Cmd2, cmd.Cmd3, cmd.Cmd4, cmd.Cmd5, cmd.Cmd6));
             return cmd;
         }
         #endregion
@@ -994,7 +994,7 @@ namespace NYear.ODA
             cmd.Cmd5 = this.Cmd5;
             cmd.Cmd6 = this.Cmd6;
             cmd.Cmd7 = Ctx.GetCmd<C7>();
-            this.Cmd0.LeftJoin(cmd.Cmd2, On(this.Cmd0, cmd.Cmd1, cmd.Cmd2, cmd.Cmd3, cmd.Cmd4, cmd.Cmd5, cmd.Cmd6, cmd.Cmd7));
+            this.Cmd0.LeftJoin(cmd.Cmd7, On(this.Cmd0, cmd.Cmd1, cmd.Cmd2, cmd.Cmd3, cmd.Cmd4, cmd.Cmd5, cmd.Cmd6, cmd.Cmd7));
             return cmd;
         }
 
@@ -1011,7 +1011,7 @@ namespace NYear.ODA
             cmd.Cmd5 = this.Cmd5;
             cmd.Cmd6 = this.Cmd6;
             cmd.Cmd7 = Ctx.GetCmd<C7>();
-            this.Cmd0.RightJoin(cmd.Cmd2, On(this.Cmd0, cmd.Cmd1, cmd.Cmd2, cmd.Cmd3, cmd.Cmd4, cmd.Cmd5, cmd.Cmd6, cmd.Cmd7));
+            this.Cmd0.RightJoin(cmd.Cmd7, On(this.Cmd0, cmd.Cmd1, cmd.Cmd2, cmd.Cmd3, cmd.Cmd4, cmd.Cmd5, cmd.Cmd6, cmd.Cmd7));
             return cmd;
         }
 
@@ -1028,7 +1028,7 @@ namespace NYear.ODA
             cmd.Cmd5 = this.Cmd5;
             cmd.Cmd6 = this.Cmd6;
             cmd.Cmd7 = Ctx.GetCmd<C7>();
-            this.Cmd0.InnerJoin(cmd.Cmd2, On(this.Cmd0, cmd.Cmd1, cmd.Cmd2, cmd.Cmd3, cmd.Cmd4, cmd.Cmd5, cmd.Cmd6, cmd.Cmd7));
+            this.Cmd0.InnerJoin(cmd.Cmd7, On(this.Cmd0, cmd.Cmd1, cmd.Cmd2, cmd.Cmd3, cmd.Cmd4, cmd.Cmd5, cmd.Cmd6, cmd.Cmd7));
             return cmd;
         }
         #endregion
@@ -1131,7 +1131,7 @@ namespace NYear.ODA
             cmd.Cmd6 = this.Cmd6;
             cmd.Cmd7 = this.Cmd7;
             cmd.Cmd8 = Ctx.GetCmd<C8>();
-            this.Cmd0.LeftJoin(cmd.Cmd2, On(this.Cmd0, cmd.Cmd1, cmd.Cmd2, cmd.Cmd3, cmd.Cmd4, cmd.Cmd5, cmd.Cmd6, cmd.Cmd7, cmd.Cmd8));
+            this.Cmd0.LeftJoin(cmd.Cmd8, On(this.Cmd0, cmd.Cmd1, cmd.Cmd2, cmd.Cmd3, cmd.Cmd4, cmd.Cmd5, cmd.Cmd6, cmd.Cmd7, cmd.Cmd8));
             return cmd;
         }
 
@@ -1149,7 +1149,7 @@ namespace NYear.ODA
             cmd.Cmd6 = this.Cmd6;
             cmd.Cmd7 = this.Cmd7;
             cmd.Cmd8 = Ctx.GetCmd<C8>();
-            this.Cmd0.RightJoin(cmd.Cmd2, On(this.Cmd0, cmd.Cmd1, cmd.Cmd2, cmd.Cmd3, cmd.Cmd4, cmd.Cmd5, cmd.Cmd6, cmd.Cmd7, cmd.Cmd8));
+            this.Cmd0.RightJoin(cmd.Cmd8, On(this.Cmd0, cmd.Cmd1, cmd.Cmd2, cmd.Cmd3, cmd.Cmd4, cmd.Cmd5, cmd.Cmd6, cmd.Cmd7, cmd.Cmd8));
             return cmd;
         }
 
@@ -1167,7 +1167,7 @@ namespace NYear.ODA
             cmd.Cmd6 = this.Cmd6;
             cmd.Cmd7 = this.Cmd7;
             cmd.Cmd8 = Ctx.GetCmd<C8>();
-            this.Cmd0.InnerJoin(cmd.Cmd2, On(this.Cmd0, cmd.Cmd1, cmd.Cmd2, cmd.Cmd3, cmd.Cmd4, cmd.Cmd5, cmd.Cmd6, cmd.Cmd7, cmd.Cmd8));
+            this.Cmd0.InnerJoin(cmd.Cmd8, On(this.Cmd0, cmd.Cmd1, cmd.Cmd2, cmd.Cmd3, cmd.Cmd4, cmd.Cmd5, cmd.Cmd6, cmd.Cmd7, cmd.Cmd8));
             return cmd;
         }
         #endregion
@@ -1272,7 +1272,7 @@ namespace NYear.ODA
             cmd.Cmd7 = this.Cmd7;
             cmd.Cmd8 = this.Cmd8;
             cmd.Cmd9 = Ctx.GetCmd<C9>();
-            this.Cmd0.LeftJoin(cmd.Cmd2, On(this.Cmd0, cmd.Cmd1, cmd.Cmd2, cmd.Cmd3, cmd.Cmd4, cmd.Cmd5, cmd.Cmd6, cmd.Cmd7, cmd.Cmd8,cmd.Cmd9));
+            this.Cmd0.LeftJoin(cmd.Cmd9, On(this.Cmd0, cmd.Cmd1, cmd.Cmd2, cmd.Cmd3, cmd.Cmd4, cmd.Cmd5, cmd.Cmd6, cmd.Cmd7, cmd.Cmd8,cmd.Cmd9));
             return cmd;
         }
 
@@ -1291,7 +1291,7 @@ namespace NYear.ODA
             cmd.Cmd7 = this.Cmd7;
             cmd.Cmd8 = this.Cmd8;
             cmd.Cmd9 = Ctx.GetCmd<C9>();
-            this.Cmd0.RightJoin(cmd.Cmd2, On(this.Cmd0, cmd.Cmd1, cmd.Cmd2, cmd.Cmd3, cmd.Cmd4, cmd.Cmd5, cmd.Cmd6, cmd.Cmd7, cmd.Cmd8, cmd.Cmd9));
+            this.Cmd0.RightJoin(cmd.Cmd9, On(this.Cmd0, cmd.Cmd1, cmd.Cmd2, cmd.Cmd3, cmd.Cmd4, cmd.Cmd5, cmd.Cmd6, cmd.Cmd7, cmd.Cmd8, cmd.Cmd9));
             return cmd;
         }
 
@@ -1310,7 +1310,7 @@ namespace NYear.ODA
             cmd.Cmd7 = this.Cmd7;
             cmd.Cmd8 = this.Cmd8;
             cmd.Cmd9 = Ctx.GetCmd<C9>();
-            this.Cmd0.InnerJoin(cmd.Cmd2, On(this.Cmd0, cmd.Cmd1, cmd.Cmd2, cmd.Cmd3, cmd.Cmd4, cmd.Cmd5, cmd.Cmd6, cmd.Cmd7, cmd.Cmd8, cmd.Cmd9));
+            this.Cmd0.InnerJoin(cmd.Cmd9, On(this.Cmd0, cmd.Cmd1, cmd.Cmd2, cmd.Cmd3, cmd.Cmd4, cmd.Cmd5, cmd.Cmd6, cmd.Cmd7, cmd.Cmd8, cmd.Cmd9));
             return cmd;
         }
         #endregion

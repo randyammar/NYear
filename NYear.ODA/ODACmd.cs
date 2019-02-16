@@ -183,44 +183,44 @@ namespace NYear.ODA
         ///  左连接查询 
         /// </summary>
         /// <param name="JoinCmd">要连接的表</param>
-        /// <param name="ONCols">连接条件</param>
+        /// <param name="On">连接条件</param>
         /// <returns></returns>
-        public virtual ODACmd LeftJoin(ODACmd JoinCmd, params IODAColumns[] ONCols)
+        public virtual ODACmd LeftJoin(ODACmd JoinCmd, params IODAColumns[] On)
         {
-            return Join(JoinCmd, " LEFT JOIN ", ONCols);
+            return Join(JoinCmd, " LEFT JOIN ", On);
         }
         /// <summary>
         ///  右连接查询 
         /// </summary>
         /// <param name="JoinCmd">要连接的表</param>
-        /// <param name="ONCols">连接条件</param>
+        /// <param name="On">连接条件</param>
         /// <returns></returns>
-        public virtual ODACmd RightJoin(ODACmd JoinCmd, params IODAColumns[] ONCols)
+        public virtual ODACmd RightJoin(ODACmd JoinCmd, params IODAColumns[] On)
         {
-            return Join(JoinCmd, " RIGHT JOIN ", ONCols);
+            return Join(JoinCmd, " RIGHT JOIN ", On);
         }
         /// <summary>
         ///  内连接查询 
         /// </summary>
         /// <param name="JoinCmd">要连接的表</param>
-        /// <param name="ONCols">连接条件</param>
+        /// <param name="On">连接条件</param>
         /// <returns></returns>
-        public virtual ODACmd InnerJoin(ODACmd JoinCmd, params IODAColumns[] ONCols)
+        public virtual ODACmd InnerJoin(ODACmd JoinCmd, params IODAColumns[] On)
         {
-            return Join(JoinCmd, " INNER JOIN ", ONCols);
+            return Join(JoinCmd, " INNER JOIN ", On);
         }
         /// <summary>
         /// 连接查询
         /// </summary>
         /// <param name="JoinCmd"></param>
         /// <param name="Join"></param>
-        /// <param name="ONCols"></param>
+        /// <param name="On"></param>
         /// <returns></returns>
-        protected virtual ODACmd Join(ODACmd JoinCmd, string Join, params IODAColumns[] ONCols)
+        protected virtual ODACmd Join(ODACmd JoinCmd, string Join, params IODAColumns[] On)
         {
             if (JoinCmd == this)
                 throw new ODAException(10002, "Inner Join Instance Can't be itselft"); 
-            JoinCmd.Where(ONCols);
+            JoinCmd.Where(On);
             _JoinCmd.Add(new SqlJoinScript() { JoinCmd = JoinCmd, JoinScript = Join });
             return this;
         }

@@ -103,22 +103,26 @@ namespace NYear.ODA
                 case DbAType.OdbcInformix:
                     DBA = new DbAOdbcInformix(Connecting);
                     break;
+#if FW
                 case DbAType.OledbAccess:
                     DBA = new DbAOledbAccess(Connecting);
                     break;
+#endif
                 case DbAType.Oracle:
                     DBA = new DbAOracle(Connecting);
                     break;
                 case DbAType.SQLite:
                     DBA = new DbASQLite(Connecting);
                     break;
+#if FW
                 case DbAType.Sybase:
                     DBA = new DbASybase(Connecting);
                     break;
+#endif
             }
             return DBA;
         }
-        #endregion
+#endregion
         /// <summary>
         /// 临时指定的数据库连接字串
         /// </summary>
@@ -203,7 +207,7 @@ namespace NYear.ODA
             return cmd;
         }
 
-        #region 事务管理
+#region 事务管理
         private ODATransaction _Tran = null;
         /// <summary>
         /// 指示是否已启动了事务
@@ -308,9 +312,9 @@ namespace NYear.ODA
                 }
             }
         }
-        #endregion
+#endregion
 
-        #region 库数据路由算法 
+#region 库数据路由算法 
         private ODAConnect GetConnect(ODAScript ODASql)
         {
             if (!_IsUnify)
@@ -386,8 +390,8 @@ namespace NYear.ODA
             }
         }
 
-        #endregion
-        #region SQL语句执行。（待扩展：使用消息队列实现多数据实时同步）
+#endregion
+#region SQL语句执行。（待扩展：使用消息队列实现多数据实时同步）
         public static event ExecuteSqlEventHandler ExecutingSql;
         public event ExecuteSqlEventHandler CurrentExecutingSql;
         public static ODAScript LastSQL { get; private set; }
@@ -419,6 +423,6 @@ namespace NYear.ODA
             _Alias++; 
             return Alias;
         }
-        #endregion
+#endregion
     }
 }

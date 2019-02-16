@@ -253,13 +253,13 @@ namespace NYear.ODA.DevTool
             OrmBaseStr.AppendLine("{ ");
             OrmBaseStr.AppendLine("return (ORMCmd<T>)base.ListCmd(Cmds);");
             OrmBaseStr.AppendLine(" }");
-            OrmBaseStr.AppendLine("public new ORMCmd<T> LeftJoin(ODACmd JoinCmd, params ODAColumns[] ONCols)");
+            OrmBaseStr.AppendLine("public new ORMCmd<T> LeftJoin(ODACmd JoinCmd, params ODAColumns[] On)");
             OrmBaseStr.AppendLine("{ ");
-            OrmBaseStr.AppendLine("return (ORMCmd<T>)base.LeftJoin(JoinCmd, ONCols);");
+            OrmBaseStr.AppendLine("return (ORMCmd<T>)base.LeftJoin(JoinCmd, On);");
             OrmBaseStr.AppendLine(" }");
-            OrmBaseStr.AppendLine("public new ORMCmd<T> InnerJoin(ODACmd JoinCmd, params ODAColumns[] ONCols)");
+            OrmBaseStr.AppendLine("public new ORMCmd<T> InnerJoin(ODACmd JoinCmd, params ODAColumns[] On)");
             OrmBaseStr.AppendLine("{ ");
-            OrmBaseStr.AppendLine("return (ORMCmd<T>)base.InnerJoin(JoinCmd, ONCols);");
+            OrmBaseStr.AppendLine("return (ORMCmd<T>)base.InnerJoin(JoinCmd, On);");
             OrmBaseStr.AppendLine(" }");
             OrmBaseStr.AppendLine("public new ORMCmd<T> StartWithConnectBy(string StartWithExpress, string ConnectByParent, string PriorChild, string ConnectColumn, string ConnectStr, int MaxLevel)");
             OrmBaseStr.AppendLine("{ ");

@@ -91,13 +91,17 @@ namespace NYear.ODA
         {
             return (ORMCmd<T>)base.ListCmd(Cmds);
         }
-        public new ORMCmd<T> LeftJoin(ODACmd JoinCmd, params IODAColumns[] ONCols)
+        public new ORMCmd<T> RightJoin(ODACmd JoinCmd, params IODAColumns[] On)
         {
-            return (ORMCmd<T>)base.LeftJoin(JoinCmd, ONCols);
+            return (ORMCmd<T>)base.RightJoin(JoinCmd, On);
         }
-        public new ORMCmd<T> InnerJoin(ODACmd JoinCmd, params IODAColumns[] ONCols)
+        public new ORMCmd<T> LeftJoin(ODACmd JoinCmd, params IODAColumns[] On)
         {
-            return (ORMCmd<T>)base.InnerJoin(JoinCmd, ONCols);
+            return (ORMCmd<T>)base.LeftJoin(JoinCmd, On);
+        }
+        public new ORMCmd<T> InnerJoin(ODACmd JoinCmd, params IODAColumns[] On)
+        {
+            return (ORMCmd<T>)base.InnerJoin(JoinCmd, On);
         }
         public new ORMCmd<T> StartWithConnectBy(string StartWithExpress, string ConnectByParent, string PriorChild, string ConnectColumn, string ConnectStr, int MaxLevel)
         {

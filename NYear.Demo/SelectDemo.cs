@@ -15,6 +15,9 @@ namespace NYear.Demo
         [Demo(Demo = FuncType.Select, MethodName = "Select", MethodDescript = "简单查询")]
         public static object Select()
         {
+            ///ODA使用的是链式编程语法，编写方式与T-SQL神似；
+            ///开发时如有迷茫之处，基本可以用SQL语句类推出ODA的对应写法。
+            ///ODA为求通用各种数据库，转换出来的SQL都是标准通用的SQL语句；一些常用但数据不兼容的部分，在ODA内部实现（如递归树查询、分页等)。 
             ODAContext ctx = new ODAContext();
             var U = ctx.GetCmd<CmdSysUser>();
             object data = U.Where(U.ColUserAccount == "User1")
@@ -129,6 +132,8 @@ namespace NYear.Demo
         [Demo(Demo = FuncType.Select, MethodName = "SubQuery", MethodDescript = "嵌套子查询")]
         public static object SubQuery()
         {
+            ////嵌套子查询需要把一个查询子句转换成视图(ToView方法)，转换成视图之后可以把它视作普通的Cmd使用。
+            ///视图里ViewColumns是视图字段的集合。
             ODAContext ctx = new ODAContext();
             var U = ctx.GetCmd<CmdSysUser>();
             var R = ctx.GetCmd<CmdSysRole>();
@@ -151,28 +156,28 @@ namespace NYear.Demo
         }
         [Demo(Demo = FuncType.Select, MethodName = "Union", MethodDescript = "Union")]
         public static object Union()
-        {
+        { 
+            ///被Union或UnionAll的是视图。要求视图与查询的字段的数据库类型及顺序及数据一致（数据库本身的要求，非ODA要求)。
             ODAContext ctx = new ODAContext(); 
             var U = ctx.GetCmd<CmdSysUser>(); 
             var UR = ctx.GetCmd<CmdSysUserRole>();  
             var RA = ctx.GetCmd<CmdSysRoleAuthorization>();
             var RS = ctx.GetCmd<CmdSysResource>();
 
-
             var U1 = ctx.GetCmd<CmdSysUser>();
             var UA = ctx.GetCmd<CmdSysUserAuthorization>();
             var RS1 = ctx.GetCmd<CmdSysResource>();
 
             U.InnerJoin(UR, U.ColUserAccount == UR.ColUserAccount, UR.ColStatus == "O")
-                .InnerJoin(RA, RA.ColRoleCode == UR.ColRoleCode, RA.ColStatus == "O",RA.ColIsForbidden =="N")
+                .InnerJoin(RA, RA.ColRoleCode == UR.ColRoleCode, RA.ColStatus == "O")
                 .InnerJoin(RS, RS.ColId == RA.ColResourceId, RS.ColStatus == "O")
                 .Where(U.ColUserAccount == "User1");
 
             U1.InnerJoin(UA, U1.ColUserAccount == UA.ColUserAccount, UA.ColStatus == "O")
-                .InnerJoin(RS1, RS1.ColId == UA.ColResourceId, UA.ColIsForbidden == "N")
+                .InnerJoin(RS1, RS1.ColId == UA.ColResourceId , RS1.ColStatus=="O")
                 .Where(U1.ColUserAccount == "User1");
-
-           var data = U.Union(U1.ToView(U1.ColUserAccount, U1.ColUserName, UA.ColIsForbidden,
+ 
+            var data = U.Union(U1.ToView(U1.ColUserAccount, U1.ColUserName, UA.ColIsForbidden,
                 RS1.ColId, RS1.ColResourceType, RS1.ColResourceScope, RS1.ColResourceLocation
                 ))
                 .Select(U.ColUserAccount, U.ColUserName, RA.ColIsForbidden,
@@ -183,13 +188,48 @@ namespace NYear.Demo
         [Demo(Demo = FuncType.Select, MethodName = "OrderBy", MethodDescript = "查询排序")]
         public static object OrderBy()
         {
+            ///OrderbyAsc 或OrderbyDesc 对数据按顺序或倒序排列，先给出的排序条件优先排。
+            ///OrderbyAsc 或OrderbyDesc 参数可以是多个字段。
             ODAContext ctx = new ODAContext();
-
             var RS = ctx.GetCmd<CmdSysResource>();
-           var datra = RS.Where(RS.ColResourceType == "WEB", RS.ColStatus == "O")
-                .OrderbyAsc(RS.ColResourceIndex)
-                .SelectM();
+            var datra = RS.Where(RS.ColResourceType == "WEB", RS.ColStatus == "O")
+                 .OrderbyDesc(RS.ColResourceIndex)
+                 .SelectM();
             return datra;
+        }
+        [Demo(Demo = FuncType.Select, MethodName = "Where", MethodDescript = "数据库查询条件语法")]
+        public static object Where()
+        {
+            ///Join、Where、Having 查询参数：条件之间可用运算符 “|”(Or方法）或“&”(And方法)表明条件与条件之间的关系；
+            ///如同时列出多个条件，则说明SQL语句要同时满足所有条件（即“And”关系）；
+            ///Where和Having方法可以多次调用，每调一次SQL语句累加一个条件（And、Or、Groupby、OrderbyAsc、OrderbyDesc方法类同)；
+            ///与 Where 方法同等级的 And 方法是等效的
+            ///也就是说，数据筛选条件可以根据业务情况动态增加；
+
+            ODAContext ctx = new ODAContext();
+            var U = ctx.GetCmd<CmdSysUser>();
+            var UR = ctx.GetCmd<CmdSysUserRole>();
+
+            var data = U.InnerJoin(UR, U.ColUserAccount == UR.ColUserAccount, UR.ColStatus == "O")
+              .Where(U.ColStatus == "O", U.ColEmailAddr.IsNotNull.Or(U.ColEmailAddr == "riwfnsse@163.com"), U.ColIsLocked == "N")
+              .Where(UR.ColRoleCode.In("Administrator", "Admin", "PowerUser", "User", "Guest")) 
+              .Groupby(UR.ColRoleCode)
+              .Having(U.ColUserAccount.Count > 2)
+              .OrderbyAsc(U.ColUserAccount.Count)
+              .Select(U.ColUserAccount.Count.As("USER_COUNT"), UR.ColRoleCode);
+
+            ////以下写法是等效的
+            //U.InnerJoin(UR, U.ColUserAccount == UR.ColUserAccount, UR.ColStatus == "O");
+            //U.Where(U.ColStatus == "O");
+            //U.Where(U.ColEmailAddr.IsNotNull.Or(U.ColEmailAddr == "riwfnsse@163.com"));
+            //U.And(U.ColIsLocked == "N");
+            //U.Where(UR.ColRoleCode.In("Administrator", "Admin", "PowerUser", "User", "Guest")); 
+            //U.Groupby(UR.ColRoleCode);
+            //U.Having(U.ColUserAccount.Count > 2);
+            //U.OrderbyAsc(U.ColUserAccount.Count);
+            //data = U.Select(U.ColUserAccount.Count.As("USER_COUNT"), UR.ColRoleCode);
+            return data;
+
         }
         [Demo(Demo = FuncType.Select, MethodName = "GroupByHaving", MethodDescript = "分组统计")]
         public static object GroupByHaving()
@@ -197,38 +237,16 @@ namespace NYear.Demo
             ODAContext ctx = new ODAContext();
             var U = ctx.GetCmd<CmdSysUser>();
             var UR = ctx.GetCmd<CmdSysUserRole>();
-           var data =  U.InnerJoin(UR, U.ColUserAccount == UR.ColUserAccount, UR.ColStatus == "O")
-              .Where(U.ColStatus == "O", UR.ColRoleCode.In("Administrator","Admin","PowerUser","User","Guest"))
-              .Groupby(UR.ColRoleCode)
-              .Having(U.ColUserAccount.Count > 2)
-              .OrderbyAsc(U.ColUserAccount.Count)
-              .Select(U.ColUserAccount.Count.As("USER_COUNT"), UR.ColRoleCode); 
+            var data = U.InnerJoin(UR, U.ColUserAccount == UR.ColUserAccount, UR.ColStatus == "O")
+               .Where(U.ColStatus == "O", UR.ColRoleCode.In("Administrator", "Admin", "PowerUser", "User", "Guest"))
+               .Groupby(UR.ColRoleCode)
+               .Having(U.ColUserAccount.Count > 2)
+               .OrderbyAsc(U.ColUserAccount.Count)
+               .Select(U.ColUserAccount.Count.As("USER_COUNT"), UR.ColRoleCode);
             return data;
         }
 
-        [Demo(Demo = FuncType.Select, MethodName = "Where", MethodDescript = "数据库查询条件语法")]
-        public static object Where()
-        {
-            ODAContext ctx = new ODAContext();
-            var U = ctx.GetCmd<CmdSysUser>();
-            U.Where(U.ColUserAccount == "User1");
-            U.Where(U.ColIsLocked == "N");
-            U.Where(U.ColEmailAddr.IsNotNull | U.ColEmailAddr == "riwfnsse@163.com" );
-            U.Or(U.ColUserAccount == "User2");
-             
-            var data = U .SelectM( U.ColUserAccount, U.ColUserName, U.ColPhoneNo, U.ColEmailAddr);
-
-            return data; ;
-        }
-        [Demo(Demo = FuncType.Select, MethodName = "Like", MethodDescript = "Like 条件")]
-        public static object Like()
-        {
-            ODAContext ctx = new ODAContext(); 
-            var R = ctx.GetCmd<CmdSysRole>(); 
-            var data = R.Where(R.ColStatus == "O", R.ColRoleCode.Like("Admin%"))
-                .SelectM(); 
-            return data;
-        }
+       
         [Demo(Demo = FuncType.Select, MethodName = "IN/NOT IN", MethodDescript = "IN 条件")]
         public static object In()
         {
@@ -248,11 +266,11 @@ namespace NYear.Demo
         public static object Exists()
         {
             ODAContext ctx = new ODAContext();
-            var RA = ctx.GetCmd<CmdSysRoleAuthorization>();
-            var RS = ctx.GetCmd<CmdSysResource>();
-
+            var RA = ctx.GetCmd<CmdSysRoleAuthorization>(); 
             //Exists 子查询的条件
+            var RS = ctx.GetCmd<CmdSysResource>();
             RA.Where(RA.ColIsForbidden == "N", RA.ColStatus == "O", RA.ColResourceId == RS.ColId); 
+
             var data = RS.Where(RS.ColStatus == "O", RS.Function.Exists(RA, RA.AllColumn)) 
                 .SelectM();
             return data;
@@ -263,7 +281,6 @@ namespace NYear.Demo
         {
             ODAContext ctx = new ODAContext();
             CmdSysResource RS = ctx.GetCmd<CmdSysResource>();
-
             CmdSysResource RS1 = ctx.GetCmd<CmdSysResource>();
             ///由于是在内存递归，所以 StartWithConnectBy使用到的所有字段必须包含在Seclect字段里
 
@@ -280,17 +297,6 @@ namespace NYear.Demo
             return null;
         }
  
-
-        [Demo(Demo = FuncType.Select, MethodName = "ComplexQuery", MethodDescript = "复杂查询")]
-        public static object ComplexQuery()
-        {
-            ODAContext ctx = new ODAContext();
-
-
-            return null;
-        }
-
-
         [Demo(Demo = FuncType.Select, MethodName = "Lambda", MethodDescript = "Lambda语法支持")]
         public static object Lambda()
         {
@@ -298,16 +304,16 @@ namespace NYear.Demo
             int total = 0;
             var data = new ODAContext().GetJoinCmd<CmdSysUser>()
                 .InnerJoin<CmdSysUserRole>((u, ur) => u.ColUserAccount == ur.ColUserAccount & ur.ColStatus == "O")
-                 .InnerJoin<CmdSysRole>((u, ur, r) => ur.ColRoleCode == r.ColRoleCode & r.ColStatus == "O" )
-                 .Where((u, ur, r) => u.ColStatus == "O" & (r.ColRoleCode == "Administrator" | r.ColRoleCode =="Admin") & u.ColIsLocked =="N" )
-                 .Select<UserDefineModel>(0, 20, out total, (u, ur, r) => new IODAColumns[] { u.ColUserAccount.As("UserAccount"), u.ColUserName.As("UserName"), r.ColRoleCode.As("Role"), r.ColRoleName.As("RoleName") });
-             
+                 .InnerJoin<CmdSysRole>((u, ur, r) => ur.ColRoleCode == r.ColRoleCode & r.ColStatus == "O")
+                 .InnerJoin<CmdSysRoleAuthorization>((u, ur, r, ra) => r.ColRoleCode == ra.ColRoleCode & ra.ColIsForbidden == "O" & ra.ColStatus == "O")
+                 .Where((u, ur, r, ra) => u.ColStatus == "O" & (r.ColRoleCode == "Administrator" | r.ColRoleCode == "Admin") & u.ColIsLocked == "N")
+                 .Groupby((u, ur, r, ra) => new IODAColumns[] { r.ColRoleCode, u.ColUserAccount })
+                 .Having((u, ur, r, ra) => ra.ColResourceId.Count > 10)
+                 .OrderbyAsc((u, ur, r, ra) => new IODAColumns[] { ra.ColResourceId.Count })
+                 .Select(0, 20, out total, (u, ur, r, ra) => new IODAColumns[] { r.ColRoleCode, u.ColUserAccount, ra.ColResourceId.Count.As("ResourceCount") });
             return data;
         }
-
     }
-
-
 
     public class UserDefineModel
     {

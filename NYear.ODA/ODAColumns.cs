@@ -701,7 +701,6 @@ namespace NYear.ODA
         {
             return left.SetCondition(CmdConditionSymbol.STAY, CValue);
         }
-
         public static ODAColumns operator |(ODAColumns left, ODAColumns right)
         {
             return left.Or(right);
