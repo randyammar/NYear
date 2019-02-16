@@ -125,10 +125,16 @@ namespace NYear.Demo
                 rtbxSql.Clear();
                 var md = (DemoMethodInfo)((Button)sender).Tag;
                 object rlt = md.DemoMethod.Invoke(null, null);
-                if (md.DemoFunc == FuncType.Select)
+                if (md.DemoFunc == FuncType.Select || md.DemoFunc == FuncType.Function)
+                {
                     dgvData.DataSource = rlt;
-                else if(rlt != null )
+                }
+                else if (rlt != null)
+                {
                     rtbxSql.AppendText(rlt.ToString());
+                    rtbxSql.AppendText(new StringBuilder().AppendLine("").ToString());
+                }
+               
                 rtbxSql.AppendText(_ExeSql.ToString());
             }
             catch (Exception ex)

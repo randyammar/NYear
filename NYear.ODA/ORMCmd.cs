@@ -40,26 +40,26 @@ namespace NYear.ODA
             try
             {
                 List<ODAColumns> cols = this.GetColumnList();
-                ODAParameter[] prms = new ODAParameter[Data.Columns.Count];
-                for (int i = 0; i < prms.Length; i++)
+                List<ODAParameter> prms = new List<ODAParameter>();
+                for (int i = 0; i < Data.Columns.Count; i++)
                 {
                     for (int j = 0; j < cols.Count; j++)
                     {
                         if (cols[j].ColumnName == Data.Columns[i].ColumnName)
                         {
-                            prms[i] = new ODAParameter()
+                            prms.Add(new ODAParameter()
                             {
                                 ColumnName = cols[j].ColumnName,
                                 Direction = ParameterDirection.Input,
                                 ParamsName = cols[j].ColumnName,
                                 DBDataType = cols[j].DBDataType,
                                 Size = cols[j].Size,
-                            };
+                            });
                             break; 
                         }
                     }
                 }
-                return base.Import(Data, prms);
+                return base.Import(Data, prms.ToArray());
             }
             finally
             {
