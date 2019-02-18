@@ -79,7 +79,7 @@ namespace NYear.ODA
         IN,
         NOTIN,
         LIKE,
-        NOTLIKE,
+        NOTLIKE,  
         ADD,
         ADDSTR,
         REDUCE,
