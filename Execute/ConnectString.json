@@ -1,1 +1,1 @@
-﻿["Server=localhost:50000;DataBase=NYear;UID=admin;PWD=123;","Data Source=./sqlite.db","server=localhost;database=NYear;uid=sa;pwd=123;"]
+﻿["Server=localhost:50000;DataBase=NYear;UID=admin;PWD=123;","Data Source=./sqlite.db","server=localhost;database=NYear;uid=sa;pwd=123;","password=123;user id=Nyear;data source=localhost/XE;","Server=localhost;Database=NYear; User=root;Password=123;Use Procedure Bodies=false;Charset=utf8;Allow Zero Datetime=True; Pooling=false; Max Pool Size=50;Port=3306;"]

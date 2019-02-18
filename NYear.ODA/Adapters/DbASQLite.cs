@@ -186,7 +186,6 @@ namespace NYear.ODA.Adapter
         }
         protected override void SetCmdParameters(ref IDbCommand Cmd, string SQL, params ODAParameter[] ParamList)
         {
-            Cmd.CommandText = SQL;
             if (ParamList != null)
             {
                 foreach (ODAParameter pr in ParamList)
@@ -202,7 +201,7 @@ namespace NYear.ODA.Adapter
                     {
                         case ODAdbType.ODatetime:
                             param.DbType = DbType.DateTime;
-                            if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
+                            if (pr.ParamsValue == null || pr.ParamsValue is DBNull)
                             {
                                 param.Value = System.DBNull.Value;
                             }
@@ -224,7 +223,7 @@ namespace NYear.ODA.Adapter
                             break;
                         case ODAdbType.ODecimal:
                             param.DbType = DbType.Decimal;
-                            if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
+                            if (pr.ParamsValue == null || pr.ParamsValue is DBNull)
                             {
                                 param.Value = System.DBNull.Value;
                             }
@@ -246,22 +245,26 @@ namespace NYear.ODA.Adapter
                             break;
                         case ODAdbType.OBinary:
                             param.DbType = DbType.Binary;
-                            if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
+                            if (pr.ParamsValue == null || pr.ParamsValue is DBNull)
                             {
                                 param.Value = System.DBNull.Value;
                             }
                             else
                             {
                                 param.Value = pr.ParamsValue;
-                                if (typeof(byte[]) == pr.ParamsValue.GetType())
+                                if (pr.ParamsValue is byte[])
                                 {
                                     param.Size = ((byte[])pr.ParamsValue).Length;
+                                }
+                                else
+                                {
+                                    throw new ODAException(201, "Params :" + pr.ParamsName + " Type must be byte[]");
                                 }
                             }
                             break;
                         case ODAdbType.OInt:
                             param.DbType = DbType.Int32;
-                            if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
+                            if (pr.ParamsValue == null || pr.ParamsValue is DBNull)
                             {
                                 param.Value = System.DBNull.Value;
                             }
@@ -283,7 +286,7 @@ namespace NYear.ODA.Adapter
                             break;
                         case ODAdbType.OChar:
                             param.DbType = DbType.StringFixedLength;
-                            if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
+                            if (pr.ParamsValue == null || pr.ParamsValue is DBNull)
                             {
                                 param.Value = System.DBNull.Value;
                             }
@@ -301,7 +304,7 @@ namespace NYear.ODA.Adapter
                             break;
                         case ODAdbType.OVarchar:
                             param.DbType = DbType.String;
-                            if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
+                            if (pr.ParamsValue == null || pr.ParamsValue is DBNull)
                             {
                                 param.Value = System.DBNull.Value;
                             }
@@ -322,9 +325,11 @@ namespace NYear.ODA.Adapter
                             param.Value = pr.ParamsValue;
                             break;
                     }
-                    ((SQLiteParameterCollection)Cmd.Parameters).Add(param);
-                }
+                    ((SQLiteParameterCollection)Cmd.Parameters).Add(param);  
+                }  
             }
+            Cmd.CommandText = SQL;
+            ExecutingCommand?.Invoke(Cmd);
         }
     }
 }
