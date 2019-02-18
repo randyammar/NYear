@@ -328,7 +328,6 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
             IDbCommand Cmd = OpenCommand();
             try
             {
-                bool haveCol = false; 
                 for (int i = 0; i < Prms.Length; i++)
                 {
                     Sqlcols += "," + Prms[i].ColumnName;
@@ -339,38 +338,18 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
                     oraPrms.Size = Prms[i].Size;
                     oraPrms.Direction = ParameterDirection.Input;
                     oraPrms.Value = new object[ImportData.Rows.Count];
-                    Cmd.Parameters.Add(oraPrms); 
-                    haveCol = false;
-                    for (int n = 0; n < ImportData.Columns.Count; n++)
-                    {
-                        if (Prms[i].ColumnName == ImportData.Columns[n].ColumnName)
-                        {
-                            haveCol = true;
-                            break;
-                        }
-                    }
-                    if (haveCol)
-                    {
-                        ImportData.Columns[Prms[i].ColumnName].SetOrdinal(i);
-                    }
-                    else
+                    Cmd.Parameters.Add(oraPrms);  
+                    if (!ImportData.Columns.Contains(Prms[i].ColumnName))
                     {
                         ImportData.Columns.Add(new DataColumn(Prms[i].ColumnName));
-                        ImportData.Columns[Prms[i].ColumnName].SetOrdinal(i);
-                    } 
-                }
-
-                if (ImportData.Columns.Count > Prms.Length)
-                {
-                    for(int k = ImportData.Columns.Count; k > Prms.Length; k --)
-                    {
-                        ImportData.Columns.RemoveAt(k - 1);
                     }
-                }; 
+                    ImportData.Columns[Prms[i].ColumnName].SetOrdinal(i); 
+                }
+ 
 
                 string sql = "INSERT INTO " + ImportData.TableName + " ( " + Sqlcols.TrimStart(',') + ") VALUES (" + Sqlprms.TrimStart(',') + ") ";
-
-                for (int i = 0; i < ImportData.Rows.Count; i++)
+                 
+                for (int i = 0; i < ImportData.Rows.Count; i++)  
                     for (int j = 0; j < Cmd.Parameters.Count; j++)
                         ((object[])((OracleParameter)Cmd.Parameters[j]).Value)[i] = ImportData.Rows[i].ItemArray[j];
 

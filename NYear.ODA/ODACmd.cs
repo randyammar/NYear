@@ -988,6 +988,14 @@ namespace NYear.ODA
                 sql.ParamList.AddRange(Prms);
                 sql.SqlScript.Append(this.CmdName);
                 Data.TableName = this.CmdName;
+
+                foreach (ODAParameter p in Prms)
+                {
+                    if (!Data.Columns.Contains(p.ColumnName))
+                    {
+                        throw new ODAException(10020, "Data Should be contain Column [" + p.ColumnName + "]");
+                    }
+                } 
                 var db = this.GetDBAccess(sql);
                 if (db == null)
                     throw new ODAException(10012, "ODACmd Import 没有执行程序");

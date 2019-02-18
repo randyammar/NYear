@@ -45,20 +45,18 @@ namespace NYear.Demo
 
             data.Columns.Add(new DataColumn("ADDRESS"));
             data.Columns.Add(new DataColumn("CREATED_BY"));
-            data.Columns.Add(new DataColumn("CREATED_DATE"));
+            data.Columns.Add(new DataColumn("CREATED_DATE",typeof(DateTime)));
             data.Columns.Add(new DataColumn("EMAIL_ADDR"));
             data.Columns.Add(new DataColumn("LAST_UPDATED_BY"));
-            data.Columns.Add(new DataColumn("LAST_UPDATED_DATE")); 
-            data.Columns.Add(new DataColumn("FAIL_TIMES"));
+            data.Columns.Add(new DataColumn("LAST_UPDATED_DATE", typeof(DateTime))); 
+            data.Columns.Add(new DataColumn("FAIL_TIMES", typeof(decimal)));
             data.Columns.Add(new DataColumn("STATUS"));
+            data.Columns.Add(new DataColumn("DUMMY"));
             data.Columns.Add(new DataColumn("USER_ACCOUNT"));
             data.Columns.Add(new DataColumn("USER_NAME"));
             data.Columns.Add(new DataColumn("USER_PASSWORD"));
             data.Columns.Add(new DataColumn("IS_LOCKED"));
-          
-
-
-
+             
             for (int i = 0; i < 10000; i++)
             {
                 object[] dr = new object[]
@@ -71,10 +69,11 @@ namespace NYear.Demo
                     DateTime.Now,
                     0,
                     "O",
+                     "Dummy",
                     "ImportUser" + i.ToString(),
                     "导入的用户" + i.ToString(),
                     "123",
-                    "N"
+                    "N"                   
                 };
                 data.Rows.Add(dr); 
             }

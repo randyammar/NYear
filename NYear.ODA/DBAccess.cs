@@ -783,17 +783,19 @@ namespace NYear.ODA
             int ImportCount = 0;
             string Sqlcols = "";
             string Sqlprms = "";
+            DataTable ImportData = Data.Copy();
             for (int i = 0; i < Prms.Length; i++)
             {
-                if (Data.Columns.Contains(Prms[i].ColumnName))
+                if (ImportData.Columns.Contains(Prms[i].ColumnName))
                 {
                     Sqlcols += "," + Prms[i].ColumnName;
                     Sqlprms += "," + this.ParamsMark + Prms[i].ParamsName;
                 }
                 else
                 {
-                    throw new ODAException(106, "Data Should be contain Column ["+ Prms[i].ColumnName + "]");
+                    ImportData.Columns.Add(new DataColumn(Prms[i].ColumnName));
                 }
+                ImportData.Columns[Prms[i].ColumnName].SetOrdinal(i);
             }
             string sql = new StringBuilder()
                 .Append("INSERT INTO ")
@@ -817,11 +819,11 @@ namespace NYear.ODA
 
             try
             {
-                for (int i = 0; i < Data.Rows.Count; i++)
+                for (int i = 0; i < ImportData.Rows.Count ; i++)
                 {
                     for (int j = 0; j < Prms.Length; j++)
                     {
-                        Prms[j].ParamsValue = Data.Rows[i][Prms[j].ColumnName];
+                        Prms[j].ParamsValue = ImportData.Rows[i][j];
                         Prms[j].Direction = ParameterDirection.Input;
                     }
 

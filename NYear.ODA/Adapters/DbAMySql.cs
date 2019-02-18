@@ -326,31 +326,27 @@ namespace NYear.ODA.Adapter
                     bulk = new MySqlBulkLoader((MySqlConnection)conn);
                 }
 
-                bool haveCol = false;
+                bool noCol = true;
                 for(int m = 0; m < Prms.Length; m ++ )
                 {
-                    haveCol = false;
+                    noCol = true;
                     for (int n = 0; n < ImportData.Columns.Count; n ++ )
                     {
                         if(Prms[m].ColumnName == ImportData.Columns[n].ColumnName)
                         {
-                            haveCol = true;
+                            noCol = false;
                             break;
                         } 
                     }
-                    if(haveCol)
+                    if(noCol)
                     {
-                        ImportData.Columns[Prms[m].ColumnName].SetOrdinal(m);
+                        ImportData.Columns.Add(new DataColumn(Prms[m].ColumnName)); 
                     }
-                    else
-                    {
-                        ImportData.Columns.Add(new DataColumn(Prms[m].ColumnName));
-                        ImportData.Columns[Prms[m].ColumnName].SetOrdinal(m);
-                    }
+                    ImportData.Columns[Prms[m].ColumnName].SetOrdinal(m);///对DataTable字段排序
                     bulk.Columns.Add(Prms[m].ParamsName);
                 } 
                 
-                string csv = DataTableToCsv(ImportData, Prms);
+                string csv = DataTableToCsv(ImportData, Prms.Length);
                 File.WriteAllText(tmpPath, csv); 
                 bulk.FieldTerminator = ",";
                 bulk.FieldQuotationCharacter = '"';
@@ -378,7 +374,7 @@ namespace NYear.ODA.Adapter
         /// </summary>
         /// <param name="Table">数据表</param>
         /// <returns>返回标准的CSV</returns>
-        private static string DataTableToCsv(DataTable Table, ODAParameter[] Prms)
+        private static string DataTableToCsv(DataTable Table,int MaxCols)
         {
             //以半角逗号（即,）作分隔符，列为空也要表达其存在。
             //列内容如存在半角逗号（即,）则用半角引号（即""）将该字段值包含起来。
@@ -387,7 +383,7 @@ namespace NYear.ODA.Adapter
             DataColumn colum;
             foreach (DataRow row in Table.Rows)
             {
-                for (int i = 0; i < Prms.Length; i++)
+                for (int i = 0; i < MaxCols; i++)
                 {
                     colum = Table.Columns[i]; 
                     if (i != 0)

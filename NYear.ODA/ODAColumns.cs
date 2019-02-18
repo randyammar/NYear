@@ -276,6 +276,9 @@ namespace NYear.ODA
                     case CmdConditionSymbol.LIKE:
                         sql.SqlScript.Append(" LIKE ");
                         break;
+                    case CmdConditionSymbol.NOTLIKE:
+                        sql.SqlScript.Append(" NOT LIKE ");
+                        break;
                     case CmdConditionSymbol.NOTBIGGER:
                         sql.SqlScript.Append(" <= ");
                         break;
@@ -400,6 +403,11 @@ namespace NYear.ODA
                         break;
                     case CmdConditionSymbol.LIKE:
                         sql.SqlScript.Append(" LIKE ").Append(param.ParamsName);
+                        sql.ParamList.Add(param);
+                        break;
+
+                    case CmdConditionSymbol.NOTLIKE:
+                        sql.SqlScript.Append(" NOT LIKE ").Append(param.ParamsName);
                         sql.ParamList.Add(param);
                         break;
                     case CmdConditionSymbol.NOTBIGGER:
@@ -616,6 +624,10 @@ namespace NYear.ODA
         public ODAColumns Like(object CompareValue)
         {
             return SetCondition(CmdConditionSymbol.LIKE, CompareValue);
+        }
+        public ODAColumns NotLike(object CompareValue)
+        {
+            return SetCondition(CmdConditionSymbol.NOTLIKE, CompareValue);
         }
         public ODAColumns In(params object[] CompareValue)
         {

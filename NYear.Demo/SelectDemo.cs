@@ -205,6 +205,7 @@ namespace NYear.Demo
             ///Where和Having方法可以多次调用，每调一次SQL语句累加一个条件（And、Or、Groupby、OrderbyAsc、OrderbyDesc方法类同)；
             ///与 Where 方法同等级的 And 方法是等效的
             ///也就是说，数据筛选条件可以根据业务情况动态增加；
+            /// IS NULL/ IS NOT NULL 条件可由字段直接带出，如：ColEmailAddr.IsNotNull
 
             ODAContext ctx = new ODAContext();
             var U = ctx.GetCmd<CmdSysUser>();
@@ -294,7 +295,7 @@ namespace NYear.Demo
                 .StartWithConnectBy(RS.ColResourceName.ColumnName + "='叶子1'", RS.ColParentId.ColumnName, RS.ColId.ColumnName, "MENU_PATH", "<-", 10)
                 .Select(RS.ColResourceName.As("MENU_PATH"), RS.ColId, RS.ColParentId, RS.ColResourceName, RS.ColResourceType, RS.ColResourceScope, RS.ColResourceLocation, RS.ColResourceIndex);
             rlt1.Merge(rlt);
-            return null;
+            return rlt1;
         }
  
         [Demo(Demo = FuncType.Select, MethodName = "Lambda", MethodDescript = "Lambda语法支持")]
