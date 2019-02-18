@@ -78,8 +78,9 @@ namespace NYear.ODA
         NOTSMALLER,
         IN,
         NOTIN,
-        LIKE,
+        LIKE, 
         ADD,
+        ADDSTR,
         REDUCE,
         TAKE,
         REMOVE,
@@ -121,9 +122,12 @@ namespace NYear.ODA
     [DataContract]
     public class ODAParameter
     {
+        /// <summary>
+        /// 数据库变量标识
+        /// </summary>
         public static char ODAParamsMark { get { return '@'; } }
         /// <summary>
-        /// 分表时用于识别
+        /// 对应用字段名称--纵向分库时，作为分库条件
         /// </summary>
         [DataMember]
         public string ColumnName { get; set; }
@@ -287,7 +291,6 @@ namespace NYear.ODA
             return debugSql;
         }
     }
-
 
     public class ODynamicModel : DynamicObject, IEnumerable<KeyValuePair<string, object>>
     {

@@ -119,10 +119,10 @@ namespace NYear.ODA
             else if (ColumnType.Trim() == ODAdbType.OVarchar.ToString())
             {
                 ColInof.ColumnType = "VARCHAR";
-            }
+            } 
             else
             {
-                return null;
+                ColInof.ColumnType = "VARCHAR";
             }
             return ColInof;
         }

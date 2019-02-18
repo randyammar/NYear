@@ -1,5 +1,5 @@
-﻿/* 
- * 2.分布式事务很难做而且性能不理想，应用服务器暂时做不到，所以在应用服务上不能有跨库事务。
+﻿/* 1.分布式数据库：目前最比较稳定有效的算法是 Paxos 可以保证各个数据库数据一致。
+ * 2.分布式事务比较难做而且性能不理想，所以暂时不体做分布式数据库。
  * 目前的分布式事务解决方案是二阶段提交（PreCommit、doCommit）或三阶段提交（CanCommit、PreCommit、doCommit）。
  * 跨库事务一般都是数据库层面考虑。
 */
@@ -14,8 +14,7 @@ namespace NYear.ODA
     /// </summary>
     internal class ODATransaction
     {
-        private System.Timers.Timer Tim = null;
-        private string _TransactionId = null;
+        private System.Timers.Timer Tim = null; 
         private event ODATransactionEventHandler _DoCommit;
         private event ODATransactionEventHandler _DoRollBack;
 
@@ -68,11 +67,11 @@ namespace NYear.ODA
 
         public Action TransactionTimeOut;
 
-        public string TransactionId { get { return _TransactionId; } }
+        public string TransactionId { get; private set; }
         public bool IsTimeout { get; private set; } = false;
         internal ODATransaction(int TimeOut)
         {
-            _TransactionId = Guid.NewGuid().ToString("N");
+            TransactionId = Guid.NewGuid().ToString("N");
             Tim = new System.Timers.Timer(TimeOut * 1000);
             Tim.Elapsed += new System.Timers.ElapsedEventHandler(Tim_Elapsed);
             Tim.Start();

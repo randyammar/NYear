@@ -13,38 +13,35 @@ namespace NYear.Demo
     {
         [Demo(Demo = FuncType.Update, MethodName = "Update", MethodDescript = "更新数据")]
         public static void Update()
-        {
+        {;
             ODAContext ctx = new ODAContext();
-            //CmdOrgDepartment od = ctx.GetCmd<CmdOrgDepartment>();
-            //od.Where(od.ColDeptName.Like( "%小队"),od.ColBossName == "我的")
-            //    .Update(od.ColAssistantId == "美女",
-            //    od.ColAssistantName == "王昭君",
-            //     od.ColBossId == "我",
-            //     od.ColBossName == "我的名字",
-            //     od.ColDeptId == "小队00",
-            //     od.ColDeptName == "xxx小队",
-            //     od.ColDeptOrg == "org",
-            //     od.ColParentDept == "上级"
-            //     );
-        }
+            var U = ctx.GetCmd<CmdSysUser>();
+            U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColStatus == "O", U.ColEmailAddr.IsNotNull)
+             .Update(
+                U.ColUserName == 
+                );
+                }
         [Demo(Demo = FuncType.Update, MethodName = "UpdateModel", MethodDescript = "模型的数据到数据库")]
         public static void UpdateModel()
         {
-            ODAContext ctx = new ODAContext();
-            //CmdOrgDepartment od = ctx.GetCmd<CmdOrgDepartment>();
-            //od.Where(od.ColDeptName.Like("%小队"), od.ColBossName == "我的")
-            //    .Update(
-            // new ORG_DEPARTMENT()
-            // {
-            //     ASSISTANT_ID = "美女",
-            //     ASSISTANT_NAME = "王昭君",
-            //     BOSS_ID = "我",
-            //     BOSS_NAME = "我的名字",
-            //     DEPT_ID = "小队01",
-            //     DEPT_NAME = "xxx小队",
-            //     DEPT_ORG = "org",
-            //     PARENT_DEPT = "上级"
-            // });
+            ///使用实体 Update 数据时，对于属性值为 null 的字段不作更新。
+            ///这是由于在ORM组件的实际应用中，多数时候界面回传的是完整的实体对象，
+            ///或者收接时使用完整的实体作为反序列化的容器，那些不需要更新的字段也在其中，而且为null.
+            ODAContext ctx = new ODAContext(); 
+            var U = ctx.GetCmd<CmdSysUser>();
+            U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColStatus == "O", U.ColEmailAddr.IsNotNull)
+             .Update(new SYS_USER()
+            {
+                ADDRESS = "自由国度",
+                CREATED_BY = "InsertModel",
+                CREATED_DATE = DateTime.Now, 
+                STATUS = "O",
+                USER_ACCOUNT = "NYear1",
+                USER_NAME = "多年1",
+                USER_PASSWORD = "123",
+                IS_LOCKED = "N",
+            });
+
         }
 
         [Demo(Demo = FuncType.Update, MethodName = "UpdateCompute", MethodDescript = "更新运算")]

@@ -446,7 +446,7 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
             {
                 foreach (ODAParameter pr in ParamList)
                 {
-                    dbSql = dbSql.Replace(pr.ParamsName, pr.ParamsName.Replace(ODAParameter.ODAParamsMark, DbAOracle.DBParamsMark));
+                    dbSql = dbSql.Replace(pr.ParamsName, pr.ParamsName.Replace(ODAParameter.ODAParamsMark, DbAOracle.DBParamsMark)); 
                     OracleParameter param = new OracleParameter();
                     param.ParameterName = pr.ParamsName.Replace(ODAParameter.ODAParamsMark, DbAOracle.DBParamsMark);
                     if (pr.Size < 0)
