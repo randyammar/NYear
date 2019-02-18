@@ -238,7 +238,7 @@ namespace NYear.ODA
                 ScriptType = SQLType.BeginTransation,
             };
             Sql.SqlScript.Append("Begin Tran:" + _Tran.TransactionId);
-            FireExecutingSqlEvent(new ExecuteEventArgs()
+            FireODASqlEvent(new ExecuteEventArgs()
             {
                 SqlParams = Sql,
             });
@@ -255,7 +255,7 @@ namespace NYear.ODA
                     ScriptType = SQLType.Commit,
                 };
                 Sql.SqlScript.Append("Commit Tran:" + _Tran.TransactionId);
-                FireExecutingSqlEvent(new ExecuteEventArgs()
+                FireODASqlEvent(new ExecuteEventArgs()
                 {
                     SqlParams = Sql,
                 });
@@ -276,7 +276,7 @@ namespace NYear.ODA
                     ScriptType = SQLType.Rollback,
                 };
                 Sql.SqlScript.Append("Rollback Tran:" + _Tran.TransactionId);
-                FireExecutingSqlEvent(new ExecuteEventArgs()
+                FireODASqlEvent(new ExecuteEventArgs()
                 {
                     SqlParams = Sql,
                 });
@@ -397,27 +397,44 @@ namespace NYear.ODA
 
         #endregion
         #region SQL语句执行。（待扩展：使用消息队列实现多数据实时同步）
-        public static event ExecuteSqlEventHandler ExecutingSql;
-        public event ExecuteSqlEventHandler CurrentExecutingSql;
-        public static ODAScript LastSQL { get; private set; }
-        public ODAScript CurrentSQL { get; private set; }
-        private void FireExecutingSqlEvent(ExecuteEventArgs args)
+        public static event ODASqlEventHandler ExecutingODASql;
+        public event ODASqlEventHandler CurrentExecutingODASql;
+
+        private event Action<string, object[]> ExecutingSql;
+        public static ODAScript LastODASQL { get; private set; }
+        public string LastSQL { get; private set; }
+        public object[] SQLParams { get; private set; }
+        private void FireODASqlEvent(ExecuteEventArgs args)
         {
-            ExecutingSql?.Invoke(this, args);
-            CurrentExecutingSql?.Invoke(this, args);
+            ExecutingODASql?.Invoke(this, args);
+            CurrentExecutingODASql?.Invoke(this, args);
+        }
+
+        private void ExecutingCommand(IDbCommand AdoCmd)
+        {
+            LastSQL = AdoCmd.CommandText;
+            object[] pms = null;
+            if (AdoCmd.Parameters != null)
+            {
+                pms = new object[AdoCmd.Parameters.Count];
+                AdoCmd.Parameters.CopyTo(pms, 0);
+                SQLParams = pms;
+            }
+            ExecutingSql?.Invoke(LastSQL, pms);
         }
 
         protected virtual IDBAccess GetDBAccess(ODAScript ODASql)
         {
             IDBAccess DBA = DatabaseRouting(ODASql);
+            if (DBA.ExecutingCommand == null)
+                DBA.ExecutingCommand = ExecutingCommand;
             ExecuteEventArgs earg = new ExecuteEventArgs()
             {
                 DBA = DBA,
                 SqlParams = ODASql,
             };
-            CurrentSQL = ODASql;
-            LastSQL = ODASql;
-            FireExecutingSqlEvent(earg);
+            LastODASQL = ODASql;
+            FireODASqlEvent(earg);
             return earg.DBA;
         }
         private int _Alias = 0;

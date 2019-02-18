@@ -16,6 +16,7 @@ namespace NYear.ODA
         DbAType DBAType { get; }
         string ConnString { get; }
         IDbTransaction Transaction { get; set; }
+        Action<IDbCommand> ExecutingCommand { get; set; }
 #if FW
         [OperationContract]
 #endif
@@ -115,8 +116,6 @@ namespace NYear.ODA
 #if FW
         [OperationContract]
 #endif
-        bool Import(DataTable Data, ODAParameter[] Prms);
-
-      
+        bool Import(DataTable Data, ODAParameter[] Prms); 
     }
 }

@@ -13,14 +13,14 @@ namespace NYear.Demo
     {
         [Demo(Demo = FuncType.Update, MethodName = "Update", MethodDescript = "更新数据")]
         public static void Update()
-        {;
+        {
             ODAContext ctx = new ODAContext();
             var U = ctx.GetCmd<CmdSysUser>();
             U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColStatus == "O", U.ColEmailAddr.IsNotNull)
              .Update(
-                U.ColUserName == 
+                U.ColUserName == "新的名字", U.ColIsLocked == "Y"
                 );
-                }
+        }
         [Demo(Demo = FuncType.Update, MethodName = "UpdateModel", MethodDescript = "模型的数据到数据库")]
         public static void UpdateModel()
         {

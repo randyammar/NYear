@@ -9,8 +9,7 @@ namespace NYear.ODA
     /// ODA字段信息
     /// </summary>
     public class ODAColumns : IODAColumns
-    {
-        public static string AddStr = "&&"; 
+    { 
         private CmdFuntion _Fun = CmdFuntion.NONE;
         private List<SqlColumnScript> _SqlColumnList = new List<SqlColumnScript>();
         private object _CompareValue = null;
@@ -209,10 +208,7 @@ namespace NYear.ODA
                     break;
                 case CmdConditionSymbol.ADD:
                     SubSql = _ColumnName + " + ";
-                    break;
-                case CmdConditionSymbol.ADDSTR:
-                    SubSql = _ColumnName + ODAColumns.AddStr;
-                    break;
+                    break;  
                 case CmdConditionSymbol.REDUCE:
                     SubSql = _ColumnName + " - ";
                     break;
@@ -293,10 +289,7 @@ namespace NYear.ODA
                         break;
                     case CmdConditionSymbol.ADD:
                         sql.SqlScript.Append(" + ");
-                        break;
-                    case CmdConditionSymbol.ADDSTR:
-                        sql.SqlScript.Append(ODAColumns.AddStr);
-                        break;
+                        break; 
                     case CmdConditionSymbol.REDUCE:
                         sql.SqlScript.Append(" - ");
                         break;
@@ -434,10 +427,6 @@ namespace NYear.ODA
                         break;
                     case CmdConditionSymbol.ADD:
                         sql.SqlScript.Append(" + ").Append(param.ParamsName);
-                        sql.ParamList.Add(param);
-                        break;
-                    case CmdConditionSymbol.ADDSTR:
-                        sql.SqlScript.Append(ODAColumns.AddStr).Append(param.ParamsName);
                         sql.ParamList.Add(param);
                         break;
                     case CmdConditionSymbol.REDUCE:
@@ -706,8 +695,6 @@ namespace NYear.ODA
         }
         public static ODAColumns operator +(ODAColumns left, object CValue)
         {
-            if (left.DBDataType == ODAdbType.OChar || left.DBDataType == ODAdbType.OVarchar)
-                return left.SetCondition(CmdConditionSymbol.ADDSTR, CValue);
             return left.SetCondition(CmdConditionSymbol.ADD, CValue);
         }
         public static ODAColumns operator -(ODAColumns left, object CValue)

@@ -80,8 +80,7 @@ namespace NYear.ODA
         NOTIN,
         LIKE,
         NOTLIKE,  
-        ADD,
-        ADDSTR,
+        ADD, 
         REDUCE,
         TAKE,
         REMOVE,
@@ -128,6 +127,37 @@ namespace NYear.ODA
         /// </summary>
         public static char ODAParamsMark { get { return '@'; } }
         /// <summary>
+        /// 快速创建ODA变量
+        /// </summary>
+        /// <param name="ParamName"></param>
+        /// <param name="ParamVal"></param>
+        /// <param name="ColumnName"></param>
+        /// <returns></returns>
+        public static ODAParameter CreateParam(string ParamName, object ParamVal, string ColumnName = null)
+        {
+            ODAdbType Dt = ODAdbType.OVarchar;
+            string cn = ColumnName;
+            if (ParamVal is int || ParamVal is int?
+                || ParamVal is long || ParamVal is long?
+                || ParamVal is decimal || ParamVal is decimal?
+                || ParamVal is double || ParamVal is double?
+                || ParamVal is float || ParamVal is float?
+                || ParamVal is short || ParamVal is short?
+                || ParamVal is uint || ParamVal is uint?
+                || ParamVal is ushort || ParamVal is ushort?
+                || ParamVal is ulong || ParamVal is ulong?
+                )
+                Dt = ODAdbType.ODecimal;
+            else if (ParamVal is DateTime || ParamVal is DateTime?
+                || ParamVal is TimeSpan || ParamVal is TimeSpan?)
+                Dt = ODAdbType.ODatetime;
+            else if (ParamVal is byte[])
+                Dt = ODAdbType.OBinary;
+            if (ColumnName == null)
+                cn = ParamName.TrimStart(ODAParameter.ODAParamsMark);
+            return new ODAParameter() { ColumnName = ColumnName, DBDataType = Dt, Direction = ParameterDirection.Input, ParamsName = ParamName, ParamsValue = ParamVal, Size = 2000 };
+        }
+        /// <summary>
         /// 对应用字段名称--纵向分库时，作为分库条件
         /// </summary>
         [DataMember]
@@ -157,6 +187,9 @@ namespace NYear.ODA
         /// </summary>
         [DataMember]
         public object ParamsValue { get; set; }
+
+
+     
     }
     [Serializable()]
     [DataContract]
@@ -246,7 +279,7 @@ namespace NYear.ODA
 
     public delegate IDBAccess GetDBAccessHandler(ODAScript ODASql );
 
-    public delegate void ExecuteSqlEventHandler(object source, ExecuteEventArgs args);
+    public delegate void ODASqlEventHandler(object source, ExecuteEventArgs args);
 
     public class ExecuteEventArgs : EventArgs
     {
@@ -285,7 +318,8 @@ namespace NYear.ODA
                                     ParamsValue = "'" + ((DateTime)p.ParamsValue).ToString("yyyy/MM/dd HH:mm:ss") + "'";
                                 break;
                         }
-                        debugSql = debugSql.Replace(ParamsName, ParamsValue);
+                        System.Text.RegularExpressions.Regex rgx = new System.Text.RegularExpressions.Regex( "(" +ParamsName + "\\b|\\t)");
+                        debugSql = rgx.Replace(debugSql, ParamsValue);
                     }
                 }
             }

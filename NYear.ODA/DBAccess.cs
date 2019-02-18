@@ -50,7 +50,8 @@ namespace NYear.ODA
         }
         protected abstract DbDataAdapter GetDataAdapter(IDbCommand SelectCmd);
         protected abstract IDbConnection GetConnection();
-        public virtual IDbTransaction Transaction { get; set; }
+        public virtual IDbTransaction Transaction { get; set; } 
+        public virtual Action<IDbCommand> ExecutingCommand { get; set; }
         public abstract string[] GetUserTables();
         public abstract string[] GetUserViews();
         public abstract DbAType DBAType { get; }
@@ -267,12 +268,7 @@ namespace NYear.ODA
         }
         public virtual DateTime GetDBDateTime() { return DateTime.Now; }
         public string Database { get { return GetConnection().Database; } }
-        #region 事务管理
-        /// 开始事务
-        /// </summary>
-        /// <param name="TimeOut">事务超时时长，小于或等于0时事务不会超时，单位:秒</param>
-        /// <returns>返回事务的ID</returns>
-        [System.ComponentModel.Description("事务超时时长，小于或等于0时事务不会超时,单位:秒")]
+        #region 事务管理  
         public void BeginTransaction()
         {
             if (this.Transaction != null)

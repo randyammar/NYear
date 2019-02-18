@@ -26,7 +26,7 @@ namespace NYear.Demo
             _DemoMethods = GetDemoMethods();
             InitNYearODA();
 
-            ODAContext.ExecutingSql += (src, args) => {
+            ODAContext.ExecutingODASql += (src, args) => {
                 _ExeSql.AppendLine(args.DebugSQL + ";");
                 _ExeSql.AppendLine("");
             };
