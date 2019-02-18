@@ -36,9 +36,10 @@ namespace NYear.Demo
                 .SelectM(U.ColUserAccount, U.ColUserName, U.ColPhoneNo, U.ColEmailAddr);
             return data;
         }
-        [Demo(Demo = FuncType.Select, MethodName = "Select<>", MethodDescript = "查询并返回泛型")]
+        [Demo(Demo = FuncType.Select, MethodName = "Select<>", MethodDescript = "查询并返回实体类型")]
         public static object SelectDefine()
         {
+            ////返回的实体类型可以是任意自定义类型，并不一定是对应数据库的实体
             ODAContext ctx = new ODAContext();
             var U = ctx.GetCmd<CmdSysUser>();
             object data = U.Where(U.ColUserAccount == "User1")
@@ -242,7 +243,7 @@ namespace NYear.Demo
                .Where(U.ColStatus == "O", UR.ColRoleCode.In("Administrator", "Admin", "PowerUser", "User", "Guest"))
                .Groupby(UR.ColRoleCode)
                .Having(U.ColUserAccount.Count > 2)
-               .OrderbyAsc(U.ColUserAccount.Count)
+               .OrderbyAsc(UR.ColRoleCode,U.ColUserAccount.Count)
                .Select(U.ColUserAccount.Count.As("USER_COUNT"), UR.ColRoleCode);
             return data;
         }

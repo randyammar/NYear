@@ -38,7 +38,7 @@ namespace NYear.Demo
             return null;
         }
 
-        [Demo(Demo = FuncType.Advance, MethodName = "Hook)", MethodDescript = "钩子")]
+        [Demo(Demo = FuncType.Advance, MethodName = "Hook)", MethodDescript = "ODA钩子")] 
         public static object Hook()
         {
             return null;
