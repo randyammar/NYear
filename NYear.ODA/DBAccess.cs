@@ -50,8 +50,12 @@ namespace NYear.ODA
         }
         protected abstract DbDataAdapter GetDataAdapter(IDbCommand SelectCmd);
         protected abstract IDbConnection GetConnection();
-        public virtual IDbTransaction Transaction { get; set; } 
-        public virtual Action<IDbCommand> ExecutingCommand { get; set; }
+        public virtual IDbTransaction Transaction { get; set; }
+        Action<IDbCommand> IDBAccess.ExecutingCommand { get; set; }
+        protected void FireExecutingCommand(IDbCommand Cmd)
+        {
+            ((IDBAccess)this).ExecutingCommand?.Invoke(Cmd);
+        }
         public abstract string[] GetUserTables();
         public abstract string[] GetUserViews();
         public abstract DbAType DBAType { get; }

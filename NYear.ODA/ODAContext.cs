@@ -31,6 +31,7 @@ using NYear.ODA.Adapter;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Security.Cryptography;
 using System.Text;
 using System.Timers;
@@ -397,17 +398,52 @@ namespace NYear.ODA
 
         #endregion
         #region SQL语句执行。（待扩展：使用消息队列实现多数据实时同步）
-        public static event ODASqlEventHandler ExecutingODASql;
-        public event ODASqlEventHandler CurrentExecutingODASql;
+        private static event ODASqlEventHandler _CurrentExecutingODASql;
+        public static event ODASqlEventHandler CurrentExecutingODASql
+        {
+            add
+            {
+                if (_CurrentExecutingODASql != null)
+                {
+                    Delegate[] dls = _CurrentExecutingODASql.GetInvocationList();
+                    foreach (Delegate dl in dls)
+                        if (dl.Method == value.Method)
+                            return;
+                }
+                _CurrentExecutingODASql += value; 
+            }
+            remove
+            {
+                _CurrentExecutingODASql -= value;
+            }
+        }
+        private static event Action<string, object[]> _CurrentExecutingSql;
+        public static event Action<string, object[]> CurrentExecutingSql
+        {
+            add
+            {
+                if (_CurrentExecutingSql != null)
+                {
+                    Delegate[] dls = _CurrentExecutingODASql.GetInvocationList();
+                    foreach (Delegate dl in dls)
+                        if (dl.Method == value.Method)
+                            return;
+                }
+                _CurrentExecutingSql += value;
+            }
+            remove
+            {
+                _CurrentExecutingSql -= value;
+            }
+        }
 
-        private event Action<string, object[]> ExecutingSql;
         public static ODAScript LastODASQL { get; private set; }
         public string LastSQL { get; private set; }
         public object[] SQLParams { get; private set; }
         private void FireODASqlEvent(ExecuteEventArgs args)
         {
-            ExecutingODASql?.Invoke(this, args);
-            CurrentExecutingODASql?.Invoke(this, args);
+            LastODASQL = args.SqlParams;
+            _CurrentExecutingODASql?.Invoke(this, args); 
         }
 
         private void ExecutingCommand(IDbCommand AdoCmd)
@@ -417,10 +453,82 @@ namespace NYear.ODA
             if (AdoCmd.Parameters != null)
             {
                 pms = new object[AdoCmd.Parameters.Count];
-                AdoCmd.Parameters.CopyTo(pms, 0);
+                try
+                {
+                    AdoCmd.Parameters.CopyTo(pms, 0);
+                }
+                catch
+                {
+                    for (int i = 0; i < AdoCmd.Parameters.Count; i++)
+                    {
+                        pms[i] = AdoCmd.Parameters[i];
+                    }
+                }
                 SQLParams = pms;
             }
-            ExecutingSql?.Invoke(LastSQL, pms);
+            _CurrentExecutingSql?.Invoke(LastSQL, pms);
+
+        }
+
+        public string DebugSQL
+        {
+            get
+            {
+                return GetDebugSql(LastSQL, SQLParams);
+            }
+        }
+        private string GetDebugSql(string Sql, params object[] prms)
+        {
+            string debugSql = Sql;
+            if (prms != null)
+            {
+                foreach (object  op in prms)
+                {
+                    DbParameter p = op as DbParameter; 
+                    if (p.Value != null)
+                    {
+                        string ParamsValue = p.Value.ToString();
+                        string ParamsName = p.ParameterName;
+                        switch (p.DbType)
+                        {
+                            case DbType.Byte:
+                            case DbType.Currency:
+                            case DbType.Decimal:
+                            case DbType.Double:
+                            case DbType.Int16:
+                            case DbType.Int32:
+                            case DbType.Int64:
+                            case DbType.UInt16:
+                            case DbType.UInt32:
+                            case DbType.UInt64:
+                            case DbType.VarNumeric:
+                            case DbType.SByte:
+                            case DbType.Single:
+                                break;
+
+                            case DbType.Time:
+                            case DbType.DateTime2:
+                            case DbType.DateTimeOffset:
+                            case DbType.Date:
+                            case DbType.DateTime:
+                            case DbType.String:
+                            case DbType.AnsiStringFixedLength:
+                            case DbType.StringFixedLength:
+                            case DbType.AnsiString:
+                            case DbType.Xml:
+                            case DbType.Guid:
+                            case DbType.Binary:
+                            case DbType.Boolean:
+                            case DbType.Object:
+                                ParamsValue = "'" + ParamsValue + "'";
+                                break; 
+                        } 
+                        System.Text.RegularExpressions.Regex rgx = new System.Text.RegularExpressions.Regex("(" + ParamsName + "\\b|\\t)");
+                        debugSql = rgx.Replace(debugSql, ParamsValue);
+                    }
+                }
+            }
+            return debugSql;
         }
 
         protected virtual IDBAccess GetDBAccess(ODAScript ODASql)
@@ -428,14 +536,13 @@ namespace NYear.ODA
             IDBAccess DBA = DatabaseRouting(ODASql);
             if (DBA.ExecutingCommand == null)
                 DBA.ExecutingCommand = ExecutingCommand;
-            ExecuteEventArgs earg = new ExecuteEventArgs()
+            ExecuteEventArgs arg = new ExecuteEventArgs()
             {
                 DBA = DBA,
                 SqlParams = ODASql,
-            };
-            LastODASQL = ODASql;
-            FireODASqlEvent(earg);
-            return earg.DBA;
+            }; 
+            FireODASqlEvent(arg);
+            return arg.DBA;
         }
         private int _Alias = 0;
         protected virtual string GetAlias()

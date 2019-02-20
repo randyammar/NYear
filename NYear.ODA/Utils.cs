@@ -285,46 +285,6 @@ namespace NYear.ODA
     {
         public IDBAccess DBA { get; set; } 
         public ODAScript SqlParams { get; set; }
-        public string DebugSQL
-        {
-            get
-            {
-                return this.GetDebugSql(SqlParams.SqlScript.ToString(), SqlParams.ParamList.ToArray());
-            }
-        }
-        private string GetDebugSql(string Sql, params ODAParameter[] prms)
-        {
-            string debugSql = Sql;
-            if (prms != null)
-            {
-                foreach (ODAParameter p in prms)
-                {
-                    if (p.ParamsValue != null)
-                    {
-                        string ParamsValue = p.ParamsValue.ToString();
-                        string ParamsName = p.ParamsName;
-                        switch (p.DBDataType)
-                        {
-                            case ODAdbType.OInt:
-                            case ODAdbType.ODecimal:
-                                ParamsValue = p.ParamsValue.ToString();
-                                break;
-                            case ODAdbType.OChar:
-                            case ODAdbType.OVarchar:
-                                ParamsValue = "'" + p.ParamsValue.ToString() + "'";
-                                break;
-                            case ODAdbType.ODatetime:
-                                if (p.ParamsValue is DateTime)
-                                    ParamsValue = "'" + ((DateTime)p.ParamsValue).ToString("yyyy/MM/dd HH:mm:ss") + "'";
-                                break;
-                        }
-                        System.Text.RegularExpressions.Regex rgx = new System.Text.RegularExpressions.Regex( "(" +ParamsName + "\\b|\\t)");
-                        debugSql = rgx.Replace(debugSql, ParamsValue);
-                    }
-                }
-            }
-            return debugSql;
-        }
     }
 
     public class ODynamicModel : DynamicObject, IEnumerable<KeyValuePair<string, object>>

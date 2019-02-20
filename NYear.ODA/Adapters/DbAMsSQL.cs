@@ -493,7 +493,7 @@ namespace NYear.ODA.Adapter
                 }
             }
             Cmd.CommandText = SQL;
-            ExecutingCommand?.Invoke(Cmd);
+            FireExecutingCommand(Cmd);
         }
     }
 }

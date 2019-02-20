@@ -237,7 +237,7 @@ namespace NYear.ODA.Adapter
                 }
             }
             Cmd.CommandText = dbSql;
-            ExecutingCommand?.Invoke(Cmd);
+            FireExecutingCommand(Cmd);
         }
     }
 }

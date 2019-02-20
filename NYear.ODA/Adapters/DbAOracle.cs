@@ -594,7 +594,7 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
                 }
             }
             Cmd.CommandText = dbSql;
-            ExecutingCommand?.Invoke(Cmd);
+            FireExecutingCommand(Cmd);
         }
     }
 }
