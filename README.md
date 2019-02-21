@@ -20,10 +20,18 @@ ODA为求通用各种数据库，转换出来的SQL都是标准通用的SQL语�
 ### 简单查询
 ```
 ODAContext ctx = new ODAContext();
-            var U = ctx.GetCmd<CmdSysUser>();
-            object data = U.Where(U.ColUserAccount == "User1")
-                  .And(U.ColIsLocked == "N")
-                  .And(U.ColStatus == "O")
-                  .And(U.ColEmailAddr.IsNotNull)  
-                 .Select(U.ColUserAccount, U.ColUserPassword.As("PWD"), U.ColUserName, U.ColPhoneNo, U.ColEmailAddr); 
+var U = ctx.GetCmd<CmdSysUser>();
+object data = U.Where(U.ColUserAccount == "User1")
+               .And(U.ColIsLocked == "N")
+               .And(U.ColStatus == "O")
+               .And(U.ColEmailAddr.IsNotNull)  
+                .Select(U.ColUserAccount, U.ColUserPassword.As("PWD"), U.ColUserName, U.ColPhoneNo, U.ColEmailAddr); 
+```
+###查询默认实体
+
+```
+ODAContext ctx = new ODAContext();
+var U = ctx.GetCmd<CmdSysUser>();
+List<SYS_USER> data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColStatus == "O", U.ColEmailAddr.IsNotNull)
+                .SelectM(U.ColUserAccount, U.ColUserName, U.ColPhoneNo, U.ColEmailAddr);
 ```
