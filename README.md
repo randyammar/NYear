@@ -7,7 +7,7 @@ NYear.ODA 是一个数据库访问的 ORM 组件，能够通用常用的数据�
 分页、别名、子查询、Union、Group by、having、In子查询、Exists、Insert子查询、Import高速导入都不在话下，<br/>
 递归查询、case when、Decode、NullDefault、虚拟字段、数据库function、update 字段运算、表达式等都得到很好的支持。<br/>
 允许用户注入SQL代码段，允许用户自己编写SQL代码等，同时也支持存储过程Procedure(或oracle的包）<br/>
-但ODA的功能已经足够强大了，用之开发一个完整 MES 系统或 WorkFlow【工作流】系统都不需要自定义SQL;<br/>
+但ODA的标准功能已经足够强大了，用之开发一套完整 MES 系统或 WorkFlow【工作流】系统都不需要自定义SQL;<br/>
 **注： 已有实际项目应用；Oracle、Mysql、SqlServer 三个数据库上随意切换，**<br/>
 **当然，建表时需要避免各种数据库的关键字及要注意不同数据库对数据记录的大小写敏感问题。**<br/>
 
