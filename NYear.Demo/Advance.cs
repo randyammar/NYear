@@ -87,9 +87,30 @@ namespace NYear.Demo
         }
 
         /// <summary>
-        /// 
+        /// 自定义SQL
         /// </summary>
         /// <returns></returns>
+        [Demo(Demo = FuncType.Advance, MethodName = "Procedure", MethodDescript = "自定义存储过程")]
+        public static object Procedure()
+        {
+            ///如果SQL语可以重复使用，或者为有程序更规范，推荐派生 ODACmd 类 重写SQL生成方法
+            ODAContext ctx = new ODAContext();
+            var sql = ctx.GetCmd<SQLCmd>();
+            var data = sql.Procedure("");
+            return data;
+        }
+
+       
+        [Demo(Demo = FuncType.Advance, MethodName = "RecommendProcedure", MethodDescript = "自定义存储过程")]
+        public static object RecommendProcedure()
+        {
+            /// 推荐派生 ODACmd 类 重写SQL生成方法
+            ODAContext ctx = new ODAContext();
+            var sql = ctx.GetCmd<SQLCmd>();
+            var data = sql.Procedure("");
+            return data;
+        }
+
         [Demo(Demo = FuncType.Advance, MethodName = "SQLDebug", MethodDescript = "SQLDebug")]
         public static object SQLDebug()
         {
@@ -106,20 +127,16 @@ namespace NYear.Demo
             object[] param = ctx.SQLParams;  
             return data;
         }
-
-        /// <summary>
-        /// 开发者可以通过ODA钩子自定义SQL路由,在SQL执行前对SQL进行修改； 
-        /// </summary>
-        /// <returns></returns>
+         
         [Demo(Demo = FuncType.Advance, MethodName = "Hook", MethodDescript = "ODA钩子")] 
         public static object Hook()
         {
+            ///开发者可以通过ODA钩子自定义SQL路由,在SQL执行前对SQL进行修改； 
             ODAContext.CurrentExecutingODASql += ODASqlExecutingEvent; 
             ODAContext ctx = new ODAContext();
             var U = ctx.GetCmd<CmdSysUser>();
             var data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColEmailAddr.IsNotNull)
-            .Select(U.ColUserAccount, U.ColUserName, U.ColPhoneNo, U.ColEmailAddr);
-
+            .Select(U.ColUserAccount, U.ColUserName, U.ColPhoneNo, U.ColEmailAddr); 
             ODAContext.CurrentExecutingODASql -= ODASqlExecutingEvent;
             return data;
         }
@@ -134,15 +151,11 @@ namespace NYear.Demo
                 args.SqlParams.SqlScript.Clear();
                 args.SqlParams.SqlScript.AppendLine(" SELECT * FROM SYS_ROLE"); ///修改将要执行的SQL语句
             }
-        }
-
-        /// <summary>
-        /// 开发可能通过此钩子，可以监控所有发送给数据库SQL语句及其参数。
-        /// </summary>
-        /// <returns></returns>
+        } 
         [Demo(Demo = FuncType.Advance, MethodName = "Monitor", MethodDescript = "SQL语句监控钩子")]
         public static object Monitor()
         {
+            ///开发者可能通过此钩子，可以监控所有发送给数据库SQL语句及其参数。 
             ODAContext.CurrentExecutingSql += SqlExecutingEvent;
             ODAContext ctx = new ODAContext();
             int total = 0;

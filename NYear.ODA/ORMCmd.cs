@@ -110,9 +110,9 @@ namespace NYear.ODA
         {
             return (ORMCmd<T>)base.InnerJoin(JoinCmd, On);
         }
-        public new ORMCmd<T> StartWithConnectBy(string StartWithExpress, string ConnectByParent, string PriorChild, string ConnectColumn, string ConnectStr, int MaxLevel)
+        public new ORMCmd<T> StartWithConnectBy(string StartWithExpress, string ConnectBy, string Prior, string ConnectColumn, string ConnectStr, int MaxLevel)
         {
-            return (ORMCmd<T>)base.StartWithConnectBy(StartWithExpress, ConnectByParent, PriorChild, ConnectColumn, ConnectStr, MaxLevel);
+            return (ORMCmd<T>)base.StartWithConnectBy(StartWithExpress, ConnectBy, Prior, ConnectColumn, ConnectStr, MaxLevel);
         }
         public new ORMCmd<T> OrderbyAsc(params IODAColumns[] ColumnNames)
         {

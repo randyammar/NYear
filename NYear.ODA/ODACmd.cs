@@ -229,22 +229,22 @@ namespace NYear.ODA
         /// 递归查询
         /// </summary>
         /// <param name="StartWithExpress">递归入口条件表达式,如 ColumnName = 0</param>
-        /// <param name="ConnectByParent">递归父字段名称,如：ColumnParent </param>
-        /// <param name="PriorChild">递归子字段名称,如ColumnChild</param>
+        /// <param name="ConnectBy">递归父字段名称,如：ColumnParent </param>
+        /// <param name="Prior">递归子字段名称,如ColumnChild</param>
         /// <param name="ConnectColumn">递归路径字段名称，用来返加父子层级关系</param>
         /// <param name="ConnectStr">父子层级之间的连接字符</param>
         /// <param name="MaxLevel">最大递归深度,最大递归深度不超过32层</param>
         /// <returns></returns>
-        public virtual ODACmd StartWithConnectBy(string StartWithExpress, string ConnectByParent, string PriorChild, string ConnectColumn, string ConnectStr, int MaxLevel)
+        public virtual ODACmd StartWithConnectBy(string StartWithExpress, string ConnectBy, string Prior, string ConnectColumn, string ConnectStr, int MaxLevel)
         {
             if (MaxLevel > 32)
                 throw new ODAException(10003, "MaxLevel should be smaller than  32");
-            if (string.IsNullOrWhiteSpace(ConnectByParent) || string.IsNullOrWhiteSpace(PriorChild) || string.IsNullOrWhiteSpace(StartWithExpress))
+            if (string.IsNullOrWhiteSpace(ConnectBy) || string.IsNullOrWhiteSpace(Prior) || string.IsNullOrWhiteSpace(StartWithExpress))
                 throw new ODAException(10004, "StartWithExpress and ConnectByParent and PriorChild Can't be Empty");
             _StartWithExpress = StartWithExpress;
             _ConnectColumn = ConnectColumn;
-            _ConnectByParent = ConnectByParent;
-            _PriorChild = PriorChild;
+            _ConnectByParent = ConnectBy;
+            _PriorChild = Prior;
             _ConnectStr = ConnectStr;
             _MaxLevel = MaxLevel;
             return this;

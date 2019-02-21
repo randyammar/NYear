@@ -278,22 +278,26 @@ namespace NYear.Demo
             return data;
         }
 
-        [Demo(Demo = FuncType.Select, MethodName = "RecursionSelect", MethodDescript = "递归查询,效果与oracle的StartWithConnectBy语句一致，ODA原理：先查询出来然后再递归筛选")]
-        public static object RecursionSelect()
+        [Demo(Demo = FuncType.Select, MethodName = "Recursion", MethodDescript = "递归查询")]
+        public static object Recursion()
         {
+            ///如Oracle的StartWith ConnectBy语句一致。ODA处理：先以 where 条作查出需要递归筛先的数据，然后在内存中递归筛选
+            ///由于是在内存递归，所以递归使所用到的所有字段必须包含在 Seclect 字段里。
+            ///注：ODA性能比 oracle 数据库的 StartWith ConnectBy 差一个等级，但比 SQLServer 的 with as 好一个级等。
+            ///递归有深度限制，数据量多的时候性能下降很快，最好保被递归筛选的数在10W条以内
+
             ODAContext ctx = new ODAContext();
-            CmdSysResource RS = ctx.GetCmd<CmdSysResource>();
-            CmdSysResource RS1 = ctx.GetCmd<CmdSysResource>();
-            ///由于是在内存递归，所以 StartWithConnectBy使用到的所有字段必须包含在Seclect字段里
 
-            ////由上而下递归
+            ////由根向叶子递归 Prior 参数就是递归方向
+            CmdSysResource RS = ctx.GetCmd<CmdSysResource>();  
             var rlt = RS.Where(RS.ColStatus == "O", RS.ColResourceType == "MENU")
-                .StartWithConnectBy(RS.ColParentId.ColumnName + "=''", RS.ColParentId.ColumnName, RS.ColId.ColumnName, "MENU_PATH", "->", 10)
+                .StartWithConnectBy(RS.ColResourceName.ColumnName + "='根菜单'", RS.ColParentId.ColumnName, RS.ColId.ColumnName, "MENU_PATH", "->", 10)
                 .Select(RS.ColResourceName.As("MENU_PATH"), RS.ColId, RS.ColParentId, RS.ColResourceName, RS.ColResourceType, RS.ColResourceScope, RS.ColResourceLocation, RS.ColResourceIndex);
-
-            ////由下而上递归 
+           
+            ////由叶子向根递归,Prior 参数就是递归方向
+            CmdSysResource RS1 = ctx.GetCmd<CmdSysResource>(); 
             var rlt1 = RS.Where(RS.ColStatus == "O", RS.ColResourceType == "MENU")
-                .StartWithConnectBy(RS.ColResourceName.ColumnName + "='叶子1'", RS.ColParentId.ColumnName, RS.ColId.ColumnName, "MENU_PATH", "<-", 10)
+                .StartWithConnectBy(RS.ColResourceName.ColumnName + "='菜单1'", RS.ColId.ColumnName, RS.ColParentId.ColumnName, "MENU_PATH", "<-", 10)
                 .Select(RS.ColResourceName.As("MENU_PATH"), RS.ColId, RS.ColParentId, RS.ColResourceName, RS.ColResourceType, RS.ColResourceScope, RS.ColResourceLocation, RS.ColResourceIndex);
             rlt1.Merge(rlt);
             return rlt1;
