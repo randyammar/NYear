@@ -265,7 +265,8 @@ var rlt1 = RS.Where(RS.ColStatus == "O", RS.ColResourceType == "MENU")
 .Select(RS.ColResourceName.As("MENU_PATH"), RS.ColId, RS.ColParentId, RS.ColResourceName, RS.ColResourceType, RS.ColResourceScope, RS.ColResourceLocation, RS.ColResourceIndex);
 ```
 #### Lambda语法支持
-Lambda语法支持最多九个表的连接查询。这是由 ODA 原生语法扩展而来的，ODA 使用者也可以自行扩展。
+Lambda 语法是由 ODA 原生语法扩展而来的，ODA 使用者也可以自行扩展。<br/>
+ODA 原生语法是可以无限连接的，但目前 Lambda 语法支持最多九个表的连接查询。
 ```
 int total = 0;
 var data = new ODAContext().GetJoinCmd<CmdSysUser>()
