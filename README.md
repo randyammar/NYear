@@ -17,7 +17,8 @@ ODA使用的是链式编程语法，编写方式SQL语法神似；<br/>
 ODA为求通用各种数据库，转换出来的SQL都是标准通用的SQL语句；一些常用但数据不兼容的部分，在ODA内部实现（如递归树查询、分页等)。 <br/>
 
 ## 用法示例
-### 简单查询
+###  查询
+#### 简单查询
 ```
 ODAContext ctx = new ODAContext();
 var U = ctx.GetCmd<CmdSysUser>();
@@ -27,7 +28,7 @@ object data = U.Where(U.ColUserAccount == "User1")
                .And(U.ColEmailAddr.IsNotNull)  
                .Select(U.ColUserAccount, U.ColUserPassword.As("PWD"), U.ColUserName, U.ColPhoneNo, U.ColEmailAddr); 
 ```
-###查询默认实体
+#### 查询默认实体
 
 ```
 ODAContext ctx = new ODAContext();
@@ -35,7 +36,7 @@ var U = ctx.GetCmd<CmdSysUser>();
 List<SYS_USER> data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColStatus == "O", U.ColEmailAddr.IsNotNull)
                 .SelectM(U.ColUserAccount, U.ColUserName, U.ColPhoneNo, U.ColEmailAddr);
 ```
-###查询并返回指定实体类型
+#### 查询并返回指定实体类型
 返回的实体类型可以是任意自定义类型，并不一定是对应数据库的实体
 ```
 ODAContext ctx = new ODAContext();
@@ -46,7 +47,7 @@ List<SYS_USER> data = U.Where(U.ColUserAccount == "User1")
                   .And(U.ColEmailAddr.IsNotNull)
                  .Select<SYS_USER>(U.ColUserAccount, U.ColUserName, U.ColPhoneNo, U.ColEmailAddr);
 ```
-###查询分页
+#### 查询分页
 ```
 ODAContext ctx = new ODAContext(); 
             int total = 0; 
@@ -54,7 +55,7 @@ ODAContext ctx = new ODAContext();
             var data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColEmailAddr.IsNotNull)
             .SelectM(0,20,out total, U.ColUserAccount, U.ColUserName, U.ColPhoneNo, U.ColEmailAddr); 
 ```
-###查询第一行
+#### 查询第一行
 ```
   ODAContext ctx = new ODAContext(); 
             var U = ctx.GetCmd<CmdSysUser>();
