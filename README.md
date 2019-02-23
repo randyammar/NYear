@@ -93,26 +93,26 @@ var R = ctx.GetCmd<CmdSysRole>();
 var UR = ctx.GetCmd<CmdSysUserRole>();
 
 var data = U.InnerJoin(UR, U.ColUserAccount == UR.ColUserAccount, UR.ColStatus == "O")
-                .InnerJoin(R, UR.ColRoleCode == R.ColRoleCode, R.ColStatus == "O")
-                .Where(U.ColStatus == "O",R.ColRoleCode == "Administrator")
-                 .Select<UserDefineModel>(U.ColUserAccount.As("UserAccount"), U.ColUserName.As("UserName"),R.ColRoleCode.As("Role"), R.ColRoleName.As("RoleName"));
+    .InnerJoin(R, UR.ColRoleCode == R.ColRoleCode, R.ColStatus == "O")
+    .Where(U.ColStatus == "O",R.ColRoleCode == "Administrator")
+    .Select<UserDefineModel>(U.ColUserAccount.As("UserAccount"), U.ColUserName.As("UserName"),R.ColRoleCode.As("Role"), R.ColRoleName.As("RoleName"));
 ```
 #### 简单内连接 
 内连接有很多人只使用 join , 但对形如 SELECT t1.* FROM TABLE1 T1,TABLE2 T2,TABLE3 T3,TABLE4 这种写法比较陌生，<br/>
 但个人觉得这种连接的写法比较简单，而且容易阅读。
 ```
-           ODAContext ctx = new ODAContext();
-            var U = ctx.GetCmd<CmdSysUser>();
-            var R = ctx.GetCmd<CmdSysRole>();
-            var UR = ctx.GetCmd<CmdSysUserRole>();
-            var data =  U.ListCmd(UR,R)
-                .Where(U.ColUserAccount == UR.ColUserAccount, 
-                 UR.ColStatus == "O",
-                 UR.ColRoleCode == R.ColRoleCode,
-                 R.ColStatus == "O",
-                 U.ColStatus == "O",
-                 R.ColRoleCode == "Administrator")
-                 .Select< UserDefineModel>(U.ColUserAccount.As("UserAccount"), U.ColUserName.As("UserName"),U.ColEmailAddr.As("Email"), R.ColRoleCode.As("Role"), R.ColRoleName.As("RoleName"));
+ODAContext ctx = new ODAContext();
+var U = ctx.GetCmd<CmdSysUser>();
+var R = ctx.GetCmd<CmdSysRole>();
+var UR = ctx.GetCmd<CmdSysUserRole>();
+var data =  U.ListCmd(UR,R)
+    .Where(U.ColUserAccount == UR.ColUserAccount, 
+           UR.ColStatus == "O",
+           UR.ColRoleCode == R.ColRoleCode,
+           R.ColStatus == "O",
+           U.ColStatus == "O",
+           R.ColRoleCode == "Administrator")
+.Select< UserDefineModel>(U.ColUserAccount.As("UserAccount"), U.ColUserName.As("UserName"),U.ColEmailAddr.As("Email"), R.ColRoleCode.As("Role"), R.ColRoleName.As("RoleName"));
 ```
 #### 嵌套子查询
 嵌套子查询需要把一个查询子句转换成视图(ToView方法)，转换成视图之后可以把它视作普通的Cmd使用。<br/>
@@ -287,7 +287,7 @@ Update 的 where 条件与 查询是语句是一致的。
 ODAContext ctx = new ODAContext();
 var U = ctx.GetCmd<CmdSysUser>();
 U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColStatus == "O", U.ColEmailAddr.IsNotNull)
-  .Update(U.ColUserName == "新的名字", U.ColIsLocked == "Y");
+ .Update(U.ColUserName == "新的名字", U.ColIsLocked == "Y");
 ```
 #### 模型数据 Upadte
 使用实体 Update 数据时，对于属性值为 null 的字段不作更新。<br/>
@@ -324,7 +324,7 @@ Delete的where条件  SELECT 语句一致
 ODAContext ctx = new ODAContext();
 var U = ctx.GetCmd<CmdSysUser>();
 var data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColEmailAddr.IsNotNull)
-    .Delete();
+   .Delete();
 ```
 ### 插入数据据
 #### 插入指定字段的数据
