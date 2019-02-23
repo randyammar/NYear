@@ -4,13 +4,13 @@ C# .Net Database ORM for Oracle DB2 MySql SqlServer SQLite MariaDB;<br/>
 NYear.ODA 是一个数据库访问的 ORM 组件，能够通用常用的数据库 DB2、Oracle、SqlServer、MySql(MariaDB)、SQLite;<br/>
 对不常用的数据库Informix、Sybase、Access也能简单的使用；<br/>
 就目前而言，NYear.ODA 是支持 SQL 语法最完整的 C# ORM 组件;对于分库分表、或分布式数据库也留有很好的扩展空间。 <br/>
-分页、别名、子查询、Union、Group by、having、In子查询、Exists、Insert子查询、Import高速导入都不在话下，<br/>
-递归查询、case when、Decode、NullDefault、虚拟字段、数据库function、update 字段运算、表达式等都得到很好的支持。<br/>
+分页、别名、子查询、无限连接查询、Union、Group by、having、In子查询、Exists、Insert子查询、Import高速导入都不在话下，<br/>
+递归查询、case when、Decode、NullDefault、虚拟字段、数据库function、update 字段运算、表达式等都是 ODA 很有特色的地方。<br/>
 允许用户注入SQL代码段，允许用户自己编写SQL代码等，同时也支持存储过程Procedure(或oracle的包）<br/>
 由于很多开发者都比较喜欢 Lambda 的直观简单，ODA 的查询也扩展了此功能。<br/>
 
-但ODA的标准功能已经足够强大了，用之开发一套完整 MES 系统或 WorkFlow【工作流】系统都不需要自定义SQL;<br/>
-**注： 已有实际项目应用；Oracle、Mysql、SqlServer 三个数据库上随意切换，**<br/>
+ODA 的标准功能已经足够强大了，用之开发一套完整 MES 系统或 WorkFlow【工作流】系统都不需要自定义SQL;<br/>
+**注： 已有实际项目应用，且Oracle、Mysql、SqlServer 三个数据库上随意切换，**<br/>
 **当然，建表时需要避免各种数据库的关键字及要注意不同数据库对数据记录的大小写敏感问题。**<br/>
 
 ## NYear.ODA 语法
@@ -308,4 +308,21 @@ var U = ctx.GetCmd<CmdSysUser>();
         USER_PASSWORD = "123",
         IS_LOCKED = "N",
     });
+```
+#### 更新运算
+ 支持的运算符号：+ 、 - 、*、/、%
+ 目前对一个字段更新时，只支持一个运算符号；
+```
+ODAContext ctx = new ODAContext(); 
+var U = ctx.GetCmd<CmdSysUser>();
+var data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColEmailAddr.IsNotNull)
+    .Update(U.ColFailTimes == U.ColFailTimes + 1, U.ColUserName == U.ColUserAccount + U.ColEmailAddr ); 
+```
+#### 删除数据
+Delete的where条件  SELECT 语句一致
+```
+ODAContext ctx = new ODAContext();
+var U = ctx.GetCmd<CmdSysUser>();
+var data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColEmailAddr.IsNotNull)
+    .Delete();
 ```
