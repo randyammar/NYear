@@ -181,7 +181,7 @@ var datra = RS.Where(RS.ColResourceType == "WEB", RS.ColStatus == "O")
 Join、Where、Having 查询参数：条件之间可用运算符 “|”(Or方法）或“&”(And方法)表明条件与条件之间的关系；“|”和“&”只能用于字段的运算 <br/>
 如同时列出多个条件，则说明SQL语句要同时满足所有条件（即“And”关系）；<br/>
 Where和Having方法可以多次调用，每调一次SQL语句累加一个条件（And、Or、Groupby、OrderbyAsc、OrderbyDesc方法类同)；<br/>
-与 Where 方法同等级的 And 方法是等效的,也就是说，数据筛选条件可以根据业务情况动态增加；<br/>
+与 Where 方法同等级的 And 方法与 Where 方法是等效的;数据筛选条件可以根据业务情况动态增加；<br/>
 IS NULL/ IS NOT NULL 条件可由字段直接带出，如：ColEmailAddr.IsNotNull <br/>
 ```
 ODAContext ctx = new ODAContext();
@@ -208,6 +208,7 @@ U.OrderbyAsc(U.ColUserAccount.Count);
 data = U.Select(U.ColUserAccount.Count.As("USER_COUNT"), UR.ColRoleCode);
 ```
 #### 分组统计, Groupby  Having
+Groupby 、Having、OrderbyAsc 方法里支持 Function 运算；
 ```
  ODAContext ctx = new ODAContext();
  var U = ctx.GetCmd<CmdSysUser>();
