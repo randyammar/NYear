@@ -86,6 +86,7 @@ var data = U.Where( U.ColIsLocked == "N", U.ColEmailAddr.IsNotNull)
     .Distinct.Select(U.ColUserAccount, U.ColUserName, U.ColPhoneNo, U.ColEmailAddr);
 ```
 #### 连接查询
+支持 InnerJoin、LeftJoin、RightJion ；可以无限Join
 ```
 ODAContext ctx = new ODAContext();
 var U = ctx.GetCmd<CmdSysUser>();
