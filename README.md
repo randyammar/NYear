@@ -719,7 +719,7 @@ ODAContext ctx = new ODAContext();
 var sql = ctx.GetCmd<SQLCmd>();
 var data = sql.Procedure("");
 ```  
-#### SQL Debug
+#### SQL Debug 调试
 开发者要查看 ODA 最终执行的 SQL 及其参数值，可以在调试时查看 ODAContext.LastODASQL 静态属性。<br/>
 
 ```
@@ -737,6 +737,7 @@ object[] param = ctx.SQLParams;
 #### ODA钩子
 如果有数据库有分库分表，ODA 提供的由算法不合适，可通过 ODA 钩子自定义数据库、表的路由<br/>
 当然用户可以通 ODA 的钩子程序可以监控到所有 ODA 执行的 SQL及其参数，这为业务程序问题定位及日志记录供了一个方便的入口<br/>
+钩子程序里，无需进行SQL语句分析,就有明确的 SQL 类型，需要访问的表及字段信息供使用。程序这对数据库的操作一清二楚。
 ```
 public static object Hook()
 {
