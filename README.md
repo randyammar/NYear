@@ -399,6 +399,8 @@ for (int i = 0; i < 10000; i++)
  U.Import(data);
 ```
 ### 进阶应用
+这里介绍一些在开发过程中不时会遇到的问题，对应有处理方式。   
+
 #### 字段的连接
   字段的连接，不同数据库的处理差异太大，ODA没有提供字符串连接的方法<br/>
   但可以用户DataTable方法或通能过实体属性实现<br/>
@@ -457,7 +459,8 @@ dt.Columns.Add("ADD_COL", typeof(decimal), "COL_NUM+COL_NUM2");
 List<SYS_USER> DataList = ODA.DBAccess.ConvertToList<SYS_USER>(data); 
 ```
 #### 自定义SQL
-如果SQL语可以重复使用，或者为有程序更规范，推荐派生 ODACmd 类 重写SQL生成方法
+如果SQL语可以重复使用，或者为有程序更规范，推荐派生 ODACmd 类 重写SQL生成方法。<br/>
+ODA 提供一个通用的派生类 SQLCmd ，可执行临时的SQL语句。<br/>
 ```
 ODAContext ctx = new ODAContext();
 var sql = ctx.GetCmd<SQLCmd>();
@@ -478,7 +481,7 @@ ODAContext ctx = new ODAContext();
 var sql = ctx.GetCmd<SQLCmd>();
 var data = sql.Procedure("");
 ```  
-#### SQLDebug
+#### SQL Debug
 开发者要查看 ODA 最终执行的 SQL 及其参数值，可以在调试时查看 ODAContext.LastODASQL 静态属性。<br/>
 
 ```
@@ -496,8 +499,6 @@ object[] param = ctx.SQLParams;
 #### ODA钩子
 如果有数据库有分库分表，ODA 提供的由算法不合适，可通过 ODA 钩子自定义数据库、表的路由<br/>
 当然用户可以通 ODA 的钩子程序可以监控到所有 ODA 执行的 SQL及其参数，这为业务程序问题定位及日志记录供了一个方便的入口<br/>
-
-
 ```
 public static object Hook()
 {
@@ -542,3 +543,16 @@ private static void SqlExecutingEvent(string Sql, object[] prms)
     string LogSql = Sql + prms.ToString();  
 }
 ```
+
+### ODA开发工具应用
+ODA 提供三个工具：<br/>
+第一个当然是 ODA 的代码生成工具了，它生成 ODA 需要的实体类及命令类。<br/>
+第二个是一个简单的 SQL 语句执行工具，可以执行简单的 SQL 语句，对SQLite 等缺少 UI 操作工具的数据库来说是比较实用的。<br/>
+第三个是数据库复制工具，能够在不同数据库之间复制表数据。
+
+
+
+
+
+
+
