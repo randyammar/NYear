@@ -23,7 +23,7 @@ NYear.ODA以 Select、Insert、Update、Delete、Procedure 方法为最终执行
 ###  查询
 #### 简单查询
 在简单查询的语句里 Where 方法与 And 方法是等效的，往后很多时候都一样。
-```
+```C#
 ODAContext ctx = new ODAContext();
 var U = ctx.GetCmd<CmdSysUser>();
 object data = U.Where(U.ColUserAccount == "User1")
