@@ -34,7 +34,7 @@ object data = U.Where(U.ColUserAccount == "User1")
 ```
 #### 查询默认实体
 
-```
+```C#
 ODAContext ctx = new ODAContext();
 var U = ctx.GetCmd<CmdSysUser>();
 List<SYS_USER> data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColStatus == "O", U.ColEmailAddr.IsNotNull)
@@ -42,7 +42,7 @@ List<SYS_USER> data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N",
 ```
 #### 查询并返回指定实体类型
 返回的实体类型可以是任意自定义类型，并不一定是对应数据库的实体
-```
+```C#
 ODAContext ctx = new ODAContext();
 var U = ctx.GetCmd<CmdSysUser>();
 List<SYS_USER> data = U.Where(U.ColUserAccount == "User1")
@@ -52,7 +52,7 @@ List<SYS_USER> data = U.Where(U.ColUserAccount == "User1")
                .Select<SYS_USER>(U.ColUserAccount, U.ColUserName, U.ColPhoneNo, U.ColEmailAddr);
 ```
 #### 查询分页
-```
+```C#
 ODAContext ctx = new ODAContext(); 
 int total = 0; 
 var U = ctx.GetCmd<CmdSysUser>();
@@ -60,7 +60,7 @@ var data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColEmail
     .SelectM(0,20,out total, U.ColUserAccount, U.ColUserName, U.ColPhoneNo, U.ColEmailAddr); 
 ```
 #### 查询第一行
-```
+```C#
 ODAContext ctx = new ODAContext(); 
 var U = ctx.GetCmd<CmdSysUser>();
 var data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColEmailAddr.IsNotNull)
@@ -69,7 +69,7 @@ var data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColEmail
     string UserName = data.USER_NAME;///属性 USER_NAME 与 ColUserName 的ColumnName一致，如果没有数据则返回null
  ```
 #### 返回动态数据模型
-```
+```C#
 ODAContext ctx = new ODAContext();
 var U = ctx.GetCmd<CmdSysUser>();
 var data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColEmailAddr.IsNotNull)
@@ -80,7 +80,7 @@ if (data.Count > 0)
 UserName =  data[0].USER_NAME; ///与 ColUserName  的 ColumnName一致.
 ```
 #### 去重复 Distinct
-```
+```C#
 ODAContext ctx = new ODAContext();
 var U = ctx.GetCmd<CmdSysUser>();
 var data = U.Where( U.ColIsLocked == "N", U.ColEmailAddr.IsNotNull)
@@ -88,7 +88,7 @@ var data = U.Where( U.ColIsLocked == "N", U.ColEmailAddr.IsNotNull)
 ```
 #### 连接查询
 支持 InnerJoin、LeftJoin、RightJion ；可以无限Join
-```
+```C#
 ODAContext ctx = new ODAContext();
 var U = ctx.GetCmd<CmdSysUser>();
 var R = ctx.GetCmd<CmdSysRole>();
@@ -102,7 +102,7 @@ var data = U.InnerJoin(UR, U.ColUserAccount == UR.ColUserAccount, UR.ColStatus =
 #### 简单内连接 
 内连接有很多人只使用 join , 但对形如 SELECT t1.* FROM TABLE1 T1,TABLE2 T2,TABLE3 T3,TABLE4 这种写法比较陌生，<br/>
 但个人觉得这种连接的写法比较简单，而且容易阅读。
-```
+```C#
 ODAContext ctx = new ODAContext();
 var U = ctx.GetCmd<CmdSysUser>();
 var R = ctx.GetCmd<CmdSysRole>();
@@ -119,7 +119,7 @@ var data =  U.ListCmd(UR,R)
 #### 嵌套子查询
 嵌套子查询需要把一个查询子句转换成视图(ToView方法)，转换成视图之后可以把它视作普通的Cmd使用。<br/>
 视图里ViewColumns是视图字段的集合。
-```
+```C#
 ODAContext ctx = new ODAContext();
 var U = ctx.GetCmd<CmdSysUser>();
 var R = ctx.GetCmd<CmdSysRole>();
@@ -164,7 +164,7 @@ SELECT *
 ```
 #### Union UnionAll
 Union 语句要求被Union或UnionAll的是视图。要求视图与查询的字段的数据库类型及顺序及数据一致（数据库本身的要求，非ODA要求)。
-```
+```C#
 ODAContext ctx = new ODAContext(); 
 var U = ctx.GetCmd<CmdSysUser>(); 
 var UR = ctx.GetCmd<CmdSysUserRole>();  
@@ -224,14 +224,12 @@ SELECT T4.USER_ACCOUNT,
     ON T6.ID = T5.RESOURCE_ID
    AND T6.STATUS = 'O'
  WHERE T4.USER_ACCOUNT = 'User1';
- */
-                
-                
+ */         
 ```
 #### 查询排序
 OrderbyAsc 或OrderbyDesc 对数据按顺序或倒序排列，先给出的排序条件优先排。
 OrderbyAsc 或OrderbyDesc 参数可以是多个字段。
-```
+```C#
 ODAContext ctx = new ODAContext();
 var RS = ctx.GetCmd<CmdSysResource>();
 var datra = RS.Where(RS.ColResourceType == "WEB", RS.ColStatus == "O")
@@ -244,7 +242,7 @@ Join、Where、Having 查询参数：条件之间可用运算符 “|”(Or方�
 Where和Having方法可以多次调用，每调一次SQL语句累加一个条件（And、Or、Groupby、OrderbyAsc、OrderbyDesc方法类同)；<br/>
 与 Where 方法同等级的 And 方法与 Where 方法是等效的;数据筛选条件可以根据业务情况动态增加；<br/>
 IS NULL/ IS NOT NULL 条件可由字段直接带出，如：ColEmailAddr.IsNotNull <br/>
-```
+```C#
 ODAContext ctx = new ODAContext();
 var U = ctx.GetCmd<CmdSysUser>();
 var UR = ctx.GetCmd<CmdSysUserRole>();
@@ -270,7 +268,7 @@ data = U.Select(U.ColUserAccount.Count.As("USER_COUNT"), UR.ColRoleCode);
 ```
 #### 分组统计, Groupby  Having
 Groupby 、Having、OrderbyAsc 方法里支持 Function 运算；
-```
+```C#
  ODAContext ctx = new ODAContext();
  var U = ctx.GetCmd<CmdSysUser>();
  var UR = ctx.GetCmd<CmdSysUserRole>();
@@ -284,7 +282,7 @@ Groupby 、Having、OrderbyAsc 方法里支持 Function 运算；
 
 #### IN/NOT IN 条件
 IN/NOT IN 有两个重载，一个是in数组，一个是in子查询
-```
+```C#
 ODAContext ctx = new ODAContext(); 
 var RA = ctx.GetCmd<CmdSysRoleAuthorization>();
 var RS = ctx.GetCmd<CmdSysResource>(); 
@@ -296,7 +294,7 @@ var data = RS.Where(RS.ColStatus == "O", RS.ColId.In(RA, RA.ColResourceId))
     .SelectM(); 
 ```
 #### Exists/NOT Exists 子查询
-```
+```C#
 ODAContext ctx = new ODAContext();
 var RA = ctx.GetCmd<CmdSysRoleAuthorization>(); 
 //Exists 子查询的条件
@@ -313,7 +311,7 @@ ODA 处理原理：先以 where 条作查出需要递归筛先的数据，然后
 注：ODA 递归性能比 oracle 数据库的 StartWith ConnectBy 差一个等级，但比 SQLServer 的 with as 好一个级等。<br/>
 递归有深度限制，ODA 限制最大深度是31层。<br/>
 被递归的原始数据越多性能下降很快，最好保被递归筛选的数在10W条以内 
-```
+```C#
 ODAContext ctx = new ODAContext();
 ////由根向叶子递归 Prior 参数就是递归方向
 CmdSysResource RS = ctx.GetCmd<CmdSysResource>();  
@@ -330,7 +328,7 @@ var rlt1 = RS.Where(RS.ColStatus == "O", RS.ColResourceType == "MENU")
 #### Lambda语法支持
 Lambda 语法是由 ODA 原生语法扩展而来的，ODA 使用者也可以自行扩展。<br/>
 ODA 原生语法是可以无限连接的，但目前 Lambda 语法支持最多九个表的连接查询。
-```
+```C#
 int total = 0;
 var data = new ODAContext().GetJoinCmd<CmdSysUser>()
    .InnerJoin<CmdSysUserRole>((u, ur) => u.ColUserAccount == ur.ColUserAccount & ur.ColStatus == "O")
@@ -346,7 +344,7 @@ var data = new ODAContext().GetJoinCmd<CmdSysUser>()
 ### 更新数据
 #### 通常的 update 方式
 Update 的 where 条件与 查询是语句是一致的。
-```
+```C#
 ODAContext ctx = new ODAContext();
 var U = ctx.GetCmd<CmdSysUser>();
 U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColStatus == "O", U.ColEmailAddr.IsNotNull)
@@ -356,7 +354,7 @@ U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColStatus == "O", U
 使用实体 Update 数据时，对于属性值为 null 的字段不作更新。<br/>
 这是由于在 ORM 组件在实际应用中，多数时候界面回传的是完整的实体对象，<br/>
 或者收接时使用完整的实体作为反序列化的容器，那些不需要更新的字段也在其中，而且为null。<br/>
-```
+```C#
 ODAContext ctx = new ODAContext(); 
 var U = ctx.GetCmd<CmdSysUser>();
     U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColStatus == "O", U.ColEmailAddr.IsNotNull)
@@ -375,7 +373,7 @@ var U = ctx.GetCmd<CmdSysUser>();
 #### 更新运算
  支持的运算符号：+ 、 - 、*、/、%
  目前对一个字段更新时，只支持一个运算符号；
-```
+```C#
 ODAContext ctx = new ODAContext(); 
 var U = ctx.GetCmd<CmdSysUser>();
 var data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColEmailAddr.IsNotNull)
@@ -383,7 +381,7 @@ var data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColEmail
 ```
 #### 删除数据
 Delete的where条件  SELECT 语句一致
-```
+```C#
 ODAContext ctx = new ODAContext();
 var U = ctx.GetCmd<CmdSysUser>();
 var data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColEmailAddr.IsNotNull)
@@ -399,7 +397,7 @@ U.Insert(U.ColStatus == "O", U.ColCreatedBy == "User1", U.ColLastUpdatedBy == "U
         U.ColFeMale == "M", U.ColFailTimes ==0,U.ColIsLocked =="N");
 ```
 #### 插入模型的数据
-```
+```C#
 ODAContext ctx = new ODAContext();
 var U = ctx.GetCmd<CmdSysUser>(); 
 U.Insert(new SYS_USER()
@@ -417,8 +415,7 @@ U.Insert(new SYS_USER()
 ```
 #### 批量导入数据d 
 导入 DataTable 数据时，要保证 DataTable 字段类型与数据库对应的字段类型一致
-
-```
+```C#
 DataTable data = new DataTable();
 data.Columns.Add(new DataColumn("ADDRESS"));
 data.Columns.Add(new DataColumn("CREATED_BY"));
@@ -463,7 +460,7 @@ for (int i = 0; i < 10000; i++)
 #### 数据库函数
 ODA提供数据库常用的通用系统函数：MAX, MIN,  COUNT, SUM, AVG, LENGTH, LTRIM, RTRIM, TRIM, ASCII, UPPER,  LOWER <br/>
 这些函数由字段直接带出，如：ColUserAccount.Count <br/>
-```
+```C#
 ODAContext ctx = new ODAContext();
 var U = ctx.GetCmd<CmdSysUser>();
 object data = U.Where(U.ColStatus == "O", U.ColIsLocked == "N")
@@ -478,7 +475,7 @@ SELECT COUNT(*) AS CountAll,COUNT(T0.USER_ACCOUNT) AS CountOne,UPPER(T0.USER_ACC
 #### 表达式
 Express方法, 用户可在 SELECT 字段中注入自定义的一段SQL脚本。
 因为ODA 的表达式是开发者注入的一段SQL语句，所以SQL注入的风险及是否可以跨数据库，就用开发者掌握了。
-```
+```C#
 ODAParameter p1 = new ODAParameter() { ColumnName = "Params1", DBDataType = ODAdbType.OVarchar, Direction = System.Data.ParameterDirection.Input, ParamsName = ODAParameter.ODAParamsMark + "Params1", ParamsValue = "我是第一个参数的值", Size = 2000 };
  ODAParameter p2 = new ODAParameter() { ColumnName = "Params2", DBDataType = ODAdbType.OVarchar, Direction = System.Data.ParameterDirection.Input, ParamsName = ODAParameter.ODAParamsMark + "Params2", ParamsValue = "这是SQL语句注入", Size = 2000 };
 ODAContext ctx = new ODAContext();
@@ -492,12 +489,11 @@ object data = U.Where(U.ColStatus == "O", U.ColIsLocked == "N")
 SELECT 1+1 AS COMPUTED, null  AS NULL_COLUMN, 'Function( + @Params1, @Params2)'  AS SQL_Injection 
 FROM SYS_USER T0 WHERE T0.STATUS = @T1 AND T0.IS_LOCKED = @T2;
  */
-        
-        
+    
 ```
 #### 虚拟字段、临时字段
 VisualColumn 方法是对 Express 方法的再次封装，为应用提供方便，免出数据转换麻烦、避免SQL注入风险、保证数据库通用。
-```
+```C#
  ODAContext ctx = new ODAContext();
 var U = ctx.GetCmd<CmdSysUser>();
 object data = U.Where(U.ColStatus == "O", U.ColIsLocked == "N")
@@ -511,12 +507,11 @@ object data = U.Where(U.ColStatus == "O", U.ColIsLocked == "N")
 #### 用户自定义的函数
 CreateFunc 方法,用可在 SELECT 字段中加入自定义的数据库函数，但不同的数据库对调用自定义函数的方法差异太大，ODA无法将其统一。<br/>
 所以若要ODA Function.CreateFunc方法也要以跨数据库，则需要在创建数据库时，特殊处理数据库的schema,user,dbowner,database等对象的名称。 <br/>
-```
+```C#
 ODAContext ctx = new ODAContext();
 var RS = ctx.GetCmd<CmdSysResource>();
 object data = RS.Where(RS.ColStatus == "O",RS.ColResourceType =="MENU") 
        .Select(RS.AllColumn,RS.Function.CreateFunc("dbo.GET_RESOURCE_PATH", RS.ColId).As("RESOURCE_PATH"));
-  
  /*
  SELECT T0.*,dbo.GET_RESOURCE_PATH(T0.ID) AS RESOURCE_PATH 
  FROM SYS_RESOURCE T0 
@@ -525,7 +520,7 @@ object data = RS.Where(RS.ColStatus == "O",RS.ColResourceType =="MENU")
 ```
 #### 数据转内容转换 CaseWhen
 SQL 语句： case when  条件 then  值 when 条件 then 值 else 默认值 end 
-```
+```C#
 ODAContext ctx = new ODAContext();  
 var U = ctx.GetCmd<CmdSysUser>();
 Dictionary<ODAColumns, object> Addr = new Dictionary<ODAColumns, object>();
@@ -567,7 +562,7 @@ object data = U.Where(U.ColStatus == "O", U.ColIsLocked == "N")
 ```
 #### 空值转换
 NullDefault 是对CaseWhen方法的再次封装，以方便应用
-```
+```C#
 ODAContext ctx = new ODAContext();
 var U = ctx.GetCmd<CmdSysUser>();
 object data = U.Where(U.ColStatus == "O", U.ColIsLocked == "N")
@@ -581,7 +576,7 @@ FROM SYS_USER T0 WHERE T0.STATUS = 'O' AND T0.IS_LOCKED = 'N';
 ```
 #### 数据转内容转换 Case
 SQL 语句： case 字段 when  对比值 then 值 when 对比值 then 值 else 默认值 end 
-```
+```C#
 ODAContext ctx = new ODAContext();
 var U = ctx.GetCmd<CmdSysUser>();
 
@@ -623,7 +618,7 @@ SELECT (CASE T0.ADDRESS
 ```
 #### 数据转内容转换Decode
 ODA Decode方法 模拟Oracle内置Decode函数,对Case方法的再次封装，以方便应用
-```
+```C#
 ODAContext ctx = new ODAContext();
 var RS = ctx.GetCmd<CmdSysResource>();
 object data = RS.Where(RS.ColStatus == "O", RS.ColResourceType == "MENU")
@@ -643,7 +638,7 @@ WHEN 'WPF_WIN' THEN 'WPF程序窗口' WHEN 'WIN_FORM' THEN 'FORM窗口' ELSE '�
 #### 字段的连接
   字段的连接，不同数据库的处理差异太大，ODA没有提供字符串连接的方法<br/>
   但可以用户DataTable方法或通能过实体属性实现<br/>
-  ```
+  ```C#
  DataTable dt = new DataTable();
  dt.Columns.Add(new DataColumn("COL_ID", typeof(string)));
  dt.Columns.Add(new DataColumn("COL_NUM", typeof(int)));
@@ -660,7 +655,7 @@ dt.Columns.Add("CONNECT_COL", typeof(string), "COL_ID+'  +  '+COL_TEST");
 dt.Columns.Add("ADD_COL", typeof(decimal), "COL_NUM+COL_NUM2");
 ```
 #### Datatable转List
-```
+```C#
  DataTable data = new DataTable();
  data.Columns.Add(new DataColumn("ADDRESS"));
  data.Columns.Add(new DataColumn("CREATED_BY"));
@@ -700,7 +695,7 @@ List<SYS_USER> DataList = ODA.DBAccess.ConvertToList<SYS_USER>(data);
 #### 自定义SQL
 如果SQL语可以重复使用，或者为有程序更规范，推荐派生 ODACmd 类 重写SQL生成方法。<br/>
 ODA 提供一个通用的派生类 SQLCmd ，可执行临时的SQL语句。<br/>
-```
+```C#
 ODAContext ctx = new ODAContext();
 var sql = ctx.GetCmd<SQLCmd>();
 var data = sql.Select("SELECT * FROM SYS_USER WHERE USER_ACCOUNT = @T1", ODAParameter.CreateParam("@T1","User1"));
@@ -715,15 +710,14 @@ var data = sql.Select("SELECT * FROM SYS_USER WHERE USER_ACCOUNT = @T1", ODAPara
 ```
 #### 自定义存储过程
 如果SQL语可以重复使用，或者为有程序更规范，推荐派生 ODACmd 类 重写SQL生成方法
-```
+```C#
 ODAContext ctx = new ODAContext();
 var sql = ctx.GetCmd<SQLCmd>();
 var data = sql.Procedure("");
 ```  
 #### SQL Debug 调试
 开发者要查看 ODA 最终执行的 SQL 及其参数值，可以在调试时查看 ODAContext.LastODASQL 静态属性。<br/>
-
-```
+```C#
 ODAContext ctx = new ODAContext();
 var U = ctx.GetCmd<CmdSysUser>();
 var data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColEmailAddr.IsNotNull)
@@ -739,7 +733,7 @@ object[] param = ctx.SQLParams;
 如果有数据库有分库分表，ODA 提供的由算法不合适，可通过 ODA 钩子自定义数据库、表的路由<br/>
 当然用户可以通 ODA 的钩子程序可以监控到所有 ODA 执行的 SQL及其参数，这为业务程序问题定位及日志记录供了一个方便的入口<br/>
 钩子程序里，无需进行SQL语句分析,就有明确的 SQL 类型，需要访问的表及字段信息供使用。程序这对数据库的操作一清二楚。
-```
+```C#
 public static object Hook()
 {
   ///开发者可以通过ODA钩子自定义SQL路由,在SQL执行前对SQL进行修改； 
