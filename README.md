@@ -458,6 +458,184 @@ for (int i = 0; i < 10000; i++)
  var U = ctx.GetCmd<CmdSysUser>();
  U.Import(data);
 ```
+### 函数
+#### 数据库函数
+ODA提供数据库常用的通用系统函数：MAX, MIN,  COUNT, SUM, AVG, LENGTH, LTRIM, RTRIM, TRIM, ASCII, UPPER,  LOWER <br/>
+这些函数由字段直接带出，如：ColUserAccount.Count <br/>
+```
+ODAContext ctx = new ODAContext();
+var U = ctx.GetCmd<CmdSysUser>();
+object data = U.Where(U.ColStatus == "O", U.ColIsLocked == "N")
+       .Groupby(U.ColUserAccount)
+       .Select(U.Function.Count.As("CountAll"), U.ColUserAccount.Count.As("CountOne"), U.ColUserAccount.Upper.As("UPPER_ACC"), U.ColUserAccount.Trim.Ltrim.As("TRIM_ACC"));
+
+/*
+SELECT COUNT(*) AS CountAll,COUNT(T0.USER_ACCOUNT) AS CountOne,UPPER(T0.USER_ACCOUNT) AS UPPER_ACC,LTRIM(T0.USER_ACCOUNT) AS TRIM_ACC FROM SYS_USER T0 WHERE T0.STATUS = 'O' AND T0.IS_LOCKED = 'N' GROUP BY T0.USER_ACCOUNT;
+ */
+       
+```
+#### 表达式
+Express方法, 用户可在 SELECT 字段中注入自定义的一段SQL脚本。
+因为ODA 的表达式是开发者注入的一段SQL语句，所以SQL注入的风险及是否可以跨数据库，就用开发者掌握了。
+```
+ODAParameter p1 = new ODAParameter() { ColumnName = "Params1", DBDataType = ODAdbType.OVarchar, Direction = System.Data.ParameterDirection.Input, ParamsName = ODAParameter.ODAParamsMark + "Params1", ParamsValue = "我是第一个参数的值", Size = 2000 };
+ ODAParameter p2 = new ODAParameter() { ColumnName = "Params2", DBDataType = ODAdbType.OVarchar, Direction = System.Data.ParameterDirection.Input, ParamsName = ODAParameter.ODAParamsMark + "Params2", ParamsValue = "这是SQL语句注入", Size = 2000 };
+ODAContext ctx = new ODAContext();
+var U = ctx.GetCmd<CmdSysUser>();
+object data = U.Where(U.ColStatus == "O", U.ColIsLocked == "N")
+       .Select(U.Function.Express("1+1").As("COMPUTED"),
+        U.Function.Express(" null ").As("NULL_COLUMN"), 
+        U.Function.Express(" 'Function( + " + ODAParameter.ODAParamsMark + "Params1, " + ODAParameter.ODAParamsMark + "Params2)' ", p1, p2).As("SQL_Injection"));
+ 
+ /*
+SELECT 1+1 AS COMPUTED, null  AS NULL_COLUMN, 'Function( + @Params1, @Params2)'  AS SQL_Injection 
+FROM SYS_USER T0 WHERE T0.STATUS = @T1 AND T0.IS_LOCKED = @T2;
+ */
+        
+        
+```
+#### 虚拟字段、临时字段
+VisualColumn 方法是对 Express 方法的再次封装，为应用提供方便，免出数据转换麻烦、避免SQL注入风险、保证数据库通用。
+```
+ ODAContext ctx = new ODAContext();
+var U = ctx.GetCmd<CmdSysUser>();
+object data = U.Where(U.ColStatus == "O", U.ColIsLocked == "N")
+      .Select(U.Function.VisualColumn("HELLO , I am NYear software").As("STRING_COLUMN"), U.Function.VisualColumn(DateTime.Now).As("APPLICATION_DATETIME"), U.Function.VisualColumn(0).As("DIGIT_COLUMN"));
+ /*
+ SELECT 'HELLO , I am NYear software' AS STRING_COLUMN,@T1 AS APPLICATION_DATETIME,0 AS DIGIT_COLUMN 
+ FROM SYS_USER T0 
+ WHERE T0.STATUS = 'O' AND T0.IS_LOCKED = 'N'; 
+   */
+```
+#### 用户自定义的函数
+CreateFunc 方法,用可在 SELECT 字段中加入自定义的数据库函数，但不同的数据库对调用自定义函数的方法差异太大，ODA无法将其统一。<br/>
+所以若要ODA Function.CreateFunc方法也要以跨数据库，则需要在创建数据库时，特殊处理数据库的schema,user,dbowner,database等对象的名称。 <br/>
+```
+ODAContext ctx = new ODAContext();
+var RS = ctx.GetCmd<CmdSysResource>();
+object data = RS.Where(RS.ColStatus == "O",RS.ColResourceType =="MENU") 
+       .Select(RS.AllColumn,RS.Function.CreateFunc("dbo.GET_RESOURCE_PATH", RS.ColId).As("RESOURCE_PATH"));
+  
+ /*
+ SELECT T0.*,dbo.GET_RESOURCE_PATH(T0.ID) AS RESOURCE_PATH 
+ FROM SYS_RESOURCE T0 
+ WHERE T0.STATUS = 'O' AND T0.RESOURCE_TYPE = 'MENU';
+ */
+```
+#### 数据转内容转换 CaseWhen
+SQL 语句： case when  条件 then  值 when 条件 then 值 else 默认值 end 
+```
+ODAContext ctx = new ODAContext();  
+var U = ctx.GetCmd<CmdSysUser>();
+Dictionary<ODAColumns, object> Addr = new Dictionary<ODAColumns, object>();
+Addr.Add(U.ColAddress.IsNull, "无用户地址数据...");
+Addr.Add(U.ColAddress.Like("%公安局%"), "被抓了?");
+
+Dictionary<ODAColumns, object> phone = new Dictionary<ODAColumns, object>();
+phone.Add(U.ColPhoneNo.IsNull, "这个家伙很懒什么都没有留下");
+phone.Add(U.ColPhoneNo == "110", "小贼快跑");
+phone.Add(U.ColAddress.NotLike("%公安局%"), "被抓了?");
+
+object data = U.Where(U.ColStatus == "O", U.ColIsLocked == "N")
+       .Select(U.Function.CaseWhen(Addr, U.ColAddress).As("ADDRESS"), U.Function.CaseWhen(phone, "110").As("PHONE_NO"));
+       
+ /*
+ SELECT (CASE
+         WHEN T0.ADDRESS IS NULL THEN
+          '无用户地址数据...'
+         WHEN T0.ADDRESS LIKE '%公安局%' THEN
+          '被抓了?'
+         ELSE
+          T0.ADDRESS
+       END) AS ADDRESS,
+       (CASE
+         WHEN T0.PHONE_NO IS NULL THEN
+          '这个家伙很懒什么都没有留下'
+         WHEN T0.PHONE_NO = '110' THEN
+          '小贼快跑'
+         WHEN T0.ADDRESS NOT LIKE '%公安局%' THEN
+          '被抓了'
+         ELSE
+         '110'
+       END) AS PHONE_NO
+  FROM SYS_USER T0
+ WHERE T0.STATUS = 'O'
+   AND T0.IS_LOCKED ='N';
+*/
+       
+```
+#### 空值转换
+NullDefault 是对CaseWhen方法的再次封装，以方便应用
+```
+ODAContext ctx = new ODAContext();
+var U = ctx.GetCmd<CmdSysUser>();
+object data = U.Where(U.ColStatus == "O", U.ColIsLocked == "N")
+       .Select(U.Function.NullDefault(U.ColAddress, "无用户地址数据...").As("ADDRESS"), U.Function.NullDefault(U.ColPhoneNo,110).As("PHONE_NO"));
+       
+/*
+SELECT ( CASE  WHEN T0.ADDRESS IS NULL  THEN '无用户地址数据...' ELSE T0.ADDRESS END ) AS ADDRESS,
+( CASE  WHEN T0.PHONE_NO IS NULL  THEN 110  ELSE T0.PHONE_NO END ) AS PHONE_NO 
+FROM SYS_USER T0 WHERE T0.STATUS = 'O' AND T0.IS_LOCKED = 'N';
+*/
+```
+#### 数据转内容转换 Case
+SQL 语句： case 字段 when  对比值 then 值 when 对比值 then 值 else 默认值 end 
+```
+ODAContext ctx = new ODAContext();
+var U = ctx.GetCmd<CmdSysUser>();
+
+Dictionary<object, object> Addr = new Dictionary<object, object>();
+Addr.Add(U.Function.Express(" NULL "), "无用户地址数据...");
+Addr.Add("天堂", "人生最终的去处");
+Dictionary<object, object> phone = new Dictionary<object, object>();
+phone.Add(U.Function.Express(" NULL "), "这个家伙很懒什么都没有留下");
+phone.Add( "110", "小贼快跑");
+phone.Add(U.ColAddress, "资料有误，电话与地址相同");
+
+object data = U.Where(U.ColStatus == "O", U.ColIsLocked == "N")
+       .Select(U.Function.Case(U.ColAddress,Addr, U.ColAddress).As("ADDRESS"), U.Function.Case(U.ColPhoneNo,phone, U.ColPhoneNo).As("PHONE_NO"));
+/*
+SELECT (CASE T0.ADDRESS
+         WHEN NULL THEN
+          '无用户地址数据...'
+         WHEN '天堂' THEN
+          '人生最终的去处'
+         ELSE
+          T0.ADDRESS
+       END) AS ADDRESS,
+       (CASE T0.PHONE_NO
+         WHEN NULL THEN
+          '这个家伙很懒什么都没有留下'
+         WHEN '110' THEN
+          '小贼快跑'
+         WHEN T0.ADDRESS THEN
+          '资料有误，电话与地址相同'
+         ELSE
+          T0.PHONE_NO
+       END) AS PHONE_NO
+  FROM SYS_USER T0
+ WHERE T0.STATUS = 'O'
+   AND T0.IS_LOCKED = 'N'
+
+*/
+ 
+```
+#### 数据转内容转换Decode
+ODA Decode方法 模拟Oracle内置Decode函数,对Case方法的再次封装，以方便应用
+```
+ODAContext ctx = new ODAContext();
+var RS = ctx.GetCmd<CmdSysResource>();
+object data = RS.Where(RS.ColStatus == "O", RS.ColResourceType == "MENU")
+       .Select(RS.Function.Decode(RS.ColResourceType, "未知类型", "WEB", "网页资源", "WFP_PAGE", "WPF页面资源", "WPF_WIN", "WPF程序窗口", "WIN_FORM", "FORM窗口").As("RESOURCE_TYPE")
+                 , RS.AllColumn); 
+                 
+/*
+SELECT ( CASE T0.RESOURCE_TYPE WHEN 'WEB' THEN '网页资源' WHEN 'WFP_PAGE' THEN 'WPF页面资源' 
+WHEN 'WPF_WIN' THEN 'WPF程序窗口' WHEN 'WIN_FORM' THEN 'FORM窗口' ELSE '未知类型' END )  AS RESOURCE_TYPE,T0.* FROM SYS_RESOURCE T0 WHERE T0.STATUS ='O' AND T0.RESOURCE_TYPE = 'MENU';
+*/
+                 
+```
+
 ### 进阶应用
 这里介绍一些在开发过程中不时会遇到的问题，对应有处理方式。   
 
