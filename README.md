@@ -115,6 +115,21 @@ var data =  U.ListCmd(UR,R)
            U.ColStatus == "O",
            R.ColRoleCode == "Administrator")
 .Select< UserDefineModel>(U.ColUserAccount.As("UserAccount"), U.ColUserName.As("UserName"),U.ColEmailAddr.As("Email"), R.ColRoleCode.As("Role"), R.ColRoleName.As("RoleName"));
+/*
+SELECT T0.USER_ACCOUNT AS UserAccount,
+       T0.USER_NAME    AS UserName,
+       T0.EMAIL_ADDR   AS Email,
+       T1.ROLE_CODE    AS Role,
+       T1.ROLE_NAME    AS RoleName
+  FROM SYS_USER T0, SYS_USER_ROLE T2, SYS_ROLE T1
+ WHERE T0.USER_ACCOUNT = T2.USER_ACCOUNT
+   AND T2.STATUS = @T3
+   AND T2.ROLE_CODE = T1.ROLE_CODE
+   AND T1.STATUS = @T4
+   AND T0.STATUS = @T5
+   AND T1.ROLE_CODE = @T6;
+*/
+
 ```
 #### 嵌套子查询
 嵌套子查询需要把一个查询子句转换成视图(ToView方法)，转换成视图之后可以把它视作普通的Cmd使用。<br/>
