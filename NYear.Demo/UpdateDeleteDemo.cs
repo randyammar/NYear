@@ -22,7 +22,7 @@ namespace NYear.Demo
                 U.ColUserName == "新的名字", U.ColIsLocked == "Y"
                 );
         }
-        [Demo(Demo = FuncType.UpdateDelete, MethodName = "UpdateModel", MethodDescript = "模型的数据到数据库")]
+        [Demo(Demo = FuncType.UpdateDelete, MethodName = "UpdateModel", MethodDescript = "模型数据Upadte")]
         public static void UpdateModel()
         {
             ///使用实体 Update 数据时，对于属性值为 null 的字段不作更新。

@@ -14,10 +14,7 @@ namespace NYear.Demo
     {
         [Demo(Demo = FuncType.Select, MethodName = "Select", MethodDescript = "简单查询")]
         public static object Select()
-        {
-            ///ODA使用的是链式编程语法，编写方式与T-SQL神似；
-            ///开发时如有迷茫之处，基本可以用SQL语句类推出ODA的对应写法。
-            ///ODA为求通用各种数据库，转换出来的SQL都是标准通用的SQL语句；一些常用但数据不兼容的部分，在ODA内部实现（如递归树查询、分页等)。 
+        { 
             ODAContext ctx = new ODAContext();
             var U = ctx.GetCmd<CmdSysUser>();
             object data = U.Where(U.ColUserAccount == "User1")
@@ -32,7 +29,7 @@ namespace NYear.Demo
         {
             ODAContext ctx = new ODAContext();
             var U = ctx.GetCmd<CmdSysUser>();
-            var data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColStatus == "O", U.ColEmailAddr.IsNotNull)
+            List<SYS_USER> data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColStatus == "O", U.ColEmailAddr.IsNotNull)
                 .SelectM(U.ColUserAccount, U.ColUserName, U.ColPhoneNo, U.ColEmailAddr);
             return data;
         }
@@ -42,7 +39,7 @@ namespace NYear.Demo
             ////返回的实体类型可以是任意自定义类型，并不一定是对应数据库的实体
             ODAContext ctx = new ODAContext();
             var U = ctx.GetCmd<CmdSysUser>();
-            object data = U.Where(U.ColUserAccount == "User1")
+            List<SYS_USER> data = U.Where(U.ColUserAccount == "User1")
                   .And(U.ColIsLocked == "N")
                   .And(U.ColStatus == "O")
                   .And(U.ColEmailAddr.IsNotNull)
@@ -206,8 +203,7 @@ namespace NYear.Demo
             ///Where和Having方法可以多次调用，每调一次SQL语句累加一个条件（And、Or、Groupby、OrderbyAsc、OrderbyDesc方法类同)；
             ///与 Where 方法同等级的 And 方法是等效的
             ///也就是说，数据筛选条件可以根据业务情况动态增加；
-            /// IS NULL/ IS NOT NULL 条件可由字段直接带出，如：ColEmailAddr.IsNotNull
-
+            /// IS NULL/ IS NOT NULL 条件可由字段直接带出，如：ColEmailAddr.IsNotNull 
             ODAContext ctx = new ODAContext();
             var U = ctx.GetCmd<CmdSysUser>();
             var UR = ctx.GetCmd<CmdSysUserRole>();
@@ -220,16 +216,16 @@ namespace NYear.Demo
               .OrderbyAsc(U.ColUserAccount.Count)
               .Select(U.ColUserAccount.Count.As("USER_COUNT"), UR.ColRoleCode);
 
-            ////以下写法是等效的
-            //U.InnerJoin(UR, U.ColUserAccount == UR.ColUserAccount, UR.ColStatus == "O");
-            //U.Where(U.ColStatus == "O");
-            //U.Where(U.ColEmailAddr.IsNotNull.Or(U.ColEmailAddr == "riwfnsse@163.com"));
-            //U.And(U.ColIsLocked == "N");
-            //U.Where(UR.ColRoleCode.In("Administrator", "Admin", "PowerUser", "User", "Guest")); 
-            //U.Groupby(UR.ColRoleCode);
-            //U.Having(U.ColUserAccount.Count > 2);
-            //U.OrderbyAsc(U.ColUserAccount.Count);
-            //data = U.Select(U.ColUserAccount.Count.As("USER_COUNT"), UR.ColRoleCode);
+            //以下写法是等效的
+            U.InnerJoin(UR, U.ColUserAccount == UR.ColUserAccount, UR.ColStatus == "O");
+            U.Where(U.ColStatus == "O");
+            U.Where(U.ColEmailAddr.IsNotNull.Or(U.ColEmailAddr == "riwfnsse@163.com"));
+            U.And(U.ColIsLocked == "N");
+            U.Where(UR.ColRoleCode.In("Administrator", "Admin", "PowerUser", "User", "Guest"));
+            U.Groupby(UR.ColRoleCode);
+            U.Having(U.ColUserAccount.Count > 2);
+            U.OrderbyAsc(U.ColUserAccount.Count);
+            data = U.Select(U.ColUserAccount.Count.As("USER_COUNT"), UR.ColRoleCode);
             return data;
 
         }

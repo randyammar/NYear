@@ -157,6 +157,9 @@
     <None Include="Resources\AddNewDataSource_16x16.png" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Images\DBCopy_Tool.png" />
+    <Content Include="Images\ORM_Tool.png" />
+    <Content Include="Images\SQL_Tool.png" />
     <Content Include="Resources\BugReport_16x16.png" />
     <None Include="Resources\database_refresh.png" />
   </ItemGroup>
@@ -166,5 +169,6 @@
       <Name>NYear.ODA</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

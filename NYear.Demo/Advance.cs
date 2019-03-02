@@ -22,8 +22,13 @@ namespace NYear.Demo
             dt.Columns.Add(new DataColumn("COL_TEST", typeof(string)));
             dt.Columns.Add(new DataColumn("COL_NUM2", typeof(int)));
 
-            for (int i = 0; i < 100; i++)
-                dt.Rows.Add(Guid.NewGuid().ToString("N").ToUpper(), i + 1, string.Format("this is {0} Rows", i + 1), 1000);
+            for (int i = 0; i < 100; i++) 
+            {
+                if(i%3==1)
+                dt.Rows.Add(Guid.NewGuid().ToString("N").ToUpper(), i + 1, string.Format("this is {0} Rows", i + 1), null);
+                else
+                    dt.Rows.Add(Guid.NewGuid().ToString("N").ToUpper(), i + 1, string.Format("this is {0} Rows", i + 1), 1000);
+            } 
 
             dt.Columns.Add("CONNECT_COL", typeof(string), "COL_ID+'  +  '+COL_TEST");
             dt.Columns.Add("ADD_COL", typeof(decimal), "COL_NUM+COL_NUM2");
@@ -169,8 +174,7 @@ namespace NYear.Demo
         private static void SqlExecutingEvent(string Sql, object[] prms)
         {
             ///记录将要被执行的SQL语句及其参数
-            string LogSql = Sql + prms.ToString(); 
-
+            string LogSql = Sql + prms.ToString();  
         }
 
     } 
