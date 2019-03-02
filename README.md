@@ -4,7 +4,7 @@ C# .Net Database ORM for Oracle DB2 MySql SqlServer SQLite MariaDB;<br/>
 NYear.ODA 是一个数据库访问的 ORM 组件，能够通用常用的数据库 DB2、Oracle、SqlServer、MySql(MariaDB)、SQLite;<br/>
 对不常用的数据库Informix、Sybase、Access也能简单的使用；<br/>
 就目前而言，NYear.ODA 是支持 SQL 语法最完整的 C# ORM 组件;对于分库分表、或分布式数据库也留有很好的扩展空间。 <br/>
-分页、别名、子查询、无限连接查询、Union、Group by、having、In子查询、Exists、Insert子查询、Import高速导入都不在话下，<br/>
+分页、动态添加条件、子查询、无限连接查询、Union、Group by、having、In子查询、Exists、Insert子查询、Import高速导入都不在话下，<br/>
 递归查询、case when、Decode、NullDefault、虚拟字段、数据库function、update 字段运算、表达式等都是 ODA 很有特色的地方。<br/>
 允许用户注入SQL代码段，允许用户自己编写SQL代码等，同时也支持存储过程Procedure(或oracle的包）<br/>
 由于很多开发者都比较喜欢 Lambda 的直观简单，ODA 的查询也扩展了此功能。<br/>
@@ -398,7 +398,147 @@ for (int i = 0; i < 10000; i++)
  var U = ctx.GetCmd<CmdSysUser>();
  U.Import(data);
 ```
+### 进阶应用
+#### 字段的连接
+  字段的连接，不同数据库的处理差异太大，ODA没有提供字符串连接的方法<br/>
+  但可以用户DataTable方法或通能过实体属性实现<br/>
+  ```
+ DataTable dt = new DataTable();
+ dt.Columns.Add(new DataColumn("COL_ID", typeof(string)));
+ dt.Columns.Add(new DataColumn("COL_NUM", typeof(int)));
+ dt.Columns.Add(new DataColumn("COL_TEST", typeof(string)));
+ dt.Columns.Add(new DataColumn("COL_NUM2", typeof(int)));
+ for (int i = 0; i < 100; i++) 
+ {
+     if(i%3==1)
+      dt.Rows.Add(Guid.NewGuid().ToString("N").ToUpper(), i + 1, string.Format("this is {0} Rows", i + 1), null);
+      else
+      dt.Rows.Add(Guid.NewGuid().ToString("N").ToUpper(), i + 1, string.Format("this is {0} Rows", i + 1), 1000);
+} 
+dt.Columns.Add("CONNECT_COL", typeof(string), "COL_ID+'  +  '+COL_TEST");
+dt.Columns.Add("ADD_COL", typeof(decimal), "COL_NUM+COL_NUM2");
+```
+#### Datatable转List
+```
+ DataTable data = new DataTable();
+ data.Columns.Add(new DataColumn("ADDRESS"));
+ data.Columns.Add(new DataColumn("CREATED_BY"));
+ data.Columns.Add(new DataColumn("CREATED_DATE", typeof(DateTime)));
+ data.Columns.Add(new DataColumn("EMAIL_ADDR"));
+ data.Columns.Add(new DataColumn("LAST_UPDATED_BY"));
+ data.Columns.Add(new DataColumn("LAST_UPDATED_DATE", typeof(DateTime)));
+ data.Columns.Add(new DataColumn("FAIL_TIMES", typeof(decimal)));
+ data.Columns.Add(new DataColumn("STATUS"));
+ data.Columns.Add(new DataColumn("DUMMY"));
+ data.Columns.Add(new DataColumn("USER_ACCOUNT"));
+ data.Columns.Add(new DataColumn("USER_NAME"));
+ data.Columns.Add(new DataColumn("USER_PASSWORD"));
+ data.Columns.Add(new DataColumn("IS_LOCKED"));
+ for (int i = 0; i < 10000; i++)
+ {
+     object[] dr = new object[]
+     {
+        "自由国度",
+        "User1" ,
+        DateTime.Now,
+        "riwfnsse@163.com",
+        "User1" ,
+        DateTime.Now,
+        0,
+        "O",
+        "Dummy",
+        "ImportUser" + i.ToString(),
+        "导入的用户" + i.ToString(),
+        "123",
+        "N"
+      };
+    data.Rows.Add(dr);
+}
+List<SYS_USER> DataList = ODA.DBAccess.ConvertToList<SYS_USER>(data); 
+```
+#### 自定义SQL
+如果SQL语可以重复使用，或者为有程序更规范，推荐派生 ODACmd 类 重写SQL生成方法
+```
+ODAContext ctx = new ODAContext();
+var sql = ctx.GetCmd<SQLCmd>();
+var data = sql.Select("SELECT * FROM SYS_USER WHERE USER_ACCOUNT = @T1", ODAParameter.CreateParam("@T1","User1"));
+////可用方法
+/// sql.Select<T>(string Sql, params ODAParameter[] Parameters)
+/// sql.SelectDynamicFirst(string Sql, params ODAParameter[] Parameters)
+/// sql.Update(string Sql, params ODAParameter[] Parameters)
+/// sql.Insert(string Sql, params ODAParameter[] Parameters)
+/// sql.Delete(string Sql, params ODAParameter[] Parameters)
+/// sql.Procedure(string Sql, params ODAParameter[] Parameters)
+  
+```
+#### 自定义存储过程
+如果SQL语可以重复使用，或者为有程序更规范，推荐派生 ODACmd 类 重写SQL生成方法
+```
+ODAContext ctx = new ODAContext();
+var sql = ctx.GetCmd<SQLCmd>();
+var data = sql.Procedure("");
+```  
+#### SQLDebug
+开发者要查看 ODA 最终执行的 SQL 及其参数值，可以在调试时查看 ODAContext.LastODASQL 静态属性。<br/>
+
+```
+ODAContext ctx = new ODAContext();
+var U = ctx.GetCmd<CmdSysUser>();
+var data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColEmailAddr.IsNotNull)
+    .SelectDynamicFirst(U.ColUserAccount, U.ColUserName, U.ColPhoneNo, U.ColEmailAddr); 
+////ODAContext.LastODASQL;属性是ODA最近生成的SQL语句块,包含了ODA 控制SQL语句(并非真正发送给数据库的SQL)、参数、语句类型、操作对象等； 
+var ODASQL = ODAContext.LastODASQL;
+///ctx.LastSQL属性是最近发送给数据库的SQL；由于分页的方法是两条SQL，所以此处的SQL是最后读取数据库的SQL；
+string sql = ctx.LastSQL;
+///ctx.SQLParams属性是最近发送给数据库的SQL的参数；
+object[] param = ctx.SQLParams;  
+```
+#### ODA钩子
+如果有数据库有分库分表，ODA 提供的由算法不合适，可通过 ODA 钩子自定义数据库、表的路由<br/>
+当然用户可以通 ODA 的钩子程序可以监控到所有 ODA 执行的 SQL及其参数，这为业务程序问题定位及日志记录供了一个方便的入口<br/>
 
 
+```
+public static object Hook()
+{
+  ///开发者可以通过ODA钩子自定义SQL路由,在SQL执行前对SQL进行修改； 
+  ODAContext.CurrentExecutingODASql += ODASqlExecutingEvent; 
+  DAContext ctx = new ODAContext();
+  var U = ctx.GetCmd<CmdSysUser>();
+  var data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColEmailAddr.IsNotNull)
+     .Select(U.ColUserAccount, U.ColUserName, U.ColPhoneNo, U.ColEmailAddr); 
+     ODAContext.CurrentExecutingODASql -= ODASqlExecutingEvent;
+     return data;
+}
 
-
+private static void ODASqlExecutingEvent(object source, ExecuteEventArgs args)
+{
+    if (args.SqlParams.ScriptType == SQLType.Select
+      && args.SqlParams.TableList.Contains("SYS_USER"))
+    {
+       args.DBA = new ODA.Adapter.DbASQLite("Data Source=./sqlite.db"); ///改变ODA预设的数据库执行实例，重新实例化一个SQL语句执行实例。
+       args.SqlParams.ParamList.Clear();
+       args.SqlParams.SqlScript.Clear();
+       args.SqlParams.SqlScript.AppendLine(" SELECT * FROM SYS_ROLE"); ///修改将要执行的SQL语句
+    }
+} 
+  
+///SQL语句监控钩子
+public static object Monitor()
+{
+   ///开发者可能通过此钩子，可以监控所有发送给数据库SQL语句及其参数。 
+   ODAContext.CurrentExecutingSql += SqlExecutingEvent;
+   ODAContext ctx = new ODAContext();
+   int total = 0;
+   var U = ctx.GetCmd<CmdSysUser>();
+   var data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColEmailAddr.IsNotNull)
+      .Select(0, 20, out total, U.ColUserAccount, U.ColUserName, U.ColPhoneNo, U.ColEmailAddr);
+    ODAContext.CurrentExecutingSql -= SqlExecutingEvent;
+    return data;
+}
+private static void SqlExecutingEvent(string Sql, object[] prms)
+{
+    ///记录将要被执行的SQL语句及其参数
+    string LogSql = Sql + prms.ToString();  
+}
+```
