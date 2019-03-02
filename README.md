@@ -137,7 +137,29 @@ var data =  Admin.InnerJoin(UA, UA.ColUserAccount == Admin.ViewColumns[1],UA.Col
     .Where(Admin.ViewColumns[1] == "张三",
            Admin.ViewColumns[2] == "Administrator"
      ).Select(); 
-
+/*
+SELECT *
+  FROM (SELECT T0.USER_ACCOUNT AS SYS_USER,
+               T0.USER_NAME,
+               T1.ROLE_CODE    AS SYS_ROLE,
+               T1.ROLE_NAME
+          FROM SYS_USER T0
+         INNER JOIN SYS_USER_ROLE T2
+            ON T0.USER_ACCOUNT = T2.USER_ACCOUNT
+           AND T2.STATUS = 'O'
+         INNER JOIN SYS_ROLE T1
+            ON T2.ROLE_CODE = T1.ROLE_CODE
+           AND T1.STATUS = 'O'
+         WHERE T0.STATUS = 'O') T6
+ INNER JOIN SYS_USER_AUTHORIZATION T3
+    ON T3.USER_ACCOUNT = T6.USER_NAME
+   AND T3.IS_FORBIDDEN =  'N'
+ INNER JOIN SYS_ROLE_AUTHORIZATION T4
+    ON T4.ROLE_CODE = T6.SYS_ROLE
+   AND T4.IS_FORBIDDEN = 'N'
+ WHERE T6.USER_NAME = '张三'
+   AND T6.SYS_ROLE = 'Administrator';
+   */
 ```
 #### Union UnionAll
 Union 语句要求被Union或UnionAll的是视图。要求视图与查询的字段的数据库类型及顺序及数据一致（数据库本身的要求，非ODA要求)。
@@ -166,6 +188,44 @@ var data = U.Union(U1.ToView(U1.ColUserAccount, U1.ColUserName, UA.ColIsForbidde
       )).Select(U.ColUserAccount, U.ColUserName, RA.ColIsForbidden,
                 RS.ColId, RS.ColResourceType, RS.ColResourceScope, RS.ColResourceLocation
                 ); 
+/*
+SELECT T0.USER_ACCOUNT,
+       T0.USER_NAME,
+       T2.IS_FORBIDDEN,
+       T3.ID,
+       T3.RESOURCE_TYPE,
+       T3.RESOURCE_SCOPE,
+       T3.RESOURCE_LOCATION
+  FROM SYS_USER T0
+ INNER JOIN SYS_USER_ROLE T1
+    ON T0.USER_ACCOUNT = T1.USER_ACCOUNT
+   AND T1.STATUS = 'O'
+ INNER JOIN SYS_ROLE_AUTHORIZATION T2
+    ON T2.ROLE_CODE = T1.ROLE_CODE
+   AND T2.STATUS = 'O'
+ INNER JOIN SYS_RESOURCE T3
+    ON T3.ID = T2.RESOURCE_ID
+   AND T3.STATUS = 'O'
+ WHERE T0.USER_ACCOUNT = 'User1'
+UNION
+SELECT T4.USER_ACCOUNT,
+       T4.USER_NAME,
+       T5.IS_FORBIDDEN,
+       T6.ID,
+       T6.RESOURCE_TYPE,
+       T6.RESOURCE_SCOPE,
+       T6.RESOURCE_LOCATION
+  FROM SYS_USER T4
+ INNER JOIN SYS_USER_AUTHORIZATION T5
+    ON T4.USER_ACCOUNT = T5.USER_ACCOUNT
+   AND T5.STATUS = 'O'
+ INNER JOIN SYS_RESOURCE T6
+    ON T6.ID = T5.RESOURCE_ID
+   AND T6.STATUS = 'O'
+ WHERE T4.USER_ACCOUNT = 'User1';
+ */
+                
+                
 ```
 #### 查询排序
 OrderbyAsc 或OrderbyDesc 对数据按顺序或倒序排列，先给出的排序条件优先排。
