@@ -59,7 +59,7 @@ namespace NYear.Demo
             return data;
         }
 
-        [Demo(Demo = FuncType.Function, MethodName = "CaseWhen", MethodDescript = "数据转内容转换")]
+        [Demo(Demo = FuncType.Function, MethodName = "CaseWhen", MethodDescript = "数据转内容转换CaseWhen")]
         public static object CaseWhen()
         {
             ////SQL 语句： case when  条件 then  值 when 条件 then 值 else 默认值 end 
@@ -89,7 +89,7 @@ namespace NYear.Demo
                  .Select(U.Function.NullDefault(U.ColAddress, "无用户地址数据...").As("ADDRESS"), U.Function.NullDefault(U.ColPhoneNo,110).As("PHONE_NO"));
             return data;
         }
-        [Demo(Demo = FuncType.Function, MethodName = "Case", MethodDescript = "数据转内容转换")]
+        [Demo(Demo = FuncType.Function, MethodName = "Case", MethodDescript = "数据转内容转换Case")]
         public static object Case()
         {
             ////SQL 语句： case 字段 when  对比值 then 值 when 对比值 then 值 else 默认值 end 
@@ -109,7 +109,7 @@ namespace NYear.Demo
                  .Select(U.Function.Case(U.ColAddress,Addr, U.ColAddress).As("ADDRESS"), U.Function.Case(U.ColPhoneNo,phone, U.ColPhoneNo).As("PHONE_NO"));
             return data;
         }
-        [Demo(Demo = FuncType.Function, MethodName = "Decode", MethodDescript = "数据转内容转换")]
+        [Demo(Demo = FuncType.Function, MethodName = "Decode", MethodDescript = "数据转内容转换Decode")]
         public static object Decode()
         {
             ///ODA Decode方法 模拟Oracle内置Decode函数,对Case方法的再次封装，以方便应用
