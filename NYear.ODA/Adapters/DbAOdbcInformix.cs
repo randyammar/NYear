@@ -174,21 +174,24 @@ namespace NYear.ODA.Adapter
         public override List<T> Select<T>(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord, string Orderby)
         {
             IDbCommand Cmd = OpenCommand();
+            IDataReader Dr = null;
             try
             {
                 string BlockStr = BlockStr = "SELECT SKIP " + StartIndex.ToString() + " FIRST " + MaxRecord.ToString() + " "; ////取出MaxRecord记录
                 Cmd.CommandType = CommandType.Text;
                 SetCmdParameters(ref Cmd, BlockStr, ParamList);
-                IDataReader Dr = Cmd.ExecuteReader();
-                var rlt = GetList<T>(Dr);
-                if (Dr.Read())
-                    Cmd.Cancel();
-                Dr.Close();
-                Dr.Dispose();
+                Dr = Cmd.ExecuteReader();
+                var rlt = GetList<T>(Dr); 
                 return rlt;
             }
             finally
             {
+                if (Dr != null)
+                {
+                    Cmd.Cancel();
+                    Dr.Close();
+                    Dr.Dispose();
+                }
                 CloseCommand(Cmd);
             }
         }

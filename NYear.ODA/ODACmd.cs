@@ -8,8 +8,11 @@ namespace NYear.ODA
 {
     public partial class ODACmd : IODACmd //: IDBScriptGenerator
     {
-        
+
         #region ODA指令寄存器 
+
+        private readonly object ClearLocker = new object();
+
         private string _StartWithExpress = null;
         private string _ConnectByParent = null;
         private string _PriorChild = null;
@@ -858,24 +861,28 @@ namespace NYear.ODA
         /// <returns></returns>
         public virtual List<T> Select<T>(params IODAColumns[] Cols) where T : class
         {
+            System.Diagnostics.Debug.WriteLine("开始执行：" + DateTime.Now.ToString(" yyyy -MM-dd HH:mm:ss.fffffff"));
             try
             {
                 var sql = this.GetSelectSql(Cols);
                 var db = this.GetDBAccess(sql);
                 if (db == null)
-                    throw new ODAException(10009, "ODACmd Select 没有执行程序"); 
+                    throw new ODAException(10009, "ODACmd Select 没有执行程序");
                 var prms = sql.ParamList.ToArray();
                 if (string.IsNullOrEmpty(_StartWithExpress) || string.IsNullOrEmpty(_ConnectByParent) || string.IsNullOrEmpty(_PriorChild))
                 {
+                    System.Diagnostics.Debug.WriteLine("SQL命令发送到 DBAccess： " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fffffff"));
                     return db.Select<T>(sql.SqlScript.ToString(), prms);
                 }
                 else
                 {
+                    System.Diagnostics.Debug.WriteLine("SQL命令发送到 DBAccess： " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fffffff"));
                     return db.Select<T>(sql.SqlScript.ToString(), prms, _StartWithExpress, _ConnectByParent, _PriorChild, _ConnectColumn, _ConnectStr, _MaxLevel);
                 }
             }
             finally
             {
+                System.Diagnostics.Debug.WriteLine("从DBAccess返回数据 ：" + DateTime.Now.ToString("yyyy -MM-dd HH:mm:ss.fffffff"));
                 this.Clear();
             }
         }
@@ -892,6 +899,7 @@ namespace NYear.ODA
         {
             try
             {
+                System.Diagnostics.Debug.WriteLine("开始执行：" + DateTime.Now.ToString(" yyyy -MM-dd HH:mm:ss.fffffff"));
                 var sql = this.GetSelectSql(Cols);
                 var db = this.GetDBAccess(sql);
                 if (db == null)
@@ -927,10 +935,12 @@ namespace NYear.ODA
                             TotalRecord = this.CountRecords();
                         }
                     }
+                    System.Diagnostics.Debug.WriteLine("SQL命令发送到 DBAccess： " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fffffff"));
                     return db.Select<T>(sql.SqlScript.ToString(), prms, StartIndex, MaxRecord, sql.OrderBy.ToString());
                 }
                 else
                 {
+                    System.Diagnostics.Debug.WriteLine("SQL命令发送到 DBAccess： " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fffffff"));
                     DataTable dt = db.Select(sql.SqlScript.ToString(), prms, _StartWithExpress, _ConnectByParent, _PriorChild, _ConnectColumn, _ConnectStr, _MaxLevel);
                     TotalRecord = dt.Rows.Count;
                     DataTable dtrtl = dt.Clone();
@@ -946,6 +956,7 @@ namespace NYear.ODA
             }
             finally
             {
+                System.Diagnostics.Debug.WriteLine("从 DBAccess返回数据 ：" + DateTime.Now.ToString("yyyy -MM-dd HH:mm:ss.fffffff"));
                 this.Clear();
             }
         }
@@ -1157,22 +1168,29 @@ namespace NYear.ODA
             }
         }
         protected virtual void Clear()
-        { 
-            Alias = "";
-            _StartWithExpress = null;
-            _ConnectByParent = null;
-            _PriorChild = null;
-            _ConnectStr = "";
-            _ConnectColumn = null;
-            _MaxLevel = 32;
-            _Distinct = false;
-            _WhereList.Clear();
-            _OrList.Clear();
-            _Orderby.Clear();
-            _Groupby.Clear();
-            _Having.Clear();
-            _ListCmd.Clear();
-            _JoinCmd.Clear();
+        {
+            Action clear = new Action(() =>
+            {
+                lock (ClearLocker)
+                {
+                    Alias = "";
+                    _StartWithExpress = null;
+                    _ConnectByParent = null;
+                    _PriorChild = null;
+                    _ConnectStr = "";
+                    _ConnectColumn = null;
+                    _MaxLevel = 32;
+                    _Distinct = false;
+                    _WhereList.Clear();
+                    _OrList.Clear();
+                    _Orderby.Clear();
+                    _Groupby.Clear();
+                    _Having.Clear();
+                    _ListCmd.Clear();
+                    _JoinCmd.Clear();
+                }
+            });
+            clear.BeginInvoke(null, null);
         }
 
         #endregion

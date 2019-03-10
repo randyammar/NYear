@@ -18,7 +18,7 @@ namespace NYear.Demo
             var U = ctx.GetCmd<CmdSysUser>();
             U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColStatus == "O", U.ColEmailAddr.IsNotNull)
              .Update(
-                U.ColUserName == 
+                U.ColUserName =="" 
                 );
                 }
         [Demo(Demo = FuncType.Update, MethodName = "UpdateModel", MethodDescript = "模型的数据到数据库")]

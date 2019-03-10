@@ -208,11 +208,12 @@ namespace NYear.ODA.Adapter
         public override DataTable Select(string SQL, ODAParameter[] ParamList)
         {
             IDbCommand Cmd = OpenCommand();
+            IDataReader Dr = null;
             try
             {
                 Cmd.CommandType = CommandType.Text;
                 SetCmdParameters(ref Cmd, SQL, ParamList);
-                IDataReader Dr = Cmd.ExecuteReader();
+                Dr = Cmd.ExecuteReader();
                 DataTable dt = new DataTable("RECORDSET");
 
                 List<int> mysqlDtIdx = new List<int>();
@@ -255,19 +256,20 @@ namespace NYear.ODA.Adapter
                             {
                                 val[mysqlDtIdx[i]] = null;
                             }
-                        }
-
+                        } 
                         dt.Rows.Add(val);
                     }
-                }
-                if (Dr.Read())
-                    Cmd.Cancel();
-                Dr.Close();
-                Dr.Dispose();
+                } 
                 return dt;
             }
             finally
             {
+                if (Dr != null)
+                {
+                    Cmd.Cancel();
+                    Dr.Close();
+                    Dr.Dispose();
+                }
                 CloseCommand(Cmd);
             }
         }
@@ -276,21 +278,24 @@ namespace NYear.ODA.Adapter
         public override List<T> Select<T>(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord, string Orderby)
         {
             IDbCommand Cmd = OpenCommand();
+            IDataReader Dr = null;
             try
             {
                 string BlockStr = SQL + " limit " + StartIndex.ToString() + "," + MaxRecord.ToString();
                 Cmd.CommandType = CommandType.Text;
                 SetCmdParameters(ref Cmd, BlockStr, ParamList);
-                IDataReader Dr = Cmd.ExecuteReader();
-                var rlt = GetList<T>(Dr);
-                if (Dr.Read())
-                    Cmd.Cancel();
-                Dr.Close();
-                Dr.Dispose();
+                Dr = Cmd.ExecuteReader();
+                var rlt = GetList<T>(Dr); 
                 return rlt;
             }
             finally
             {
+                if (Dr != null)
+                {
+                    Cmd.Cancel();
+                    Dr.Close();
+                    Dr.Dispose();
+                }
                 CloseCommand(Cmd);
             }
         }

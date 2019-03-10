@@ -7,11 +7,77 @@ using NYear.ODA.Cmd;
 using NYear.ODA.Model;
 using NYear.ODA;
 using System.Data;
+using System.Reflection;
+using System.Reflection.Emit;
+using SqlSugar;
+using System.Windows.Forms;
 
 namespace NYear.Demo
 {
     public class SelectDemo
     {
+        public static bool IsNullable(Type t)
+        {
+            if (t.IsValueType)
+            {
+                return IsNullableType(t);
+            }
+            return true;
+        }
+
+        public static bool IsNullableType(Type t)
+        {
+            return (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Nullable<>));
+        }
+
+        [Demo(Demo = FuncType.Select, MethodName = "Test", MethodDescript = "测试")]
+        public static object Test()
+        {
+            object a = DateTime.Now;
+
+            DateTime? aa = (DateTime?)a;
+            object b= 123m;
+
+            decimal? bb = (decimal? )b; 
+            System.Diagnostics.Stopwatch Sugarsw = new System.Diagnostics.Stopwatch();
+            System.Diagnostics.Stopwatch odasw = new System.Diagnostics.Stopwatch();
+
+            SqlSugar.DbType sugarDbType = ODAContext.ODAConfig.ODADataBase.DBtype == DbAType.MsSQL ? SqlSugar.DbType.SqlServer :
+                ODAContext.ODAConfig.ODADataBase.DBtype == DbAType.MySql ? SqlSugar.DbType.MySql :
+                ODAContext.ODAConfig.ODADataBase.DBtype == DbAType.Oracle ? SqlSugar.DbType.Oracle : SqlSugar.DbType.Sqlite;
+            SqlSugarClient db = new SqlSugarClient(
+                new ConnectionConfig()
+                {
+                    ConnectionString = ODAContext.ODAConfig.ODADataBase.ConnectionString,
+                    DbType = sugarDbType,//设置数据库类型
+                    IsAutoCloseConnection = true,//自动释放数据务，如果存在事务，在事务结束后释放
+                    InitKeyType = InitKeyType.Attribute //从实体特性中读取主键自增列信息
+                });
+            ODAContext ctx = new ODAContext();
+            
+            int tatol = 0;
+
+            odasw.Start();
+            var U = ctx.GetCmd<CmdSysUser>();
+            var ODAdata = U.Where(U.ColIsLocked == "N", U.ColEmailAddr.Like("%sse%"))
+                 .Select<SYS_USER>();
+            odasw.Stop();
+             
+            System.Diagnostics.Debug.WriteLine("ODA 执行完成：" + DateTime.Now.ToString("yyyy -MM-dd HH:mm:ss.fffffff"));
+
+
+            Sugarsw.Start();
+            var sugarData = db.Queryable<SYS_USER>().Where(us => us.IS_LOCKED == "N" && us.EMAIL_ADDR.Contains("sse") ).ToList();//根据条件查询
+            Sugarsw.Stop();
+
+
+       
+
+            MessageBox.Show("Sugar :" + Sugarsw.ElapsedMilliseconds.ToString() + ", ODA : " + odasw.ElapsedMilliseconds.ToString());
+
+            return ODAdata; 
+        }
+
         [Demo(Demo = FuncType.Select, MethodName = "Select", MethodDescript = "简单查询")]
         public static object Select()
         {
