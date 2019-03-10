@@ -26,10 +26,12 @@ namespace NYear.Demo
             _DemoMethods = GetDemoMethods();
             InitNYearODA();
 
-            ODAContext.ExecutingSql += (src, args) => {
-                _ExeSql.AppendLine(args.DebugSQL + ";");
+            ODAContext.CurrentExecutingODASql += (src, args) => {
+
+                 
+                _ExeSql.AppendLine(args.SqlParams.SqlScript.ToString() + ";");
                 _ExeSql.AppendLine("");
-            };
+            }; 
         }
         private void InitNYearODA()
         {
@@ -125,7 +127,7 @@ namespace NYear.Demo
                 rtbxSql.Clear();
                 var md = (DemoMethodInfo)((Button)sender).Tag;
                 object rlt = md.DemoMethod.Invoke(null, null);
-                if (md.DemoFunc == FuncType.Select || md.DemoFunc == FuncType.Function)
+                if (rlt is DataTable ||rlt is Array)
                 {
                     dgvData.DataSource = rlt;
                 }
@@ -150,6 +152,6 @@ namespace NYear.Demo
             if (ex.InnerException == null)
                 return ex;
             return GetInnerException(ex.InnerException);
-        }
+        } 
     }
 }

@@ -9,19 +9,20 @@ using System;
 
 namespace NYear.Demo
 {
-    public class UpdateDemo
+    public class UpdateDeleteDemo
     {
-        [Demo(Demo = FuncType.Update, MethodName = "Update", MethodDescript = "更新数据")]
+        [Demo(Demo = FuncType.UpdateDelete, MethodName = "Update", MethodDescript = "更新数据")]
         public static void Update()
-        {;
+        {
+            ///Update 的 where 条件可参考 SELECT 语句 
             ODAContext ctx = new ODAContext();
             var U = ctx.GetCmd<CmdSysUser>();
             U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColStatus == "O", U.ColEmailAddr.IsNotNull)
              .Update(
-                U.ColUserName =="" 
+                U.ColUserName == "新的名字", U.ColIsLocked == "Y"
                 );
-                }
-        [Demo(Demo = FuncType.Update, MethodName = "UpdateModel", MethodDescript = "模型的数据到数据库")]
+        }
+        [Demo(Demo = FuncType.UpdateDelete, MethodName = "UpdateModel", MethodDescript = "模型数据Upadte")]
         public static void UpdateModel()
         {
             ///使用实体 Update 数据时，对于属性值为 null 的字段不作更新。
@@ -44,16 +45,25 @@ namespace NYear.Demo
 
         }
 
-        [Demo(Demo = FuncType.Update, MethodName = "UpdateCompute", MethodDescript = "更新运算")]
+        [Demo(Demo = FuncType.UpdateDelete, MethodName = "UpdateCompute", MethodDescript = "更新运算")]
         public static void UpdateCompute()
         {
+            ////支持的运算符号：+ 、 - 、*、/、%
+            ///目前对一个字段更新时，只支持一个运算符号；
+            ODAContext ctx = new ODAContext(); 
+            var U = ctx.GetCmd<CmdSysUser>();
+            var data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColEmailAddr.IsNotNull)
+                .Update(U.ColFailTimes == U.ColFailTimes + 1, U.ColUserName == U.ColUserAccount + U.ColEmailAddr ); 
+        }
+
+        [Demo(Demo = FuncType.UpdateDelete, MethodName = "Delete", MethodDescript = "删除数据")]
+        public static void Delete()
+        {
+            ////Delete的where条件可参考 SELECT 语句 
             ODAContext ctx = new ODAContext();
-            //CmdOrgDepartment od = ctx.GetCmd<CmdOrgDepartment>();
-            //od.Where(od.ColDeptName.Like("%小队"), od.ColBossName == "我的")
-            //    .Update(od.ColAssistantId == od.ColAssistantName + "美女",////字符串连接，不能数据库通用
-            //     od.ColDeptId == od.ColDeptName + od.ColDeptOrg,
-            //     od.ColParentDept == "上级"
-            //     );
-        } 
+            var U = ctx.GetCmd<CmdSysUser>();
+            var data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColEmailAddr.IsNotNull)
+                .Delete();
+        }
     }
 }

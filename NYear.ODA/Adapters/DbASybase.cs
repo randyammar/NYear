@@ -238,7 +238,7 @@ namespace NYear.ODA.Adapter
                     {
                         case ODAdbType.ODatetime:
                             param.AseDbType = AseDbType.DateTime;
-                            if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
+                            if (pr.ParamsValue == null || pr.ParamsValue is DBNull)
                             {
                                 param.Value = System.DBNull.Value;
                             }
@@ -260,7 +260,7 @@ namespace NYear.ODA.Adapter
                             break;
                         case ODAdbType.ODecimal:
                             param.AseDbType = AseDbType.Decimal;
-                            if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
+                            if (pr.ParamsValue == null || pr.ParamsValue is DBNull)
                             {
                                 param.Value = System.DBNull.Value;
                             }
@@ -282,22 +282,26 @@ namespace NYear.ODA.Adapter
                             break;
                         case ODAdbType.OBinary:
                             param.AseDbType = AseDbType.Image;
-                            if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
+                            if (pr.ParamsValue == null || pr.ParamsValue is DBNull)
                             {
                                 param.Value = System.DBNull.Value;
                             }
                             else
                             {
                                 param.Value = pr.ParamsValue;
-                                if (typeof(byte[]) == pr.ParamsValue.GetType())
+                                if (pr.ParamsValue is byte[])
                                 {
                                     param.Size = ((byte[])pr.ParamsValue).Length;
+                                }
+                                else
+                                {
+                                    throw new ODAException(201, "Params :" + pr.ParamsName + " Type must be byte[]");
                                 }
                             }
                             break;
                         case ODAdbType.OInt:
                             param.AseDbType = AseDbType.Integer;
-                            if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
+                            if (pr.ParamsValue == null || pr.ParamsValue is DBNull)
                             {
                                 param.Value = System.DBNull.Value;
                             }
@@ -319,7 +323,7 @@ namespace NYear.ODA.Adapter
                             break;
                         case ODAdbType.OChar:
                             param.AseDbType = AseDbType.UniChar;
-                            if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
+                            if (pr.ParamsValue == null || pr.ParamsValue is DBNull)
                             {
                                 param.Value = System.DBNull.Value;
                             }
@@ -337,7 +341,7 @@ namespace NYear.ODA.Adapter
                             break;
                         case ODAdbType.OVarchar:
                             param.AseDbType = AseDbType.UniVarChar;
-                            if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
+                            if (pr.ParamsValue == null || pr.ParamsValue is DBNull)
                             {
                                 param.Value = System.DBNull.Value;
                             }
@@ -362,6 +366,7 @@ namespace NYear.ODA.Adapter
                 }
             }
             Cmd.CommandText = dbSql;
+            FireExecutingCommand(Cmd);
         }
     }
 }

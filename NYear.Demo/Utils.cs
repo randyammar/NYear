@@ -18,8 +18,7 @@ namespace NYear.Demo
     public enum FuncType
     {
         Insert,
-        Delete,
-        Update,
+        UpdateDelete,
         Select,
         Function, 
         Advance,

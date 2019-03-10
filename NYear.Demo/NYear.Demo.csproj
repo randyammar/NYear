@@ -71,7 +71,7 @@
     <Compile Include="SessionStart.Designer.cs">
       <DependentUpon>SessionStart.cs</DependentUpon>
     </Compile>
-    <Compile Include="UpdateDemo.cs" />
+    <Compile Include="UpdateDeleteDemo.cs" />
     <Compile Include="Utils.cs" />
     <EmbeddedResource Include="Demo.resx">
       <DependentUpon>Demo.cs</DependentUpon>

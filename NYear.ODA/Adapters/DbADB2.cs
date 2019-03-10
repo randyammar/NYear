@@ -273,7 +273,6 @@ namespace NYear.ODA.Adapter
         }
         protected override void SetCmdParameters(ref IDbCommand Cmd, string SQL, params ODAParameter[] ParamList)
         {
-            Cmd.CommandText = SQL;
             if (ParamList != null)
             {
                 foreach (ODAParameter pr in ParamList)
@@ -289,9 +288,9 @@ namespace NYear.ODA.Adapter
                     {
                         case ODAdbType.ODatetime:
                             param.DB2Type = DB2Type.Date;
-                            if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
+                            if (pr.ParamsValue == null || pr.ParamsValue is DBNull)
                             {
-                                param.Value = System.DBNull.Value;
+                                param.Value = DBNull.Value;
                             }
                             else
                             {
@@ -301,7 +300,7 @@ namespace NYear.ODA.Adapter
                                 }
                                 else if (string.IsNullOrWhiteSpace(pr.ParamsValue.ToString().Trim()))
                                 {
-                                    param.Value = System.DBNull.Value;
+                                    param.Value = DBNull.Value;
                                 }
                                 else
                                 {
@@ -310,11 +309,10 @@ namespace NYear.ODA.Adapter
                             }
                             break;
                         case ODAdbType.ODecimal:
-                            param.DB2Type = DB2Type.Decimal;
-
-                            if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
+                            param.DB2Type = DB2Type.Decimal; 
+                            if (pr.ParamsValue == null || pr.ParamsValue is DBNull)
                             {
-                                param.Value = System.DBNull.Value;
+                                param.Value = DBNull.Value;
                             }
                             else
                             {
@@ -324,7 +322,7 @@ namespace NYear.ODA.Adapter
                                 }
                                 else if (string.IsNullOrWhiteSpace(pr.ParamsValue.ToString().Trim()))
                                 {
-                                    param.Value = System.DBNull.Value;
+                                    param.Value = DBNull.Value;
                                 }
                                 else
                                 {
@@ -334,24 +332,28 @@ namespace NYear.ODA.Adapter
                             break;
                         case ODAdbType.OBinary:
                             param.DB2Type = DB2Type.Blob;
-                            if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
+                            if (pr.ParamsValue == null || pr.ParamsValue is DBNull)
                             {
-                                param.Value = System.DBNull.Value;
+                                param.Value = DBNull.Value;
                             }
                             else
                             {
                                 param.Value = pr.ParamsValue;
-                                if (typeof(byte[]) == pr.ParamsValue.GetType())
+                                if (pr.ParamsValue is byte[])
                                 {
                                     param.Size = ((byte[])pr.ParamsValue).Length;
+                                }
+                                else
+                                {
+                                    throw new ODAException(201, "Params :" + pr.ParamsName + " Type must be byte[]");
                                 }
                             }
                             break;
                         case ODAdbType.OInt:
                             param.DB2Type = DB2Type.Integer;
-                            if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
+                            if (pr.ParamsValue == null || pr.ParamsValue is DBNull)
                             {
-                                param.Value = System.DBNull.Value;
+                                param.Value = DBNull.Value;
                             }
                             else
                             {
@@ -361,7 +363,7 @@ namespace NYear.ODA.Adapter
                                 }
                                 else if (string.IsNullOrWhiteSpace(pr.ParamsValue.ToString().Trim()))
                                 {
-                                    param.Value = System.DBNull.Value;
+                                    param.Value = DBNull.Value;
                                 }
                                 else
                                 {
@@ -372,15 +374,15 @@ namespace NYear.ODA.Adapter
                         case ODAdbType.OChar:
                             param.DB2Type = DB2Type.Char;
                             param.DbType = DbType.StringFixedLength;
-                            if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
+                            if (pr.ParamsValue == null || pr.ParamsValue is DBNull)
                             {
-                                param.Value = System.DBNull.Value;
+                                param.Value = DBNull.Value;
                             }
                             else
                             {
                                 if (pr.ParamsValue.ToString().Trim() == "")
                                 {
-                                    param.Value = System.DBNull.Value;
+                                    param.Value = DBNull.Value;
                                 }
                                 else
                                 {
@@ -391,9 +393,9 @@ namespace NYear.ODA.Adapter
                         case ODAdbType.OVarchar:
                             param.DB2Type = DB2Type.VarChar;
                             param.DbType = DbType.String;
-                            if (pr.ParamsValue == null || pr.ParamsValue == System.DBNull.Value)
+                            if (pr.ParamsValue == null || pr.ParamsValue is DBNull)
                             {
-                                param.Value = System.DBNull.Value;
+                                param.Value = DBNull.Value;
                             }
                             else
                             {
@@ -416,6 +418,8 @@ namespace NYear.ODA.Adapter
                     ((DB2ParameterCollection)Cmd.Parameters).Add(param);
                 }
             }
+            Cmd.CommandText = SQL;
+            FireExecutingCommand(Cmd);
         }
     }
 }

@@ -31,7 +31,9 @@ namespace NYear.Demo
             ODAContext ctx = new ODAContext();
             var U = ctx.GetCmd<CmdSysUser>();
             object data = U.Where(U.ColStatus == "O", U.ColIsLocked == "N")
-                 .Select(U.Function.Express("1+1").As("COMPUTED"), U.Function.Express(" null ").As("NULL_COLUMN"), U.Function.Express(" 'Function( + " + ODAParameter.ODAParamsMark + "Params1, " + ODAParameter.ODAParamsMark + "Params2)' ", p1, p2).As("SQL_Injection"));
+                 .Select(U.Function.Express("1+1").As("COMPUTED"),
+                 U.Function.Express(" null ").As("NULL_COLUMN"), 
+                 U.Function.Express(" 'Function( + " + ODAParameter.ODAParamsMark + "Params1, " + ODAParameter.ODAParamsMark + "Params2)' ", p1, p2).As("SQL_Injection"));
             return data;
         }
 

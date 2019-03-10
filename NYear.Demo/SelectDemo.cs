@@ -80,10 +80,7 @@ namespace NYear.Demo
 
         [Demo(Demo = FuncType.Select, MethodName = "Select", MethodDescript = "简单查询")]
         public static object Select()
-        {
-            ///ODA使用的是链式编程语法，编写方式与T-SQL神似；
-            ///开发时如有迷茫之处，基本可以用SQL语句类推出ODA的对应写法。
-            ///ODA为求通用各种数据库，转换出来的SQL都是标准通用的SQL语句；一些常用但数据不兼容的部分，在ODA内部实现（如递归树查询、分页等)。 
+        { 
             ODAContext ctx = new ODAContext();
             var U = ctx.GetCmd<CmdSysUser>();
             object data = U.Where(U.ColUserAccount == "User1")
@@ -98,7 +95,7 @@ namespace NYear.Demo
         {
             ODAContext ctx = new ODAContext();
             var U = ctx.GetCmd<CmdSysUser>();
-            var data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColStatus == "O", U.ColEmailAddr.IsNotNull)
+            List<SYS_USER> data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColStatus == "O", U.ColEmailAddr.IsNotNull)
                 .SelectM(U.ColUserAccount, U.ColUserName, U.ColPhoneNo, U.ColEmailAddr);
             return data;
         }
@@ -108,7 +105,7 @@ namespace NYear.Demo
             ////返回的实体类型可以是任意自定义类型，并不一定是对应数据库的实体
             ODAContext ctx = new ODAContext();
             var U = ctx.GetCmd<CmdSysUser>();
-            object data = U.Where(U.ColUserAccount == "User1")
+            List<SYS_USER> data = U.Where(U.ColUserAccount == "User1")
                   .And(U.ColIsLocked == "N")
                   .And(U.ColStatus == "O")
                   .And(U.ColEmailAddr.IsNotNull)
@@ -272,8 +269,7 @@ namespace NYear.Demo
             ///Where和Having方法可以多次调用，每调一次SQL语句累加一个条件（And、Or、Groupby、OrderbyAsc、OrderbyDesc方法类同)；
             ///与 Where 方法同等级的 And 方法是等效的
             ///也就是说，数据筛选条件可以根据业务情况动态增加；
-            /// IS NULL/ IS NOT NULL 条件可由字段直接带出，如：ColEmailAddr.IsNotNull
-
+            /// IS NULL/ IS NOT NULL 条件可由字段直接带出，如：ColEmailAddr.IsNotNull 
             ODAContext ctx = new ODAContext();
             var U = ctx.GetCmd<CmdSysUser>();
             var UR = ctx.GetCmd<CmdSysUserRole>();
@@ -286,16 +282,16 @@ namespace NYear.Demo
               .OrderbyAsc(U.ColUserAccount.Count)
               .Select(U.ColUserAccount.Count.As("USER_COUNT"), UR.ColRoleCode);
 
-            ////以下写法是等效的
-            //U.InnerJoin(UR, U.ColUserAccount == UR.ColUserAccount, UR.ColStatus == "O");
-            //U.Where(U.ColStatus == "O");
-            //U.Where(U.ColEmailAddr.IsNotNull.Or(U.ColEmailAddr == "riwfnsse@163.com"));
-            //U.And(U.ColIsLocked == "N");
-            //U.Where(UR.ColRoleCode.In("Administrator", "Admin", "PowerUser", "User", "Guest")); 
-            //U.Groupby(UR.ColRoleCode);
-            //U.Having(U.ColUserAccount.Count > 2);
-            //U.OrderbyAsc(U.ColUserAccount.Count);
-            //data = U.Select(U.ColUserAccount.Count.As("USER_COUNT"), UR.ColRoleCode);
+            //以下写法是等效的
+            U.InnerJoin(UR, U.ColUserAccount == UR.ColUserAccount, UR.ColStatus == "O");
+            U.Where(U.ColStatus == "O");
+            U.Where(U.ColEmailAddr.IsNotNull.Or(U.ColEmailAddr == "riwfnsse@163.com"));
+            U.And(U.ColIsLocked == "N");
+            U.Where(UR.ColRoleCode.In("Administrator", "Admin", "PowerUser", "User", "Guest"));
+            U.Groupby(UR.ColRoleCode);
+            U.Having(U.ColUserAccount.Count > 2);
+            U.OrderbyAsc(U.ColUserAccount.Count);
+            data = U.Select(U.ColUserAccount.Count.As("USER_COUNT"), UR.ColRoleCode);
             return data;
 
         }
@@ -344,22 +340,26 @@ namespace NYear.Demo
             return data;
         }
 
-        [Demo(Demo = FuncType.Select, MethodName = "RecursionSelect", MethodDescript = "递归查询,效果与oracle的StartWithConnectBy语句一致，ODA原理：先查询出来然后再递归筛选")]
-        public static object RecursionSelect()
+        [Demo(Demo = FuncType.Select, MethodName = "Recursion", MethodDescript = "递归查询")]
+        public static object Recursion()
         {
+            ///如Oracle的StartWith ConnectBy语句一致。ODA处理：先以 where 条作查出需要递归筛先的数据，然后在内存中递归筛选
+            ///由于是在内存递归，所以递归使所用到的所有字段必须包含在 Seclect 字段里。
+            ///注：ODA性能比 oracle 数据库的 StartWith ConnectBy 差一个等级，但比 SQLServer 的 with as 好一个级等。
+            ///递归有深度限制，数据量多的时候性能下降很快，最好保被递归筛选的数在10W条以内
+
             ODAContext ctx = new ODAContext();
-            CmdSysResource RS = ctx.GetCmd<CmdSysResource>();
-            CmdSysResource RS1 = ctx.GetCmd<CmdSysResource>();
-            ///由于是在内存递归，所以 StartWithConnectBy使用到的所有字段必须包含在Seclect字段里
 
-            ////由上而下递归
+            ////由根向叶子递归 Prior 参数就是递归方向
+            CmdSysResource RS = ctx.GetCmd<CmdSysResource>();  
             var rlt = RS.Where(RS.ColStatus == "O", RS.ColResourceType == "MENU")
-                .StartWithConnectBy(RS.ColParentId.ColumnName + "=''", RS.ColParentId.ColumnName, RS.ColId.ColumnName, "MENU_PATH", "->", 10)
+                .StartWithConnectBy(RS.ColResourceName.ColumnName + "='根菜单'", RS.ColParentId.ColumnName, RS.ColId.ColumnName, "MENU_PATH", "->", 10)
                 .Select(RS.ColResourceName.As("MENU_PATH"), RS.ColId, RS.ColParentId, RS.ColResourceName, RS.ColResourceType, RS.ColResourceScope, RS.ColResourceLocation, RS.ColResourceIndex);
-
-            ////由下而上递归 
+           
+            ////由叶子向根递归,Prior 参数就是递归方向
+            CmdSysResource RS1 = ctx.GetCmd<CmdSysResource>(); 
             var rlt1 = RS.Where(RS.ColStatus == "O", RS.ColResourceType == "MENU")
-                .StartWithConnectBy(RS.ColResourceName.ColumnName + "='叶子1'", RS.ColParentId.ColumnName, RS.ColId.ColumnName, "MENU_PATH", "<-", 10)
+                .StartWithConnectBy(RS.ColResourceName.ColumnName + "='菜单1'", RS.ColId.ColumnName, RS.ColParentId.ColumnName, "MENU_PATH", "<-", 10)
                 .Select(RS.ColResourceName.As("MENU_PATH"), RS.ColId, RS.ColParentId, RS.ColResourceName, RS.ColResourceType, RS.ColResourceScope, RS.ColResourceLocation, RS.ColResourceIndex);
             rlt1.Merge(rlt);
             return rlt1;
