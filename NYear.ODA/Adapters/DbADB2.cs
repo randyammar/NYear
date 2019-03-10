@@ -188,6 +188,7 @@ namespace NYear.ODA.Adapter
         public override List<T> Select<T>(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord, string Orderby)
         {
             IDbCommand Cmd = OpenCommand();
+            IDataReader Dr = null;
             try
             {
                 string BlockStr = "select * from (select row_number() over() as r_id_1,t_1.* from ( ";
@@ -195,16 +196,18 @@ namespace NYear.ODA.Adapter
                 BlockStr += ") t_1 ) t_t_1 where t_t_1.r_id_1 > " + StartIndex.ToString() + " and t_t_1.r_id_1  <= " + (StartIndex + MaxRecord).ToString();
                 Cmd.CommandType = CommandType.Text;
                 SetCmdParameters(ref Cmd, BlockStr, ParamList);
-                IDataReader Dr = Cmd.ExecuteReader();
-                var rlt = GetList<T>(Dr, StartIndex, MaxRecord);
-                if (Dr.Read())
-                    Cmd.Cancel();
-                Dr.Close();
-                Dr.Dispose();
+                Dr = Cmd.ExecuteReader();
+                var rlt = GetList<T>(Dr, StartIndex, MaxRecord); 
                 return rlt;
             }
             finally
             {
+                if (Dr != null)
+                {
+                    Cmd.Cancel();
+                    Dr.Close();
+                    Dr.Dispose();
+                }
                 CloseCommand(Cmd);
             }
         }

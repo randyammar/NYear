@@ -20,20 +20,36 @@ namespace NYear.ODA
         }
         private static List<T> ReadData<T>(IDataReader Dr)
         {
+
+            //List<T> list = new List<T>();
+            //if (Dr.FieldCount > 0)
+            //{
+            //    var create = ODAReflection.CreateInstance<T>();
+            //    var pptyIdx = ODAReflection.TypeSetPropertyInfos[typeof(T)];
+            //    ODAMappingInfo MapInfo = new ODAMappingInfo(Dr, pptyIdx);
+            //    var dl = new DataLoader(Dr, MapInfo);
+            //    while (Dr.Read())
+            //    {
+            //        T t = create(dl);
+            //        list.Add(t);
+            //    }
+
+            //}
+            //return list;
+
+            System.Diagnostics.Debug.WriteLine("DBAccess 开始读取数据：" + DateTime.Now.ToString("yyyy -MM-dd HH:mm:ss.fffffff"));
             List<T> list = new List<T>();
             if (Dr.FieldCount > 0)
             {
-                var create = ODAReflection.CreateInstance<T>();
-                var pptyIdx = ODAReflection.TypeSetPropertyInfos[typeof(T)]; 
-                ODAMappingInfo MapInfo = new ODAMappingInfo(Dr, pptyIdx);
-                var dl = new DataLoader(Dr, MapInfo);
+                var create = ODAReflection.GetCreator<T>();
+                var loader = ODAReflection.GetDataLoader<T>(Dr);
                 while (Dr.Read())
-                { 
-                    T t = create(dl); 
+                {
+                    T t = create(loader);
                     list.Add(t);
-                }
-                
+                } 
             }
+            System.Diagnostics.Debug.WriteLine("DBAccess 读取数据完毕：" + DateTime.Now.ToString("yyyy -MM-dd HH:mm:ss.fffffff"));
             return list;
         }
 
@@ -359,6 +375,33 @@ namespace NYear.ODA
         
         protected List<T> GetList<T>(IDataReader reader, int StartIndex, int MaxRecord)
         {
+            //if (reader == null)
+            //    throw new ArgumentNullException(nameof(reader));
+            //List<T> list = new List<T>();
+            //IDataReader Dr = reader;
+
+            //if (Dr.FieldCount > 0)
+            //{
+            //    while (StartIndex > 0)
+            //    {
+            //        if (!Dr.Read())
+            //            return list;
+            //        StartIndex--;
+            //    }
+            //    var create = ODAReflection.CreateInstance<T>();
+            //    var pptyIdx = ODAReflection.TypeSetPropertyInfos[typeof(T)];
+            //    ODAMappingInfo MapInfo = new ODAMappingInfo(Dr, pptyIdx);
+            //    var dl = new DataLoader(Dr, MapInfo);
+            //    while (Dr.Read() && MaxRecord > 0)
+            //    {
+            //        T t = create(dl);
+            //        list.Add(t);
+            //        MaxRecord--;
+            //    }
+            //}
+            //return list;
+
+
             if (reader == null)
                 throw new ArgumentNullException(nameof(reader));
             List<T> list = new List<T>();
@@ -372,10 +415,8 @@ namespace NYear.ODA
                         return list;
                     StartIndex--;
                 }
-                var create = ODAReflection.CreateInstance<T>();
-                var pptyIdx = ODAReflection.TypeSetPropertyInfos[typeof(T)];
-                ODAMappingInfo MapInfo = new ODAMappingInfo(Dr, pptyIdx);
-                var dl = new DataLoader(Dr, MapInfo);
+                var create = ODAReflection.GetCreator<T>();
+                var dl = ODAReflection.GetDataLoader<T>(Dr);
                 while (Dr.Read() && MaxRecord > 0)
                 {
                     T t = create(dl);
@@ -388,12 +429,14 @@ namespace NYear.ODA
          
         public virtual DataTable Select(string SQL, ODAParameter[] ParamList)
         {
+            System.Diagnostics.Debug.WriteLine("DBAccess开始执行：" + DateTime.Now.ToString("yyyy -MM-dd HH:mm:ss.fffffff"));
             IDbCommand Cmd = OpenCommand();
+            IDataReader Dr = null;
             try
             {
                 Cmd.CommandType = CommandType.Text;
                 SetCmdParameters(ref Cmd, SQL, ParamList);
-                IDataReader Dr = Cmd.ExecuteReader();
+                Dr = Cmd.ExecuteReader();
                 DataTable dt = new DataTable("RECORDSET");
                 if (Dr.FieldCount > 0)
                 {
@@ -407,22 +450,31 @@ namespace NYear.ODA
                         column.DataType = Dr.GetFieldType(num);
                         dt.Columns.Add(column);
                     }
+                    System.Diagnostics.Debug.WriteLine("DBAccess 开始读取数据：" + DateTime.Now.ToString("yyyy -MM-dd HH:mm:ss.fffffff"));
                     while (Dr.Read())
                     {
                         object[] val = new object[dt.Columns.Count];
                         Dr.GetValues(val);
                         dt.Rows.Add(val);
                     }
-                }
-                if (Dr.Read())
-                    Cmd.Cancel();
-                Dr.Close();
-                Dr.Dispose();
+                    System.Diagnostics.Debug.WriteLine("DBAccess 读取数据完毕：" + DateTime.Now.ToString("yyyy -MM-dd HH:mm:ss.fffffff"));
+                } 
                 return dt;
             }
             finally
             {
-                CloseCommand(Cmd);
+                Action close = new Action(() =>
+                {
+                    if (Dr != null)
+                    {
+                        Cmd.Cancel();
+                        Dr.Close();
+                        Dr.Dispose();
+                    }
+                    CloseCommand(Cmd);
+                });
+                close.BeginInvoke(null,null);
+                System.Diagnostics.Debug.WriteLine("DBAccess执行完毕：" + DateTime.Now.ToString("yyyy -MM-dd HH:mm:ss.fffffff"));
             }
         }
 
@@ -436,12 +488,14 @@ namespace NYear.ODA
 
         public virtual DataTable Select(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord, string Orderby)
         {
+            System.Diagnostics.Debug.WriteLine("DBAccess开始执行：" + DateTime.Now.ToString("yyyy -MM-dd HH:mm:ss.fffffff"));
             IDbCommand Cmd = OpenCommand();
+            IDataReader Dr = null;
             try
             {
                 Cmd.CommandType = CommandType.Text;
                 SetCmdParameters(ref Cmd, SQL, ParamList);
-                IDataReader Dr = Cmd.ExecuteReader();
+                Dr = Cmd.ExecuteReader();
                 DataTable dt = new DataTable("RECORDSET");
                 if (Dr.FieldCount > 0)
                 {
@@ -462,6 +516,7 @@ namespace NYear.ODA
                         StartIndex--;
                     }
                     int ReadRecord = MaxRecord;
+                    System.Diagnostics.Debug.WriteLine("DBAccess 开始读取数据：" + DateTime.Now.ToString("yyyy -MM-dd HH:mm:ss.fffffff"));
                     while (ReadRecord > 0 || MaxRecord == -1)
                     {
                         if (Dr.Read())
@@ -474,45 +529,50 @@ namespace NYear.ODA
                         else
                             break;
                     }
+                    System.Diagnostics.Debug.WriteLine("DBAccess 读取数据完毕：" + DateTime.Now.ToString("yyyy -MM-dd HH:mm:ss.fffffff"));
                 }
-                if (Dr.Read())
-                    Cmd.Cancel();
-                Dr.Close();
-                Dr.Dispose();
                 return dt;
             }
             finally
             {
+                if (Dr != null)
+                {
+                    Cmd.Cancel();
+                    Dr.Close();
+                    Dr.Dispose();
+                } 
                 CloseCommand(Cmd);
+                System.Diagnostics.Debug.WriteLine("DBAccess执行完毕：" + DateTime.Now.ToString("yyyy -MM-dd HH:mm:ss.fffffff"));
             }
         } 
         public object[] SelectFirst(string SQL, ODAParameter[] ParamList)
         {
             IDbCommand Cmd = OpenCommand();
+            IDataReader Dr = null;
             try
             {
                 Cmd.CommandType = CommandType.Text;
                 SetCmdParameters(ref Cmd, SQL, ParamList);
-                IDataReader Dr = Cmd.ExecuteReader();
+                Dr = Cmd.ExecuteReader();
                 object[] rtl = new object[Dr.FieldCount];
                 if (Dr.Read())
                 {
                     Dr.GetValues(rtl);
-                    if (Dr.Read())
-                        Cmd.Cancel();
-                    Dr.Close();
-                    Dr.Dispose();
                     return rtl;
                 }
                 else
                 {
-                    Dr.Close();
-                    Dr.Dispose();
                     return null;
-                }
+                } 
             }
             finally
             {
+                if (Dr != null)
+                {
+                    Cmd.Cancel();
+                    Dr.Close();
+                    Dr.Dispose();
+                }
                 CloseCommand(Cmd);
             }
         }
@@ -547,41 +607,54 @@ namespace NYear.ODA
          
         public List<T> Select<T>(string SQL, ODAParameter[] ParamList) where T : class
         {
+            System.Diagnostics.Debug.WriteLine("DBAccess开始执行：" + DateTime.Now.ToString("yyyy -MM-dd HH:mm:ss.fffffff"));
             IDbCommand Cmd = OpenCommand();
+            IDataReader Dr = null;
             try
             {
                 Cmd.CommandType = CommandType.Text;
                 SetCmdParameters(ref Cmd, SQL, ParamList);
-                IDataReader Dr = Cmd.ExecuteReader();
-                var rlt = GetList<T>(Dr);
-                if (Dr.Read())
-                    Cmd.Cancel();
-                Dr.Close();
-                Dr.Dispose();
+                Dr = Cmd.ExecuteReader();
+                System.Diagnostics.Debug.WriteLine("SQL语句在数据库执行完成：" + DateTime.Now.ToString("yyyy -MM-dd HH:mm:ss.fffffff"));
+                var rlt = GetList<T>(Dr); 
                 return rlt;
             }
             finally
             {
-                CloseCommand(Cmd);
+                Action close = new Action(() =>
+                {
+                    if (Dr != null)
+                    {
+                        Cmd.Cancel();
+                        Dr.Close();
+                        Dr.Dispose();
+                    }
+                    CloseCommand(Cmd);
+                });
+                close.BeginInvoke(null, null);
+                System.Diagnostics.Debug.WriteLine("DBAccess执行完毕：" + DateTime.Now.ToString("yyyy -MM-dd HH:mm:ss.fffffff"));
             }
         }
         public virtual List<T> Select<T>(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord, string Orderby) where T : class
         {
             IDbCommand Cmd = OpenCommand();
+            IDataReader Dr = null;
             try
             {
                 Cmd.CommandType = CommandType.Text;
                 SetCmdParameters(ref Cmd, SQL, ParamList);
-                IDataReader Dr = Cmd.ExecuteReader();
+                Dr = Cmd.ExecuteReader();
                 var rlt = GetList<T>(Dr, StartIndex, MaxRecord);
-                if (Dr.Read())
-                    Cmd.Cancel();
-                Dr.Close();
-                Dr.Dispose();
                 return rlt;
             }
             finally
             {
+                if (Dr != null)
+                {
+                    Cmd.Cancel();
+                    Dr.Close();
+                    Dr.Dispose();
+                }
                 CloseCommand(Cmd);
             }
         }
@@ -664,15 +737,17 @@ namespace NYear.ODA
                     Dr.NextResult();
                     rtlcount++;
                 }
-                var rlt = GetList<T>(Dr);
-                if (Dr.Read())
-                    Cmd.Cancel();
-                Dr.Close();
-                Dr.Dispose();
+                var rlt = GetList<T>(Dr); 
                 return rlt;
             }
             finally
             {
+                if (Dr != null)
+                {
+                    Cmd.Cancel();
+                    Dr.Close();
+                    Dr.Dispose();
+                }
                 CloseCommand(Cmd);
             }
         }
@@ -770,8 +845,7 @@ namespace NYear.ODA
                 ds_rtl.Dispose();
                 if (datareader != null)
                 {
-                    if (datareader.Read())
-                        Cmd.Cancel();
+                    Cmd.Cancel();
                     datareader.Close();
                     datareader.Dispose();
                 }

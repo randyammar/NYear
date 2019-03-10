@@ -110,7 +110,7 @@ namespace NYear.ODA.Adapter
             {
                 Cmd.CommandText = "SELECT TO_CHAR(SYSDATE,'YYYY-MM-DD HH24:MI:SS') DB_DATETIME FROM DUAL ";
                 Cmd.CommandType = CommandType.Text;
-                // return Convert.ToDateTime(((OracleCommand)Cmd).ExecuteOracleScalar());
+                //return Convert.ToDateTime(((OracleCommand)Cmd).ExecuteOracleScalar());
                 return Convert.ToDateTime(((OracleCommand)Cmd).ExecuteScalar());
             }
             finally
@@ -300,6 +300,7 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
         public override List<T> Select<T>(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord, string Orderby)
         {
             IDbCommand Cmd = OpenCommand();
+            IDataReader Dr = null;
             try
             {
                 string BlockStr = new StringBuilder().Append("SELECT * FROM (SELECT ROWNUM AS R_ID_1 ,T_T_1.* FROM ( ")
@@ -307,16 +308,18 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
                 .Append(") T_T_1 ) WHERE R_ID_1 > ").Append( StartIndex.ToString()).Append( " AND R_ID_1 <= " ).Append((StartIndex + MaxRecord).ToString()).ToString();  ///取出MaxRecord条记录
                 Cmd.CommandType = CommandType.Text;
                 SetCmdParameters(ref Cmd, BlockStr, ParamList);
-                IDataReader Dr = Cmd.ExecuteReader();
-                var rlt = GetList<T>(Dr);
-                if (Dr.Read())
-                    Cmd.Cancel();
-                Dr.Close();
-                Dr.Dispose();
+                  Dr = Cmd.ExecuteReader();
+                var rlt = GetList<T>(Dr); 
                 return rlt;
             }
             finally
             {
+                if (Dr != null)
+                {
+                    Cmd.Cancel();
+                    Dr.Close();
+                    Dr.Dispose();
+                }
                 CloseCommand(Cmd);
             }
         }

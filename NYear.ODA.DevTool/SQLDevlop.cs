@@ -118,12 +118,13 @@ namespace NYear.ODA.DevTool
         } 
 
         private  DataTable ReadData(IDbCommand Cmd)
-        { 
+        {
+            IDataReader Dr = null;
             try
             {
                 int StartIndex = 0;
                 int MaxRecord = 100;
-                IDataReader Dr = Cmd.ExecuteReader();
+                Dr = Cmd.ExecuteReader();
                 DataTable dt = new DataTable("RECORDSET");
                 if (Dr.FieldCount > 0)
                 {
@@ -157,14 +158,16 @@ namespace NYear.ODA.DevTool
                             break;
                     }
                 }
-                if (Dr.Read()) 
-                    Cmd.Cancel();
-                Dr.Close();
-                Dr.Dispose();
                 return dt;
             }
             finally
             {
+                if (Dr != null)
+                {
+                    Cmd.Cancel();
+                    Dr.Close();
+                    Dr.Dispose();
+                }
                 Cmd.Dispose(); 
             }
         }

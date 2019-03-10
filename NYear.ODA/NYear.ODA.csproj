@@ -104,6 +104,8 @@
     <Compile Include="ODAContext.cs" />
     <Compile Include="ODAFunction.cs" />
     <Compile Include="ODACmdView.cs" />
+    <Compile Include="ODAReflection - 复制.cs" />
+    <Compile Include="ODAReflectionBack.cs" />
     <Compile Include="ODAReflection.cs" />
     <Compile Include="ORMCmd.cs" />
     <Compile Include="Record.cs" />

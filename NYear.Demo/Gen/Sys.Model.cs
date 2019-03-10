@@ -1,4 +1,5 @@
 using System;
+using SqlSugar;
 
 namespace NYear.ODA.Model
 {
@@ -60,11 +61,16 @@ namespace NYear.ODA.Model
 		 public string RESOURCE_ID {get; set;}
 		 public string IS_FORBIDDEN {get; set;}
 	}
-	public partial class SYS_USER
+
+    [SugarTable("SYS_USER")]
+    public partial class SYS_USER
 	{
 		 public string STATUS {get; set;}
 		 public string CREATED_BY {get; set;}
-		 public DateTime? CREATED_DATE {get; set;}
+
+ 
+         public DateTime? CREATED_DATE { get; set; }
+      
 		 public string LAST_UPDATED_BY {get; set;}
 		 public DateTime? LAST_UPDATED_DATE {get; set;}
 		 public string USER_ACCOUNT {get; set;}
@@ -74,7 +80,9 @@ namespace NYear.ODA.Model
 		 public string PHONE_NO {get; set;}
 		 public string ADDRESS {get; set;}
 		 public string FE_MALE {get; set;}
-		 public decimal? FAIL_TIMES {get; set;}
+ 
+         public decimal? FAIL_TIMES { get; set; }
+    
 		 public string IS_LOCKED {get; set;}
 	}
 	public partial class SYS_USER_AUTHORIZATION

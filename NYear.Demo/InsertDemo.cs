@@ -61,8 +61,8 @@ namespace NYear.Demo
             {
                 object[] dr = new object[]
                 {
-                    "自由国度",
-                    "User1" ,
+                    "第二次批量导入",
+                    "User2" + i.ToString() ,
                     DateTime.Now,
                     "riwfnsse@163.com",
                     "User1" ,
@@ -70,7 +70,7 @@ namespace NYear.Demo
                     0,
                     "O",
                      "Dummy",
-                    "ImportUser" + i.ToString(),
+                    "User3" + DateTime.Now.GetHashCode().ToString() + i.ToString(),
                     "导入的用户" + i.ToString(),
                     "123",
                     "N"                   
