@@ -305,11 +305,11 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
             {
                 string BlockStr = new StringBuilder().Append("SELECT * FROM (SELECT ROWNUM AS R_ID_1 ,T_T_1.* FROM ( ")
                .Append(SQL)
-                .Append(") T_T_1 ) WHERE R_ID_1 > ").Append( StartIndex.ToString()).Append( " AND R_ID_1 <= " ).Append((StartIndex + MaxRecord).ToString()).ToString();  ///取出MaxRecord条记录
+                .Append(") T_T_1 ) WHERE R_ID_1 > ").Append(StartIndex.ToString()).Append(" AND R_ID_1 <= ").Append((StartIndex + MaxRecord).ToString()).ToString();  ///取出MaxRecord条记录
                 Cmd.CommandType = CommandType.Text;
                 SetCmdParameters(ref Cmd, BlockStr, ParamList);
-                  Dr = Cmd.ExecuteReader();
-                var rlt = GetList<T>(Dr); 
+                Dr = Cmd.ExecuteReader();
+                var rlt = GetList<T>(Dr);
                 return rlt;
             }
             finally
@@ -348,10 +348,7 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
                     }
                     ImportData.Columns[Prms[i].ColumnName].SetOrdinal(i); 
                 }
- 
-
                 string sql = "INSERT INTO " + ImportData.TableName + " ( " + Sqlcols.TrimStart(',') + ") VALUES (" + Sqlprms.TrimStart(',') + ") ";
-                 
                 for (int i = 0; i < ImportData.Rows.Count; i++)  
                     for (int j = 0; j < Cmd.Parameters.Count; j++)
                         ((object[])((OracleParameter)Cmd.Parameters[j]).Value)[i] = ImportData.Rows[i].ItemArray[j];

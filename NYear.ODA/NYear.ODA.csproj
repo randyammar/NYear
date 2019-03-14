@@ -58,12 +58,11 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>..\Execute\</OutputPath>
-    <DefineConstants>
-    </DefineConstants>
+    <DefineConstants>TRACE;DEBUG;FW;</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
-    <PlatformTarget>x86</PlatformTarget>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
@@ -104,8 +103,7 @@
     <Compile Include="ODAContext.cs" />
     <Compile Include="ODAFunction.cs" />
     <Compile Include="ODACmdView.cs" />
-    <Compile Include="ODAReflection - 复制.cs" />
-    <Compile Include="ODAReflectionBack.cs" />
+    <Compile Include="ODAReflection.Utils.cs" />
     <Compile Include="ODAReflection.cs" />
     <Compile Include="ORMCmd.cs" />
     <Compile Include="Record.cs" />
@@ -124,6 +122,9 @@
     <Compile Include="ODACmd.cs" />
     <Compile Include="ODAColumns.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Connected Services\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

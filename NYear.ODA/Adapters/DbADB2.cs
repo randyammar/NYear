@@ -2,11 +2,14 @@
 using IBM.Data.DB2.Core;
 #elif FW
 using IBM.Data.DB2;
+using MySql.Data.MySqlClient;
+using Oracle.ManagedDataAccess.Client;
 #endif
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Data.SQLite;
 using System.Text;
 
 namespace NYear.ODA.Adapter
@@ -188,7 +191,7 @@ namespace NYear.ODA.Adapter
         public override List<T> Select<T>(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord, string Orderby)
         {
             IDbCommand Cmd = OpenCommand();
-            IDataReader Dr = null;
+            IDataReader Dr = null; 
             try
             {
                 string BlockStr = "select * from (select row_number() over() as r_id_1,t_1.* from ( ";
@@ -197,7 +200,7 @@ namespace NYear.ODA.Adapter
                 Cmd.CommandType = CommandType.Text;
                 SetCmdParameters(ref Cmd, BlockStr, ParamList);
                 Dr = Cmd.ExecuteReader();
-                var rlt = GetList<T>(Dr, StartIndex, MaxRecord); 
+                var rlt = GetList<T>(Dr, StartIndex, MaxRecord);
                 return rlt;
             }
             finally

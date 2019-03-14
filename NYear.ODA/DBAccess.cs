@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Globalization;
-using System.Reflection;
 using System.Text;
 
 namespace NYear.ODA
@@ -19,37 +17,16 @@ namespace NYear.ODA
             return list;
         }
         private static List<T> ReadData<T>(IDataReader Dr)
-        {
-
-            //List<T> list = new List<T>();
-            //if (Dr.FieldCount > 0)
-            //{
-            //    var create = ODAReflection.CreateInstance<T>();
-            //    var pptyIdx = ODAReflection.TypeSetPropertyInfos[typeof(T)];
-            //    ODAMappingInfo MapInfo = new ODAMappingInfo(Dr, pptyIdx);
-            //    var dl = new DataLoader(Dr, MapInfo);
-            //    while (Dr.Read())
-            //    {
-            //        T t = create(dl);
-            //        list.Add(t);
-            //    }
-
-            //}
-            //return list;
-
-            System.Diagnostics.Debug.WriteLine("DBAccess 开始读取数据：" + DateTime.Now.ToString("yyyy -MM-dd HH:mm:ss.fffffff"));
+        { 
             List<T> list = new List<T>();
             if (Dr.FieldCount > 0)
             {
-                var create = ODAReflection.GetCreator<T>();
-                var loader = ODAReflection.GetDataLoader<T>(Dr);
+                var create = ODAReflection.GetCreator<T>(Dr); 
                 while (Dr.Read())
                 {
-                    T t = create(loader);
-                    list.Add(t);
-                } 
+                    list.Add(create(Dr));
+                }
             }
-            System.Diagnostics.Debug.WriteLine("DBAccess 读取数据完毕：" + DateTime.Now.ToString("yyyy -MM-dd HH:mm:ss.fffffff"));
             return list;
         }
 
@@ -375,38 +352,10 @@ namespace NYear.ODA
         
         protected List<T> GetList<T>(IDataReader reader, int StartIndex, int MaxRecord)
         {
-            //if (reader == null)
-            //    throw new ArgumentNullException(nameof(reader));
-            //List<T> list = new List<T>();
-            //IDataReader Dr = reader;
-
-            //if (Dr.FieldCount > 0)
-            //{
-            //    while (StartIndex > 0)
-            //    {
-            //        if (!Dr.Read())
-            //            return list;
-            //        StartIndex--;
-            //    }
-            //    var create = ODAReflection.CreateInstance<T>();
-            //    var pptyIdx = ODAReflection.TypeSetPropertyInfos[typeof(T)];
-            //    ODAMappingInfo MapInfo = new ODAMappingInfo(Dr, pptyIdx);
-            //    var dl = new DataLoader(Dr, MapInfo);
-            //    while (Dr.Read() && MaxRecord > 0)
-            //    {
-            //        T t = create(dl);
-            //        list.Add(t);
-            //        MaxRecord--;
-            //    }
-            //}
-            //return list;
-
-
             if (reader == null)
                 throw new ArgumentNullException(nameof(reader));
             List<T> list = new List<T>();
-            IDataReader Dr = reader;
-
+            IDataReader Dr = reader; 
             if (Dr.FieldCount > 0)
             {
                 while (StartIndex > 0)
@@ -415,18 +364,16 @@ namespace NYear.ODA
                         return list;
                     StartIndex--;
                 }
-                var create = ODAReflection.GetCreator<T>();
-                var dl = ODAReflection.GetDataLoader<T>(Dr);
-                while (Dr.Read() && MaxRecord > 0)
+                var create = ODAReflection.GetCreator<T>(Dr);
+                while (Dr.Read())
                 {
-                    T t = create(dl);
-                    list.Add(t);
+                    list.Add(create(Dr));
                     MaxRecord--;
                 }
             }
             return list;
         }
-         
+
         public virtual DataTable Select(string SQL, ODAParameter[] ParamList)
         {
             System.Diagnostics.Debug.WriteLine("DBAccess开始执行：" + DateTime.Now.ToString("yyyy -MM-dd HH:mm:ss.fffffff"));
@@ -458,22 +405,18 @@ namespace NYear.ODA
                         dt.Rows.Add(val);
                     }
                     System.Diagnostics.Debug.WriteLine("DBAccess 读取数据完毕：" + DateTime.Now.ToString("yyyy -MM-dd HH:mm:ss.fffffff"));
-                } 
+                }
                 return dt;
             }
             finally
             {
-                Action close = new Action(() =>
+                if (Dr != null)
                 {
-                    if (Dr != null)
-                    {
-                        Cmd.Cancel();
-                        Dr.Close();
-                        Dr.Dispose();
-                    }
-                    CloseCommand(Cmd);
-                });
-                close.BeginInvoke(null,null);
+                    Cmd.Cancel();
+                    Dr.Close();
+                    Dr.Dispose();
+                }
+                CloseCommand(Cmd);
                 System.Diagnostics.Debug.WriteLine("DBAccess执行完毕：" + DateTime.Now.ToString("yyyy -MM-dd HH:mm:ss.fffffff"));
             }
         }
@@ -540,7 +483,7 @@ namespace NYear.ODA
                     Cmd.Cancel();
                     Dr.Close();
                     Dr.Dispose();
-                } 
+                }
                 CloseCommand(Cmd);
                 System.Diagnostics.Debug.WriteLine("DBAccess执行完毕：" + DateTime.Now.ToString("yyyy -MM-dd HH:mm:ss.fffffff"));
             }
@@ -611,27 +554,24 @@ namespace NYear.ODA
             IDbCommand Cmd = OpenCommand();
             IDataReader Dr = null;
             try
-            {
+            { 
+
                 Cmd.CommandType = CommandType.Text;
                 SetCmdParameters(ref Cmd, SQL, ParamList);
                 Dr = Cmd.ExecuteReader();
                 System.Diagnostics.Debug.WriteLine("SQL语句在数据库执行完成：" + DateTime.Now.ToString("yyyy -MM-dd HH:mm:ss.fffffff"));
-                var rlt = GetList<T>(Dr); 
+                var rlt = GetList<T>(Dr);
                 return rlt;
             }
             finally
             {
-                Action close = new Action(() =>
+                if (Dr != null)
                 {
-                    if (Dr != null)
-                    {
-                        Cmd.Cancel();
-                        Dr.Close();
-                        Dr.Dispose();
-                    }
-                    CloseCommand(Cmd);
-                });
-                close.BeginInvoke(null, null);
+                    Cmd.Cancel();
+                    Dr.Close();
+                    Dr.Dispose();
+                }
+                CloseCommand(Cmd);
                 System.Diagnostics.Debug.WriteLine("DBAccess执行完毕：" + DateTime.Now.ToString("yyyy -MM-dd HH:mm:ss.fffffff"));
             }
         }
@@ -737,7 +677,7 @@ namespace NYear.ODA
                     Dr.NextResult();
                     rtlcount++;
                 }
-                var rlt = GetList<T>(Dr); 
+                var rlt = GetList<T>(Dr);
                 return rlt;
             }
             finally

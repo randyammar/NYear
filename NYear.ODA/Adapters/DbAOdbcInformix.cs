@@ -181,7 +181,7 @@ namespace NYear.ODA.Adapter
                 Cmd.CommandType = CommandType.Text;
                 SetCmdParameters(ref Cmd, BlockStr, ParamList);
                 Dr = Cmd.ExecuteReader();
-                var rlt = GetList<T>(Dr); 
+                var rlt = GetList<T>(Dr);
                 return rlt;
             }
             finally

@@ -397,8 +397,7 @@ namespace NYear.ODA
                     case CmdConditionSymbol.LIKE:
                         sql.SqlScript.Append(" LIKE ").Append(param.ParamsName);
                         sql.ParamList.Add(param);
-                        break;
-
+                        break; 
                     case CmdConditionSymbol.NOTLIKE:
                         sql.SqlScript.Append(" NOT LIKE ").Append(param.ParamsName);
                         sql.ParamList.Add(param);

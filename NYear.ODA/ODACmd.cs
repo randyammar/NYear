@@ -9,10 +9,7 @@ namespace NYear.ODA
     public partial class ODACmd : IODACmd //: IDBScriptGenerator
     {
 
-        #region ODA指令寄存器 
-
-        private readonly object ClearLocker = new object();
-
+        #region ODA指令寄存器   
         private string _StartWithExpress = null;
         private string _ConnectByParent = null;
         private string _PriorChild = null;
@@ -1169,28 +1166,23 @@ namespace NYear.ODA
         }
         protected virtual void Clear()
         {
-            Action clear = new Action(() =>
-            {
-                lock (ClearLocker)
-                {
-                    Alias = "";
-                    _StartWithExpress = null;
-                    _ConnectByParent = null;
-                    _PriorChild = null;
-                    _ConnectStr = "";
-                    _ConnectColumn = null;
-                    _MaxLevel = 32;
-                    _Distinct = false;
-                    _WhereList.Clear();
-                    _OrList.Clear();
-                    _Orderby.Clear();
-                    _Groupby.Clear();
-                    _Having.Clear();
-                    _ListCmd.Clear();
-                    _JoinCmd.Clear();
-                }
-            });
-            clear.BeginInvoke(null, null);
+
+            Alias = "";
+            _StartWithExpress = null;
+            _ConnectByParent = null;
+            _PriorChild = null;
+            _ConnectStr = "";
+            _ConnectColumn = null;
+            _MaxLevel = 32;
+            _Distinct = false;
+            _WhereList.Clear();
+            _OrList.Clear();
+            _Orderby.Clear();
+            _Groupby.Clear();
+            _Having.Clear();
+            _ListCmd.Clear();
+            _JoinCmd.Clear();
+
         }
 
         #endregion

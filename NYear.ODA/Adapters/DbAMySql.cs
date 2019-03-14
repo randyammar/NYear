@@ -11,10 +11,11 @@ namespace NYear.ODA.Adapter
 {
     public class DbAMySql : DBAccess
     {
-        //public static explicit operator DateTime?(MySqlDateTime val)
-        //{
-        //    return val.Value;
-        //}
+        static DbAMySql()
+        {
+            ODAReflection.DBTypeMapping.Add(typeof(MySqlDateTime), typeof(DateTime));
+            ODAReflection.DBTypeMapping.Add(typeof(MySqlDecimal), typeof(decimal));
+        }
         public DbAMySql(string ConnectionString)
             : base(ConnectionString)
         {
@@ -285,7 +286,7 @@ namespace NYear.ODA.Adapter
                 Cmd.CommandType = CommandType.Text;
                 SetCmdParameters(ref Cmd, BlockStr, ParamList);
                 Dr = Cmd.ExecuteReader();
-                var rlt = GetList<T>(Dr); 
+                var rlt = GetList<T>(Dr);
                 return rlt;
             }
             finally
