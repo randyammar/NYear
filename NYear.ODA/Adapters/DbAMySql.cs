@@ -6,7 +6,6 @@ using System.Data;
 using System.Data.Common;
 using System.IO;
 using System.Text;
-
 namespace NYear.ODA.Adapter
 {
     public class DbAMySql : DBAccess

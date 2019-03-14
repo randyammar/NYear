@@ -94,16 +94,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ODAPropertyInfo.cs" />
     <Compile Include="Interface\IDBAccess.cs" />
     <Compile Include="Interface\IODAFunction.cs" />
     <Compile Include="Interface\IODACmd.cs" />
     <Compile Include="Interface\IODAColumns.cs" />
+    <Compile Include="ODADataReader.cs" />
     <Compile Include="ODACmd.Extension.cs" />
     <Compile Include="ODACmd.Dynamic.cs" />
     <Compile Include="ODAContext.cs" />
     <Compile Include="ODAFunction.cs" />
     <Compile Include="ODACmdView.cs" />
-    <Compile Include="ODAReflection.Utils.cs" />
     <Compile Include="ODAReflection.cs" />
     <Compile Include="ORMCmd.cs" />
     <Compile Include="Record.cs" />

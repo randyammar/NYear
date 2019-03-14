@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Globalization;
-using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
-using System.Runtime.Serialization;
-using System.Security.Cryptography;
 using System.Text;
 
 namespace NYear.ODA
@@ -29,22 +25,22 @@ namespace NYear.ODA
         private static readonly MethodInfo GetString = typeof(IDataRecord).GetMethod("GetString", new Type[] { typeof(int) });
 
 
-        private static readonly MethodInfo GetEnum = typeof(MyDataReader).GetMethod("GetEnum");
-        private static readonly MethodInfo GetBytes = typeof(MyDataReader).GetMethod("GetBytes");
-        private static readonly MethodInfo GetChars = typeof(MyDataReader).GetMethod("GetChars");
-        private static readonly MethodInfo GetSbyte = typeof(MyDataReader).GetMethod("GetSbyte");
-        private static readonly MethodInfo GetUInt32 = typeof(MyDataReader).GetMethod("GetUInt32");
-        private static readonly MethodInfo GetUInt64 = typeof(MyDataReader).GetMethod("GetUInt64");
-        private static readonly MethodInfo GetUInt16 = typeof(MyDataReader).GetMethod("GetUInt16");
-        private static readonly MethodInfo GetDateTimeOffset = typeof(MyDataReader).GetMethod("GetDateTimeOffset");
-        private static readonly MethodInfo GetDateTimeOffsetDateTime = typeof(MyDataReader).GetMethod("GetDateTimeOffsetDateTime");
-        private static readonly MethodInfo GetSingleInt = typeof(MyDataReader).GetMethod("GetSingleInt");
-        private static readonly MethodInfo GetSingleFloat = typeof(MyDataReader).GetMethod("GetSingleFloat");
-        private static readonly MethodInfo GetSingleLong = typeof(MyDataReader).GetMethod("GetSingleLong"); 
-        private static readonly MethodInfo GetTimeSpanInt = typeof(MyDataReader).GetMethod("GetTimeSpanInt");
-        private static readonly MethodInfo GetTimeSpanLong = typeof(MyDataReader).GetMethod("GetTimeSpanLong");  
-        private static readonly MethodInfo GetStringValue = typeof(MyDataReader).GetMethod("GetStringValue");
-        private static readonly MethodInfo GetValueConvert = typeof(MyDataReader).GetMethod("GetValueConvert");
+        private static readonly MethodInfo GetEnum = typeof(ODADataReader).GetMethod("GetEnum");
+        private static readonly MethodInfo GetBytes = typeof(ODADataReader).GetMethod("GetBytes");
+        private static readonly MethodInfo GetChars = typeof(ODADataReader).GetMethod("GetChars");
+        private static readonly MethodInfo GetSbyte = typeof(ODADataReader).GetMethod("GetSbyte");
+        private static readonly MethodInfo GetUInt32 = typeof(ODADataReader).GetMethod("GetUInt32");
+        private static readonly MethodInfo GetUInt64 = typeof(ODADataReader).GetMethod("GetUInt64");
+        private static readonly MethodInfo GetUInt16 = typeof(ODADataReader).GetMethod("GetUInt16");
+        private static readonly MethodInfo GetDateTimeOffset = typeof(ODADataReader).GetMethod("GetDateTimeOffset");
+        private static readonly MethodInfo GetDateTimeOffsetDateTime = typeof(ODADataReader).GetMethod("GetDateTimeOffsetDateTime");
+        private static readonly MethodInfo GetSingleInt = typeof(ODADataReader).GetMethod("GetSingleInt");
+        private static readonly MethodInfo GetSingleFloat = typeof(ODADataReader).GetMethod("GetSingleFloat");
+        private static readonly MethodInfo GetSingleLong = typeof(ODADataReader).GetMethod("GetSingleLong"); 
+        private static readonly MethodInfo GetTimeSpanInt = typeof(ODADataReader).GetMethod("GetTimeSpanInt");
+        private static readonly MethodInfo GetTimeSpanLong = typeof(ODADataReader).GetMethod("GetTimeSpanLong");  
+        private static readonly MethodInfo GetStringValue = typeof(ODADataReader).GetMethod("GetStringValue");
+        private static readonly MethodInfo GetValueConvert = typeof(ODADataReader).GetMethod("GetValueConvert");
 
 
         private static SafeDictionary<string, object> CreatorsCache;
@@ -71,13 +67,13 @@ namespace NYear.ODA
                 return (Func<IDataReader, T>)func;
 
             
-            var ppIndex = new List<EntityPropertyInfo>();
+            var ppIndex = new List<ODAPropertyInfo>();
             PropertyInfo[] prptys = classType.GetProperties(BindingFlags.Instance | BindingFlags.Public);
             for (int i = 0; i < prptys.Length; i++)
             {
                 if (prptys[i].CanWrite)
                 {
-                    ppIndex.Add(new EntityPropertyInfo(prptys[i]));
+                    ppIndex.Add(new ODAPropertyInfo(prptys[i]));
                 }
             }
             DynamicMethod method;
@@ -90,8 +86,6 @@ namespace NYear.ODA
             il.Emit(OpCodes.Nop);
             il.Emit(OpCodes.Newobj, classType.GetConstructor(Type.EmptyTypes));
             il.Emit(OpCodes.Stloc, result);
-
-            
             for (int i = 0; i < ppIndex.Count; i++)
             {
                 Tuple<int, Type, string> Field = null; 
@@ -168,7 +162,7 @@ namespace NYear.ODA
             }
             return keys;
         }
-        private static void BindReaderMethod(ILGenerator il, EntityPropertyInfo PptyInfo,Type FieldType)
+        private static void BindReaderMethod(ILGenerator il, ODAPropertyInfo PptyInfo,Type FieldType)
         {
             if (PptyInfo.UnderlyingType == FieldType)
             {

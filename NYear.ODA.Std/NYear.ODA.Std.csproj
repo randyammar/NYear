@@ -28,7 +28,9 @@
     <Compile Include="..\NYEAR.ODA\ODACmdView.cs" Link="ODACmdView.cs" />
     <Compile Include="..\NYEAR.ODA\ODAColumns.cs" Link="ODAColumns.cs" />
     <Compile Include="..\NYEAR.ODA\ODAContext.cs" Link="ODAContext.cs" />
+    <Compile Include="..\NYEAR.ODA\ODADataReader.cs" Link="ODADataReader.cs" />
     <Compile Include="..\NYEAR.ODA\ODAFunction.cs" Link="ODAFunction.cs" />
+    <Compile Include="..\NYEAR.ODA\ODAPropertyInfo.cs" Link="ODAPropertyInfo.cs" />
     <Compile Include="..\NYEAR.ODA\ODAReflection.cs" Link="ODAReflection.cs" />
     <Compile Include="..\NYEAR.ODA\ODATransaction.cs" Link="ODATransaction.cs" />
     <Compile Include="..\NYEAR.ODA\ORMCmd.cs" Link="ORMCmd.cs" />
@@ -53,6 +55,12 @@
   <ItemGroup>
     <Folder Include="Adapters\" />
     <Folder Include="Interface\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="SqlSugar">
+      <HintPath>..\Reference\SqlSugar.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>
