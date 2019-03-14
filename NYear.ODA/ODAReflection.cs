@@ -100,44 +100,27 @@ namespace NYear.ODA
 
                 var setter = ppIndex[i].OriginProperty.GetSetMethod(true);
                 if (setter != null && Field != null)
-                { 
-                    if (ppIndex[i].UnderlyingType.IsValueType)
-                    {
-                        Label lb = il.DefineLabel();
-                        il.Emit(OpCodes.Ldarg_0);
-                        il.Emit(OpCodes.Ldc_I4, Field.Item1);
-                        il.Emit(OpCodes.Callvirt, IsDBNull);
-                        il.Emit(OpCodes.Brtrue, lb);
-                        il.Emit(OpCodes.Ldloc, result);
-                        il.Emit(OpCodes.Ldarg_0);
-                        il.Emit(OpCodes.Ldc_I4, Field.Item1);
+                {
+                    Label lb = il.DefineLabel();
+                    il.Emit(OpCodes.Ldarg_0);
+                    il.Emit(OpCodes.Ldc_I4, Field.Item1);
+                    il.Emit(OpCodes.Callvirt, IsDBNull);
+                    il.Emit(OpCodes.Brtrue, lb);
+                    il.Emit(OpCodes.Ldloc, result);
+                    il.Emit(OpCodes.Ldarg_0);
+                    il.Emit(OpCodes.Ldc_I4, Field.Item1);
 
-                        BindReaderMethod(il, ppIndex[i], Field.Item2); 
-                        if (setter.IsFinal || !setter.IsVirtual)
-                        {
-                            il.Emit(OpCodes.Call, setter);
-                        }
-                        else
-                        {
-                            il.Emit(OpCodes.Callvirt, setter);
-                        }
-                        il.MarkLabel(lb);
+                    BindReaderMethod(il, ppIndex[i], Field.Item2);
+                    if (setter.IsFinal || !setter.IsVirtual)
+                    {
+                        il.Emit(OpCodes.Call, setter);
                     }
                     else
                     {
-                        il.Emit(OpCodes.Ldloc, result);
-                        il.Emit(OpCodes.Ldarg_0);
-                        il.Emit(OpCodes.Ldc_I4, Field.Item1);
-                        BindReaderMethod(il, ppIndex[i], Field.Item2);
-                        if (setter.IsFinal || !setter.IsVirtual)
-                        {
-                            il.Emit(OpCodes.Callvirt, setter);
-                        }
-                        else
-                        {
-                            il.Emit(OpCodes.Callvirt, setter);
-                        }
+                        il.Emit(OpCodes.Callvirt, setter);
                     }
+                    il.MarkLabel(lb);
+
                 }
             }
             il.Emit(OpCodes.Ldloc, result);
