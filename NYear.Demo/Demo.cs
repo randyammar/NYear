@@ -127,7 +127,7 @@ namespace NYear.Demo
                 rtbxSql.Clear();
                 var md = (DemoMethodInfo)((Button)sender).Tag;
                 object rlt = md.DemoMethod.Invoke(null, null);
-                if (rlt is DataTable ||rlt is Array)
+                if (rlt is DataTable ||rlt is Array || rlt.GetType().IsGenericType)
                 {
                     dgvData.DataSource = rlt;
                 }

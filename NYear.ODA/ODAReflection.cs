@@ -56,17 +56,14 @@ namespace NYear.ODA
             object func = null;
             Type classType = typeof(T);
             List<Tuple<int, Type,string>> FieldInfos = GetDataReaderFieldInfo(Reader); 
-            StringBuilder sber = new StringBuilder();
-            sber.Append(classType.AssemblyQualifiedName);
+            StringBuilder sber = new StringBuilder().Append(classType.GetHashCode());
             for(int c = 0; c <  FieldInfos.Count; c ++)
             {
                 sber.Append(FieldInfos[c].Item2.Name);
-            }
-
+            }  
             if (CreatorsCache.TryGetValue(sber.ToString(), out func))
-                return (Func<IDataReader, T>)func;
+                return (Func<IDataReader, T>)func; 
 
-            
             var ppIndex = new List<ODAPropertyInfo>();
             PropertyInfo[] prptys = classType.GetProperties(BindingFlags.Instance | BindingFlags.Public);
             for (int i = 0; i < prptys.Length; i++)
@@ -205,6 +202,7 @@ namespace NYear.ODA
                 {
                     il.Emit(OpCodes.Call, GetChars);
                 }
+                #region 一般情况下Reader没有这些数据类型，但不排除某些ADO.net的驱动会有。
                 else if (PptyInfo.UnderlyingType == typeof(sbyte))
                 {
                     il.Emit(OpCodes.Call, GetSbyte);
@@ -225,6 +223,7 @@ namespace NYear.ODA
                 {
                     il.Emit(OpCodes.Call, GetDateTimeOffset);
                 }
+                #endregion
                 else
                 {
                     il.Emit(OpCodes.Callvirt, GetValue);
@@ -255,6 +254,7 @@ namespace NYear.ODA
                 {
                     il.Emit(OpCodes.Call, GetUInt16);
                 }
+
                 else if (PptyInfo.UnderlyingType == typeof(DateTimeOffset) && FieldType == typeof(DateTime))
                 {
                     il.Emit(OpCodes.Call, GetDateTimeOffsetDateTime);
@@ -312,134 +312,133 @@ namespace NYear.ODA
 
                 else if (PptyInfo.UnderlyingType == typeof(double) && FieldType == typeof(decimal))
                 {
-                    il.Emit(OpCodes.Callvirt, GetDecimal);
-                    il.Emit(OpCodes.Newobj, typeof(double).GetConstructor(new Type[] { typeof(decimal) }));
+                    il.Emit(OpCodes.Callvirt, GetDecimal); 
+                    il.EmitCall(OpCodes.Call, typeof(decimal).GetMethod("ToDouble"), null); 
                 }
                 else if (PptyInfo.UnderlyingType == typeof(double) && FieldType == typeof(float))
                 {
                     il.Emit(OpCodes.Callvirt, GetFloat);
-                    il.Emit(OpCodes.Newobj, typeof(double).GetConstructor(new Type[] { typeof(float) }));
+                    il.Emit(OpCodes.Conv_R8);
                 }
                 else if (PptyInfo.UnderlyingType == typeof(double) && FieldType == typeof(short))
                 {
                     il.Emit(OpCodes.Callvirt, GetInt16);
-                    il.Emit(OpCodes.Newobj, typeof(double).GetConstructor(new Type[] { typeof(short) }));
+                    il.Emit(OpCodes.Conv_R8);
                 }
                 else if (PptyInfo.UnderlyingType == typeof(double) && FieldType == typeof(int))
                 {
                     il.Emit(OpCodes.Callvirt, GetInt32);
-                    il.Emit(OpCodes.Newobj, typeof(double).GetConstructor(new Type[] { typeof(int) }));
+                    il.Emit(OpCodes.Conv_R8);
                 }
                 else if (PptyInfo.UnderlyingType == typeof(double) && FieldType == typeof(long))
                 {
                     il.Emit(OpCodes.Callvirt, GetInt64);
-                    il.Emit(OpCodes.Newobj, typeof(double).GetConstructor(new Type[] { typeof(long) }));
+                    il.Emit(OpCodes.Conv_R8);
                 }
-
-
+                
 
                 else if (PptyInfo.UnderlyingType == typeof(float) && FieldType == typeof(decimal))
                 {
                     il.Emit(OpCodes.Callvirt, GetDecimal);
-                    il.Emit(OpCodes.Newobj, typeof(double).GetConstructor(new Type[] { typeof(decimal) }));
+                    il.Emit(OpCodes.Conv_R4);
                 }
                 else if (PptyInfo.UnderlyingType == typeof(float) && FieldType == typeof(double))
                 {
                     il.Emit(OpCodes.Callvirt, GetDouble);
-                    il.Emit(OpCodes.Newobj, typeof(float).GetConstructor(new Type[] { typeof(double) }));
+                    il.Emit(OpCodes.Conv_R4);
                 }
                 else if (PptyInfo.UnderlyingType == typeof(float) && FieldType == typeof(short))
                 {
                     il.Emit(OpCodes.Callvirt, GetInt16);
-                    il.Emit(OpCodes.Newobj, typeof(float).GetConstructor(new Type[] { typeof(short) }));
+                    il.Emit(OpCodes.Conv_R4);
                 }
                 else if (PptyInfo.UnderlyingType == typeof(float) && FieldType == typeof(int))
                 {
                     il.Emit(OpCodes.Callvirt, GetInt32);
-                    il.Emit(OpCodes.Newobj, typeof(float).GetConstructor(new Type[] { typeof(int) }));
+                    il.Emit(OpCodes.Conv_R4);
                 }
                 else if (PptyInfo.UnderlyingType == typeof(float) && FieldType == typeof(long))
                 {
                     il.Emit(OpCodes.Callvirt, GetInt64);
-                    il.Emit(OpCodes.Newobj, typeof(float).GetConstructor(new Type[] { typeof(long) }));
+                    il.Emit(OpCodes.Conv_R4);
                 }
 
                 else if (PptyInfo.UnderlyingType == typeof(short) && FieldType == typeof(decimal))
                 {
-                    il.Emit(OpCodes.Callvirt, GetDecimal);
-                    il.Emit(OpCodes.Newobj, typeof(short).GetConstructor(new Type[] { typeof(decimal) }));
+                    il.Emit(OpCodes.Callvirt, GetDecimal); 
+                    il.EmitCall(OpCodes.Call, typeof(decimal).GetMethod("ToInt16"), null);
                 }
                 else if (PptyInfo.UnderlyingType == typeof(short) && FieldType == typeof(double))
                 {
                     il.Emit(OpCodes.Callvirt, GetDouble);
-                    il.Emit(OpCodes.Newobj, typeof(short).GetConstructor(new Type[] { typeof(double) }));
+                    il.Emit(OpCodes.Conv_I2);
                 }
                 else if (PptyInfo.UnderlyingType == typeof(short) && FieldType == typeof(float))
                 {
                     il.Emit(OpCodes.Callvirt, GetFloat);
-                    il.Emit(OpCodes.Newobj, typeof(short).GetConstructor(new Type[] { typeof(float) }));
+                    il.Emit(OpCodes.Conv_I2);
                 }
                 else if (PptyInfo.UnderlyingType == typeof(short) && FieldType == typeof(int))
                 {
                     il.Emit(OpCodes.Callvirt, GetInt32);
-                    il.Emit(OpCodes.Newobj, typeof(short).GetConstructor(new Type[] { typeof(int) }));
+                    il.Emit(OpCodes.Conv_I2);
                 }
                 else if (PptyInfo.UnderlyingType == typeof(short) && FieldType == typeof(long))
                 {
                     il.Emit(OpCodes.Callvirt, GetInt64);
-                    il.Emit(OpCodes.Newobj, typeof(short).GetConstructor(new Type[] { typeof(long) }));
+                    il.Emit(OpCodes.Conv_I2);
                 }
 
                 else if (PptyInfo.UnderlyingType == typeof(int) && FieldType == typeof(decimal))
                 {
-                    il.Emit(OpCodes.Callvirt, GetDecimal);
-                    il.Emit(OpCodes.Newobj, typeof(int).GetConstructor(new Type[] { typeof(decimal) }));
+                    il.Emit(OpCodes.Callvirt, GetDecimal); 
+                    il.EmitCall(OpCodes.Call, typeof(decimal).GetMethod("ToInt32"), null);
                 }
                 else if (PptyInfo.UnderlyingType == typeof(int) && FieldType == typeof(double))
                 {
                     il.Emit(OpCodes.Callvirt, GetDouble);
-                    il.Emit(OpCodes.Newobj, typeof(int).GetConstructor(new Type[] { typeof(double) }));
+                    il.Emit(OpCodes.Conv_I4);
                 }
                 else if (PptyInfo.UnderlyingType == typeof(int) && FieldType == typeof(float))
                 {
                     il.Emit(OpCodes.Callvirt, GetFloat);
-                    il.Emit(OpCodes.Newobj, typeof(int).GetConstructor(new Type[] { typeof(float) }));
+                    il.Emit(OpCodes.Conv_I4);
                 }
                 else if (PptyInfo.UnderlyingType == typeof(int) && FieldType == typeof(short))
                 {
                     il.Emit(OpCodes.Callvirt, GetInt16);
-                    il.Emit(OpCodes.Newobj, typeof(int).GetConstructor(new Type[] { typeof(short) }));
+                    il.Emit(OpCodes.Conv_I4);
                 }
                 else if (PptyInfo.UnderlyingType == typeof(int) && FieldType == typeof(long))
                 {
                     il.Emit(OpCodes.Callvirt, GetInt64);
-                    il.Emit(OpCodes.Newobj, typeof(int).GetConstructor(new Type[] { typeof(long) }));
+                    il.Emit(OpCodes.Conv_I4);
                 }
 
                 else if (PptyInfo.UnderlyingType == typeof(long) && FieldType == typeof(decimal))
                 {
-                    il.Emit(OpCodes.Callvirt, GetDecimal);
-                    il.Emit(OpCodes.Newobj, typeof(long).GetConstructor(new Type[] { typeof(decimal) }));
+                    il.Emit(OpCodes.Callvirt, GetDecimal); 
+                    il.EmitCall(OpCodes.Call, typeof(decimal).GetMethod("ToInt64"), null);
                 }
                 else if (PptyInfo.UnderlyingType == typeof(long) && FieldType == typeof(double))
                 {
                     il.Emit(OpCodes.Callvirt, GetDouble);
-                    il.Emit(OpCodes.Newobj, typeof(long).GetConstructor(new Type[] { typeof(double) }));
+                    il.Emit(OpCodes.Conv_I8);
                 }
                 else if (PptyInfo.UnderlyingType == typeof(long) && FieldType == typeof(float))
                 {
                     il.Emit(OpCodes.Callvirt, GetFloat);
-                    il.Emit(OpCodes.Newobj, typeof(long).GetConstructor(new Type[] { typeof(float) }));
+                    il.Emit(OpCodes.Conv_I8);
                 }
                 else if (PptyInfo.UnderlyingType == typeof(long) && FieldType == typeof(short))
                 {
                     il.Emit(OpCodes.Callvirt, GetInt16);
-                    il.Emit(OpCodes.Newobj, typeof(long).GetConstructor(new Type[] { typeof(short) }));
+                    il.Emit(OpCodes.Conv_I8);
                 }
                 else if (PptyInfo.UnderlyingType == typeof(long) && FieldType == typeof(int))
                 {
                     il.Emit(OpCodes.Callvirt, GetInt32);
-                    il.Emit(OpCodes.Newobj, typeof(long).GetConstructor(new Type[] { typeof(int) }));
+                    il.Emit(OpCodes.Conv_I8);
                 } 
                 else if (PptyInfo.UnderlyingType == typeof(string))
                 {
@@ -449,7 +448,7 @@ namespace NYear.ODA
                 {
                     il.Emit(OpCodes.Ldtoken, PptyInfo.OriginType);
                     il.EmitCall(OpCodes.Call, typeof(Type).GetMethod(nameof(Type.GetTypeFromHandle)), null);
-                    il.Emit(OpCodes.Callvirt, GetValueConvert);
+                    il.Emit(OpCodes.Call, GetValueConvert);
                 }
             }
             if (PptyInfo.IsNullableTypeProperty)

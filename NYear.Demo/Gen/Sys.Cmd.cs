@@ -138,4 +138,27 @@ namespace NYear.ODA.Cmd
 			 return new List<ODAColumns>() { ColStatus,ColCreatedBy,ColCreatedDate,ColLastUpdatedBy,ColLastUpdatedDate,ColUserAccount,ColRoleCode};
 		 }
 	}
+    internal partial class CmdSysFiles : ORMCmd<SYS_FILES>
+    {
+        public ODAColumns ColId { get { return new ODAColumns(this, "ID", ODAdbType.OVarchar, 72, true); } }
+        public ODAColumns ColDatetimeCreated { get { return new ODAColumns(this, "DATETIME_CREATED", ODAdbType.ODatetime, 8, false); } }
+        public ODAColumns ColUserCreated { get { return new ODAColumns(this, "USER_CREATED", ODAdbType.OVarchar, 160, false); } }
+        public ODAColumns ColUserModified { get { return new ODAColumns(this, "USER_MODIFIED", ODAdbType.OVarchar, 160, false); } }
+        public ODAColumns ColDatetimeModified { get { return new ODAColumns(this, "DATETIME_MODIFIED", ODAdbType.ODatetime, 8, false); } }
+        public ODAColumns ColClientType { get { return new ODAColumns(this, "CLIENT_TYPE", ODAdbType.OVarchar, 64, false); } }
+        public ODAColumns ColFileBody { get { return new ODAColumns(this, "FILE_BODY", ODAdbType.OBinary, 16, false); } }
+        public ODAColumns ColFileName { get { return new ODAColumns(this, "FILE_NAME", ODAdbType.OVarchar, 480, false); } }
+        public ODAColumns ColFilePath { get { return new ODAColumns(this, "FILE_PATH", ODAdbType.OVarchar, 480, false); } }
+        public ODAColumns ColFileVersion { get { return new ODAColumns(this, "FILE_VERSION", ODAdbType.OVarchar, 160, false); } }
+        public ODAColumns ColMd5 { get { return new ODAColumns(this, "MD5", ODAdbType.OVarchar, 480, false); } }
+        public ODAColumns ColRevision { get { return new ODAColumns(this, "REVISION", ODAdbType.OInt, 4, false); } }
+        public ODAColumns ColState { get { return new ODAColumns(this, "STATE", ODAdbType.OVarchar, 2, false); } }
+        public ODAColumns ColDatetimeFileModified { get { return new ODAColumns(this, "DATETIME_FILE_MODIFIED", ODAdbType.ODatetime, 8, false); } }
+        public ODAColumns ColDatetimeFileCreated { get { return new ODAColumns(this, "DATETIME_FILE_CREATED", ODAdbType.ODatetime, 8, false); } }
+        public override string CmdName { get { return "SYS_FILES"; } }
+        public override List<ODAColumns> GetColumnList()
+        {
+            return new List<ODAColumns>() { ColId, ColDatetimeCreated, ColUserCreated, ColUserModified, ColDatetimeModified, ColClientType, ColFileBody, ColFileName, ColFilePath, ColFileVersion, ColMd5, ColRevision, ColState, ColDatetimeFileModified, ColDatetimeFileCreated };
+        }
+    }
 }

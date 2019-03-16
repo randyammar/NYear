@@ -84,7 +84,8 @@ namespace NYear.ODA.Model
          public decimal? FAIL_TIMES { get; set; }
     
 		 public string IS_LOCKED {get; set;}
-	}
+        public string IS_LOCKED2 { get; set; }
+    }
 	public partial class SYS_USER_AUTHORIZATION
 	{
 		 public string STATUS {get; set;}
@@ -106,4 +107,22 @@ namespace NYear.ODA.Model
 		 public string USER_ACCOUNT {get; set;}
 		 public string ROLE_CODE {get; set;}
 	}
+    public partial class SYS_FILES
+    {
+        public string ID { get; set; }
+        public DateTime? DATETIME_CREATED { get; set; }
+        public string USER_CREATED { get; set; }
+        public string USER_MODIFIED { get; set; }
+        public DateTime? DATETIME_MODIFIED { get; set; }
+        public string CLIENT_TYPE { get; set; }
+        public byte[] FILE_BODY { get; set; }
+        public string FILE_NAME { get; set; }
+        public string FILE_PATH { get; set; }
+        public string FILE_VERSION { get; set; }
+        public string MD5 { get; set; }
+        public int? REVISION { get; set; }
+        public string STATE { get; set; }
+        public DateTime? DATETIME_FILE_MODIFIED { get; set; }
+        public DateTime? DATETIME_FILE_CREATED { get; set; }
+    }
 }
