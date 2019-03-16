@@ -25,7 +25,8 @@ namespace NYear.ODA
         private static readonly MethodInfo GetString = typeof(IDataRecord).GetMethod("GetString", new Type[] { typeof(int) });
 
 
-        private static readonly MethodInfo GetEnum = typeof(ODADataReader).GetMethod("GetEnum");
+        private static readonly MethodInfo GetEnumDigit = typeof(ODADataReader).GetMethod("GetEnumDigit");
+        private static readonly MethodInfo GetEnumString = typeof(ODADataReader).GetMethod("GetEnumString");
         private static readonly MethodInfo GetBytes = typeof(ODADataReader).GetMethod("GetBytes");
         private static readonly MethodInfo GetChars = typeof(ODADataReader).GetMethod("GetChars");
         private static readonly MethodInfo GetSbyte = typeof(ODADataReader).GetMethod("GetSbyte");
@@ -148,7 +149,7 @@ namespace NYear.ODA
             {
                 if (PptyInfo.UnderlyingType == typeof(bool))
                 {
-                    il.Emit(OpCodes.Callvirt, GetBoolean); 
+                    il.Emit(OpCodes.Callvirt, GetBoolean);
                 }
                 else if (PptyInfo.UnderlyingType == typeof(byte))
                 {
@@ -202,7 +203,6 @@ namespace NYear.ODA
                 {
                     il.Emit(OpCodes.Call, GetChars);
                 }
-                #region 一般情况下Reader没有这些数据类型，但不排除某些ADO.net的驱动会有。
                 else if (PptyInfo.UnderlyingType == typeof(sbyte))
                 {
                     il.Emit(OpCodes.Call, GetSbyte);
@@ -223,20 +223,26 @@ namespace NYear.ODA
                 {
                     il.Emit(OpCodes.Call, GetDateTimeOffset);
                 }
-                #endregion
                 else
                 {
                     il.Emit(OpCodes.Callvirt, GetValue);
-                    il.Emit(OpCodes.Castclass, PptyInfo.OriginType);
-                } 
+                    if (PptyInfo.OriginType.IsValueType)
+                        il.Emit(OpCodes.Unbox_Any, PptyInfo.UnderlyingType);
+                    else
+                        il.Emit(OpCodes.Castclass, PptyInfo.UnderlyingType);
+                }
             }
             else
             {
                 if (PptyInfo.UnderlyingType.IsEnum)
                 {
-                    il.Emit(OpCodes.Ldtoken, PptyInfo.OriginType);
+                    il.Emit(OpCodes.Ldtoken, PptyInfo.UnderlyingType);
                     il.EmitCall(OpCodes.Call, typeof(Type).GetMethod(nameof(Type.GetTypeFromHandle)), null);
-                    il.Emit(OpCodes.Call, GetEnum);
+                    if (FieldType == typeof(string))
+                        il.Emit(OpCodes.Call, GetEnumString);
+                    else
+                        il.Emit(OpCodes.Call, GetEnumDigit); 
+                    il.Emit(OpCodes.Unbox_Any, PptyInfo.UnderlyingType);
                 } 
                 else if (PptyInfo.UnderlyingType == typeof(sbyte))
                 {
@@ -446,9 +452,13 @@ namespace NYear.ODA
                 }
                 else
                 {
-                    il.Emit(OpCodes.Ldtoken, PptyInfo.OriginType);
+                    il.Emit(OpCodes.Ldtoken, PptyInfo.UnderlyingType);
                     il.EmitCall(OpCodes.Call, typeof(Type).GetMethod(nameof(Type.GetTypeFromHandle)), null);
                     il.Emit(OpCodes.Call, GetValueConvert);
+                    if (PptyInfo.OriginType.IsValueType)
+                        il.Emit(OpCodes.Unbox_Any, PptyInfo.UnderlyingType);
+                    else
+                        il.Emit(OpCodes.Castclass, PptyInfo.UnderlyingType);
                 }
             }
             if (PptyInfo.IsNullableTypeProperty)

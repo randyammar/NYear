@@ -6,10 +6,14 @@ namespace NYear.ODA
 {
     public static class ODADataReader
     { 
-        public static object GetEnum(this IDataRecord dr, int i,Type EnumType )
+        public static object GetEnumDigit(this IDataRecord dr, int i,Type EnumType )
         { 
             return Enum.ToObject(EnumType, dr.GetValue(i));
         } 
+        public static object GetEnumString(this IDataRecord dr, int i, Type EnumType)
+        {
+            return Enum.Parse(EnumType, dr.GetString(i));
+        }
         public static byte[] GetBytes(this IDataRecord dr, int i)
         {
            return dr.GetValue(i) as byte[];
