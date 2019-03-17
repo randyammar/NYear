@@ -107,7 +107,6 @@
     <Compile Include="ODACmdView.cs" />
     <Compile Include="ODAReflection.cs" />
     <Compile Include="ORMCmd.cs" />
-    <Compile Include="Record.cs" />
     <Compile Include="SQLCmd.cs" />
     <Compile Include="Utils.cs" />
     <Compile Include="DBAccess.cs" />

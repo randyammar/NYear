@@ -169,11 +169,6 @@ namespace NYear.ODA.Adapter
             return ColInof;
         }
 
-        //public override DataTable Select(string TransactionID, string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord)
-        //{
-        //    string BlockStr = SQL + " limit " + StartIndex.ToString() + "," + MaxRecord.ToString();
-        //    return Select(TransactionID, BlockStr, ParamList);
-        //}
         public override bool Import(DataTable Data,ODAParameter[] Prms)
         {
             DataTable ImportData = Data.Copy();
@@ -207,7 +202,7 @@ namespace NYear.ODA.Adapter
             IDbCommand Cmd = OpenCommand();
             try
             {
-                string sql = " SELECT" + ExpressionString + " AS VALUE  FROM SEQUENCE_TABLE WHERE SEQUENCE_NAME = 'DUAL'";
+                string sql = " SELECT" + ExpressionString + " AS VALUE ";
                 Cmd.CommandText = sql;
                 Cmd.CommandType = CommandType.Text;
                 return Cmd.ExecuteScalar();

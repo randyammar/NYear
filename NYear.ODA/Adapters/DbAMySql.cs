@@ -266,7 +266,11 @@ namespace NYear.ODA.Adapter
             {
                 if (Dr != null)
                 {
-                    Cmd.Cancel();
+                    try
+                    {
+                        Cmd.Cancel();
+                    }
+                    catch { }
                     Dr.Close();
                     Dr.Dispose();
                 }
@@ -292,7 +296,11 @@ namespace NYear.ODA.Adapter
             {
                 if (Dr != null)
                 {
-                    Cmd.Cancel();
+                    try
+                    {
+                        Cmd.Cancel();
+                    }
+                    catch { }
                     Dr.Close();
                     Dr.Dispose();
                 }
@@ -412,7 +420,7 @@ namespace NYear.ODA.Adapter
             IDbCommand Cmd = OpenCommand();
             try
             {
-                string sql = new StringBuilder().Append(" SELECT" ).Append( ExpressionString ).Append( " AS VALUE  FROM SEQUENCE_TABLE WHERE SEQUENCE_NAME = 'DUAL'").ToString();
+                string sql = new StringBuilder().Append(" SELECT" ).Append( ExpressionString ).Append( " AS VALUE ").ToString();
                 Cmd.CommandText = sql;
                 Cmd.CommandType = CommandType.Text;
                 return Cmd.ExecuteScalar();

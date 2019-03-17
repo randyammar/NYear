@@ -34,7 +34,6 @@
     <Compile Include="..\NYEAR.ODA\ODAReflection.cs" Link="ODAReflection.cs" />
     <Compile Include="..\NYEAR.ODA\ODATransaction.cs" Link="ODATransaction.cs" />
     <Compile Include="..\NYEAR.ODA\ORMCmd.cs" Link="ORMCmd.cs" />
-    <Compile Include="..\NYEAR.ODA\Record.cs" Link="Record.cs" />
     <Compile Include="..\NYEAR.ODA\SQLCmd.cs" Link="SQLCmd.cs" />
     <Compile Include="..\NYEAR.ODA\Utils.cs" Link="Utils.cs" />
   </ItemGroup>

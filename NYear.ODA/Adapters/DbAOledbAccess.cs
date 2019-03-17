@@ -79,7 +79,7 @@ namespace NYear.ODA.Adapter
             IDbCommand Cmd = OpenCommand();
             try
             {
-                string sql = " SELECT" + ExpressionString + " AS VALUE  FROM SEQUENCE_TABLE WHERE SEQUENCE_NAME = 'DUAL'";
+                string sql = " SELECT" + ExpressionString + " AS VALUE ";
                 Cmd.CommandText = sql;
                 Cmd.CommandType = CommandType.Text;
                 return Cmd.ExecuteScalar();

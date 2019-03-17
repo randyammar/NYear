@@ -207,7 +207,11 @@ namespace NYear.ODA.Adapter
             {
                 if (Dr != null)
                 {
-                    Cmd.Cancel();
+                    try
+                    {
+                        Cmd.Cancel();
+                    }
+                    catch { }
                     Dr.Close();
                     Dr.Dispose();
                 }
@@ -264,7 +268,7 @@ namespace NYear.ODA.Adapter
             IDbCommand Cmd = OpenCommand();
             try
             {
-                string sql = " SELECT" + ExpressionString + " AS VALUE  FROM SEQUENCE_TABLE WHERE SEQUENCE_NAME = 'DUAL'";
+                string sql = " SELECT" + ExpressionString + " AS VALUE FROM SYSIBM.SYSDUMMY1";
                 Cmd.CommandText = sql;
                 Cmd.CommandType = CommandType.Text;
                 return Cmd.ExecuteScalar();

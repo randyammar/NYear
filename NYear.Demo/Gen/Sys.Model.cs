@@ -1,4 +1,5 @@
 using System;
+using MySql.Data.Types;
 using SqlSugar;
 
 namespace NYear.ODA.Model

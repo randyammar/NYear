@@ -316,7 +316,11 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
             {
                 if (Dr != null)
                 {
-                    Cmd.Cancel();
+                    try
+                    {
+                        Cmd.Cancel();
+                    }
+                    catch { }
                     Dr.Close();
                     Dr.Dispose();
                 }
@@ -392,7 +396,7 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
             IDbCommand Cmd = OpenCommand();
             try
             {
-                Cmd.CommandText = "SELECT " + ExpressionString + " FROM DUAL ";
+                Cmd.CommandText = "SELECT " + ExpressionString + " AS VALUE FROM DUAL ";
                 Cmd.CommandType = CommandType.Text;
                 // return ((OracleCommand)Cmd).ExecuteOracleScalar();
                 return ((OracleCommand)Cmd).ExecuteScalar();
