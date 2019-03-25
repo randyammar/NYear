@@ -9,7 +9,7 @@ namespace NYear.ODA.Adapter
 {
     public class DbAOdbcInformix : DBAccess
     {
-        private static char DBParamsMark { get { return '?'; } }
+        private const char DBParamsMark = '?'; 
         public DbAOdbcInformix(string ConnectionString)
             : base(ConnectionString)
         {

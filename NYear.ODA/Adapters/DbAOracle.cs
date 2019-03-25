@@ -10,7 +10,7 @@ namespace NYear.ODA.Adapter
 {
     public class DbAOracle : DBAccess
     {
-        private static char DBParamsMark { get { return ':'; } }
+        private const char DBParamsMark = ':'; 
         public DbAOracle(string ConnectionString)
             : base(ConnectionString)
         {

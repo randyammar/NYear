@@ -8,7 +8,7 @@ namespace NYear.ODA.Adapter
 {
     public class DbAOledbAccess : DBAccess
     {
-        private static char DBParamsMark { get { return ':'; } }
+        private const char DBParamsMark =':';
 
         [Description("Access建立时自动添加了系统表。但Access默认是不显示的，要想看到这些表，得手动设置一下：选择菜单“工具”－“选项”－“视图”，在“系统对象”前面打勾，就能看到如下七个表了： "
             + " MSysAccessObjects、MSysAccessXML、MSysAces、MSysImexColumns、MSysObjects、MSysQueries、MSysRelationShips "

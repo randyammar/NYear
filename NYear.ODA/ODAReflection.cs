@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
@@ -24,7 +25,6 @@ namespace NYear.ODA
         private static readonly MethodInfo GetInt64 = typeof(IDataRecord).GetMethod("GetInt64", new Type[] { typeof(int) });
         private static readonly MethodInfo GetString = typeof(IDataRecord).GetMethod("GetString", new Type[] { typeof(int) });
 
-
         private static readonly MethodInfo GetEnumDigit = typeof(ODADataReader).GetMethod("GetEnumDigit");
         private static readonly MethodInfo GetEnumString = typeof(ODADataReader).GetMethod("GetEnumString");
         private static readonly MethodInfo GetBytes = typeof(ODADataReader).GetMethod("GetBytes");
@@ -43,24 +43,25 @@ namespace NYear.ODA
         private static readonly MethodInfo GetStringValue = typeof(ODADataReader).GetMethod("GetStringValue");
         private static readonly MethodInfo GetValueConvert = typeof(ODADataReader).GetMethod("GetValueConvert");
 
-
-        private static SafeDictionary<string, object> CreatorsCache;
-        public static SafeDictionary<Type, Type> DBTypeMapping { get; private set; }
-
-        static ODAReflection()
+        private class ReadFieldInfo
         {
-            CreatorsCache = new SafeDictionary<string, object>();
-            DBTypeMapping = new SafeDictionary<Type, Type>();
+            public int FieldIndex = -1;
+            public string FieldName = "";
+            public Type FieldType = null;
         }
+
+        private static ConcurrentDictionary<string, object> CreatorsCache = new ConcurrentDictionary<string, object>();
+        public static ConcurrentDictionary<Type, Type> DBTypeMapping { get; private set; } = new ConcurrentDictionary<Type, Type>();
+
         public static Func<IDataReader, T> GetCreator<T>(IDataReader Reader)
         {
             object func = null;
             Type classType = typeof(T);
-            List<Tuple<int, Type,string>> FieldInfos = GetDataReaderFieldInfo(Reader); 
+            ReadFieldInfo[]  FieldInfos = GetDataReaderFieldInfo(Reader); 
             StringBuilder sber = new StringBuilder().Append(classType.GetHashCode());
-            for(int c = 0; c <  FieldInfos.Count; c ++)
+            for(int c = 0; c <  FieldInfos.Length; c ++)
             {
-                sber.Append(FieldInfos[c].Item2.Name);
+                sber.Append(FieldInfos[c].FieldType.Name);
             }  
             if (CreatorsCache.TryGetValue(sber.ToString(), out func))
                 return (Func<IDataReader, T>)func; 
@@ -76,9 +77,9 @@ namespace NYear.ODA
             }
             DynamicMethod method;
             if (classType.IsInterface)
-                method = new DynamicMethod("Create" + classType.FullName, classType, new Type[] { typeof(IDataReader) }, classType.Module, true);
+                method = new DynamicMethod("Create" + classType.Name, classType, new Type[] { typeof(IDataReader) }, classType.Module, true);
             else
-                method = new DynamicMethod("Create" + classType.FullName, classType, new Type[] { typeof(IDataReader) }, classType, true);
+                method = new DynamicMethod("Create" + classType.Name, classType, new Type[] { typeof(IDataReader) }, classType, true);
             ILGenerator il = method.GetILGenerator();
             LocalBuilder result = il.DeclareLocal(classType);
             il.Emit(OpCodes.Nop);
@@ -86,10 +87,10 @@ namespace NYear.ODA
             il.Emit(OpCodes.Stloc, result);
             for (int i = 0; i < ppIndex.Count; i++)
             {
-                Tuple<int, Type, string> Field = null; 
+                ReadFieldInfo Field = null;
                 foreach (var fld in FieldInfos)
                 {
-                    if (fld.Item3 == ppIndex[i].PropertyName.ToUpper())
+                    if (fld.FieldName.ToUpper() == ppIndex[i].PropertyName.ToUpper())
                     {
                         Field = fld;
                         break;
@@ -101,14 +102,14 @@ namespace NYear.ODA
                 {
                     Label lb = il.DefineLabel();
                     il.Emit(OpCodes.Ldarg_0);
-                    il.Emit(OpCodes.Ldc_I4, Field.Item1);
+                    il.Emit(OpCodes.Ldc_I4, Field.FieldIndex);
                     il.Emit(OpCodes.Callvirt, IsDBNull);
                     il.Emit(OpCodes.Brtrue, lb);
                     il.Emit(OpCodes.Ldloc, result);
                     il.Emit(OpCodes.Ldarg_0);
-                    il.Emit(OpCodes.Ldc_I4, Field.Item1);
+                    il.Emit(OpCodes.Ldc_I4, Field.FieldIndex);
 
-                    BindReaderMethod(il, ppIndex[i], Field.Item2);
+                    BindReaderMethod(il, ppIndex[i], Field.FieldType);
                     if (setter.IsFinal || !setter.IsVirtual)
                     {
                         il.Emit(OpCodes.Call, setter);
@@ -118,30 +119,34 @@ namespace NYear.ODA
                         il.Emit(OpCodes.Callvirt, setter);
                     }
                     il.MarkLabel(lb);
-
                 }
             }
             il.Emit(OpCodes.Ldloc, result);
             il.Emit(OpCodes.Ret);
             object reator = method.CreateDelegate(typeof(Func<IDataReader, T>));
-            CreatorsCache.Add(sber.ToString(), reator);
+            CreatorsCache.AddOrUpdate(sber.ToString(), reator,(arg1,arg2)=> reator);
             GC.KeepAlive(reator);
             return (Func<IDataReader, T>)reator;
         }
-        private static List<Tuple<int, Type,string>> GetDataReaderFieldInfo(IDataReader Reader)
+        private static ReadFieldInfo[] GetDataReaderFieldInfo(IDataReader Reader)
         {
-            List<Tuple<int, Type, string>> keys = new List<Tuple<int, Type, string>>();
+            ReadFieldInfo[] Fields = new ReadFieldInfo[Reader.FieldCount];
             var count = Reader.FieldCount;
             for (int i = 0; i < count; i++)
             {
                 Type dbType = Reader.GetFieldType(i);
                 Type CsType;
                 //////不同数据库类型与CSharp类型对应
-                if (!DBTypeMapping.TryGetValue(dbType, out CsType))
-                    CsType = dbType;
-                keys.Add(new Tuple<int, Type,string>(i, CsType, Reader.GetName(i).ToUpper()));
+                if (DBTypeMapping.TryGetValue(dbType, out CsType))
+                {
+                    Fields[i] = new ReadFieldInfo() { FieldIndex = i, FieldName = Reader.GetName(i), FieldType = CsType };
+                }
+                else
+                {
+                    Fields[i] = new ReadFieldInfo() { FieldIndex = i, FieldName = Reader.GetName(i), FieldType = dbType };
+                } 
             }
-            return keys;
+            return Fields;
         }
         private static void BindReaderMethod(ILGenerator il, ODAPropertyInfo PptyInfo,Type FieldType)
         {

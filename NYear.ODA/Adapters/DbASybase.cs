@@ -8,8 +8,7 @@ namespace NYear.ODA.Adapter
 {
     public class DbASybase : DBAccess
     {
-        private static char DBParamsMark { get { return ':'; } }
-
+        private const char DBParamsMark = ':';
         public DbASybase(string ConnectionString)
             : base(ConnectionString)
         {
@@ -212,8 +211,6 @@ namespace NYear.ODA.Adapter
                 CloseCommand(Cmd);
             }
         }
-       
-
         protected override void SetCmdParameters(ref IDbCommand Cmd, string SQL, params ODAParameter[] ParamList)
         {
             string dbSql = SQL;

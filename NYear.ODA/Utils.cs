@@ -125,7 +125,7 @@ namespace NYear.ODA
         /// <summary>
         /// 数据库变量标识
         /// </summary>
-        public static char ODAParamsMark { get { return '@'; } }
+        public const char ODAParamsMark = '@'; 
         /// <summary>
         /// 快速创建ODA变量
         /// </summary>
