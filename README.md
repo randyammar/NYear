@@ -1,6 +1,7 @@
 # NYear.ODA
 ## 简介
 C# .Net Database ORM for Oracle DB2 MySql SqlServer SQLite MariaDB;<br/>
+纯c#开发，支持.NetCore 2.0,.Net standard <br/>
 NYear.ODA 是一个数据库访问的 ORM 组件，能够通用常用的数据库 DB2、Oracle、SqlServer、MySql(MariaDB)、SQLite;<br/>
 对不常用的数据库Informix、Sybase、Access也能简单的使用；<br/>
 就目前而言，NYear.ODA 是支持 SQL 语法最完整的 C# ORM 组件;对于分库分表、或分布式数据库也留有很好的扩展空间。 <br/>
@@ -9,7 +10,8 @@ NYear.ODA 是一个数据库访问的 ORM 组件，能够通用常用的数据�
 允许用户注入SQL代码段，允许用户自己编写SQL代码等，同时也支持存储过程Procedure(或oracle的包）<br/>
 由于很多开发者都比较喜欢 Lambda 的直观简单，ODA 的查询也扩展了此功能。<br/>
 
-ODA 的标准功能已经足够强大了，用之开发一套完整 MES 系统或 WorkFlow【工作流】系统都不需要自定义SQL;<br/>
+**ODA 可以在大型团队开发时，人员水平参差不齐的情况下，提高开发人员效率及规范代码编写方式，减少数据库访问问题。**<br/>
+**ODA 的性能、功能、运行稳定性及并发性能都是非常强悍的，比Dapper、EF、SqlSugar都有过之而无不及。**<br/>
 **注： 已有实际项目应用，且Oracle、Mysql、SqlServer 三个数据库上随意切换，**<br/>
 **当然，建表时需要避免各种数据库的关键字及要注意不同数据库对数据记录的大小写敏感问题。**<br/>
 
