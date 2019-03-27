@@ -14,8 +14,9 @@ ODA 的标准功能已经足够强大了，用之开发一套完整 MES 系统�
 **当然，建表时需要避免各种数据库的关键字及要注意不同数据库对数据记录的大小写敏感问题。**<br/>
 
 ## NYear.ODA 语法
-ODA使用的是链式编程语法，编写方式SQL语法神似；<br/>
-开发时如有迷茫之处，基本可以用SQL语句类推出ODA的对应写法。<br/>
+ODA使用的是链式编程语法，对SQL语句进行直接映射，所以ODA的编写方式与SQL语法神似。<br/>
+因为ODA是对SQL语句进行直接映射，本身没有什么转换，不会象EF那样转换太多，造成真正在数据库里执行的SQL语句，复杂性能低下，且难以优化。<br/>
+开发时如有迷茫之处，基本可以用SQL语句类推出ODA的对应写法，学习以成本极低，也极容易成为高手，也不需要象EF那样花很多时间去学习。<br/>
 ODA为求通用各种数据库，转换出来的SQL都是标准通用的SQL语句；一些常用但数据不兼容的部分，在ODA内部实现（如递归树查询、分页等)。 <br/>
 NYear.ODA以 Select、Insert、Update、Delete、Procedure 方法为最终执行方法，调用这些方法时，ODA 将会把生成的SQL语句发送给数据库运行。
 
@@ -45,10 +46,7 @@ List<SYS_USER> data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N",
 ```C#
 ODAContext ctx = new ODAContext();
 var U = ctx.GetCmd<CmdSysUser>();
-List<SYS_USER> data = U.Where(U.ColUserAccount == "User1")
-               .And(U.ColIsLocked == "N")
-               .And(U.ColStatus == "O")
-               .And(U.ColEmailAddr.IsNotNull)
+List<SYS_USER> data = U.Where(U.ColUserAccount == "User1",U.ColIsLocked == "N",U.ColStatus == "O",U.ColEmailAddr.IsNotNull)
                .Select<SYS_USER>(U.ColUserAccount, U.ColUserName, U.ColPhoneNo, U.ColEmailAddr);
 ```
 #### 查询分页
