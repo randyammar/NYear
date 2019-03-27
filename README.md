@@ -14,27 +14,29 @@ ODA 的标准功能已经足够强大了，用之开发一套完整 MES 系统�
 **当然，建表时需要避免各种数据库的关键字及要注意不同数据库对数据记录的大小写敏感问题。**<br/>
 
 ## NYear.ODA 语法
-ODA使用的是链式编程语法，对SQL语句进行直接映射，所以ODA的编写方式与SQL语法神似。<br/>
-因为ODA是对SQL语句进行直接映射，本身没有什么转换，不会象EF那样转换太多，造成真正在数据库里执行的SQL语句，复杂性能低下，且难以优化。<br/>
-开发时如有迷茫之处，基本可以用SQL语句类推出ODA的对应写法，学习以成本极低，也极容易成为高手，也不需要象EF那样花很多时间去学习。<br/>
+ODA使用的是链式编程语法，对SQL语句进行直接映射，所以ODA的编写方式与SQL语法神似，只是把Select、Insert、Update、Delete 后置了。<br/>
+因为ODA是对SQL语句进行直接映射，本身没有什么转换，不会象EF那样转换太多，造成真正在数据库里执行的SQL语句复杂、性能低下，且难以优化。<br/>
+使用ODA时如有迷茫之处，基本可以用SQL语句类推出ODA的对应写法，学习以成本极低，也极容易成上手，也不需要象EF那样花很多时间去学习。<br/>
 ODA为求通用各种数据库，转换出来的SQL都是标准通用的SQL语句；一些常用但数据不兼容的部分，在ODA内部实现（如递归树查询、分页等)。 <br/>
 NYear.ODA以 Select、Insert、Update、Delete、Procedure 方法为最终执行方法，调用这些方法时，ODA 将会把生成的SQL语句发送给数据库运行。
 
 ## 用法示例
 ###  查询
 #### 简单查询
-在简单查询的语句里 Where 方法与 And 方法是等效的，往后很多时候都一样。
+SQL的关键字，在ODA中一般都会有对应的方法或属性。</br>
+查询指定的字段，字段别名，数据库函数，ODA中都可以很方便地使用。</br>
 ```C#
 ODAContext ctx = new ODAContext();
 var U = ctx.GetCmd<CmdSysUser>();
-object data = U.Where(U.ColUserAccount == "User1")
+DataTable data = U.Where(U.ColUserAccount == "User1")
        .And(U.ColIsLocked == "N")
        .And(U.ColStatus == "O")
        .And(U.ColEmailAddr.IsNotNull)  
        .Select(U.ColUserAccount, U.ColUserPassword.As("PWD"), U.ColUserName, U.ColPhoneNo, U.ColEmailAddr); 
 ```
 #### 查询默认实体
-
+为简化单表查询转为实体写法，ODA提供 SelectM 方法，返回默认实体数据。</br>
+此方法是泛型方法 Select<> 的再次封装，它与调用Select<>是一样的。
 ```C#
 ODAContext ctx = new ODAContext();
 var U = ctx.GetCmd<CmdSysUser>();
@@ -42,7 +44,9 @@ List<SYS_USER> data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N",
                .SelectM(U.ColUserAccount, U.ColUserName, U.ColPhoneNo, U.ColEmailAddr);
 ```
 #### 查询并返回指定实体类型
-返回的实体类型可以是任意自定义类型，并不一定是对应数据库的实体
+返回的实体类型可以是任意自定义类型，并不一定是对应数据库的实体.</br>
+泛型方法 Select<> 对传入的实体类型没有大多要求，它的可写属性与查询的字段名称一致时将赋值。</br>
+实体的属性与查询的字段个数无需一致。
 ```C#
 ODAContext ctx = new ODAContext();
 var U = ctx.GetCmd<CmdSysUser>();
@@ -58,6 +62,8 @@ var data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColEmail
     .SelectM(0,20,out total, U.ColUserAccount, U.ColUserName, U.ColPhoneNo, U.ColEmailAddr); 
 ```
 #### 查询第一行
+很多时候我们查询数据库只需取第一行的数据。ODA为简化应用，提供了查询第一行数据返回动态类型数据的方法。</br>
+返回结果是动态类型，按查询的字段名取值即可。
 ```C#
 ODAContext ctx = new ODAContext(); 
 var U = ctx.GetCmd<CmdSysUser>();
@@ -67,6 +73,8 @@ var data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColEmail
     string UserName = data.USER_NAME;///属性 USER_NAME 与 ColUserName 的ColumnName一致，如果没有数据则返回null
  ```
 #### 返回动态数据模型
+很多时候为一种查询编写一个实体类，实在是很麻烦。</br>
+ODA本身提供了动态类型的返回值，这样对取小量数据的程序来说是很方便的了。
 ```C#
 ODAContext ctx = new ODAContext();
 var U = ctx.GetCmd<CmdSysUser>();
@@ -85,7 +93,8 @@ var data = U.Where( U.ColIsLocked == "N", U.ColEmailAddr.IsNotNull)
     .Distinct.Select(U.ColUserAccount, U.ColUserName, U.ColPhoneNo, U.ColEmailAddr);
 ```
 #### 连接查询
-支持 InnerJoin、LeftJoin、RightJion ；可以无限Join
+ODA支持 InnerJoin、LeftJoin、RightJion，且可以无限的Join。</br>
+On 的条件也十分灵活，SQL语句支持的条件方式，ODA基本支持。
 ```C#
 ODAContext ctx = new ODAContext();
 var U = ctx.GetCmd<CmdSysUser>();
@@ -93,9 +102,25 @@ var R = ctx.GetCmd<CmdSysRole>();
 var UR = ctx.GetCmd<CmdSysUserRole>();
 
 var data = U.InnerJoin(UR, U.ColUserAccount == UR.ColUserAccount, UR.ColStatus == "O")
-    .InnerJoin(R, UR.ColRoleCode == R.ColRoleCode, R.ColStatus == "O")
+    .LeftJoin(R, UR.ColRoleCode == R.ColRoleCode, R.ColStatus == "O")
     .Where(U.ColStatus == "O",R.ColRoleCode == "Administrator")
     .Select<UserDefineModel>(U.ColUserAccount.As("UserAccount"), U.ColUserName.As("UserName"),R.ColRoleCode.As("Role"), R.ColRoleName.As("RoleName"));
+    
+/*
+SELECT T0.USER_ACCOUNT AS UserAccount,
+       T0.USER_NAME    AS UserName,
+       T1.ROLE_CODE    AS Role,
+       T1.ROLE_NAME    AS RoleName
+  FROM SYS_USER T0
+ INNER JOIN SYS_USER_ROLE T2
+    ON T0.USER_ACCOUNT = T2.USER_ACCOUNT
+   AND T2.STATUS = 'O'
+ INNER JOIN SYS_ROLE T1
+    ON T2.ROLE_CODE = T1.ROLE_CODE
+   AND T1.STATUS ='O'
+ WHERE T0.STATUS = 'O'
+   AND T1.ROLE_CODE = 'Administrator';
+*/
 ```
 #### 简单内连接 
 内连接有很多人只使用 join , 但对形如 SELECT t1.* FROM TABLE1 T1,TABLE2 T2,TABLE3 T3,TABLE4 这种写法比较陌生，<br/>
@@ -144,7 +169,7 @@ var RA = ctx.GetCmd<CmdSysRoleAuthorization>();
 var Admin = U.InnerJoin(UR, U.ColUserAccount == UR.ColUserAccount, UR.ColStatus == "O")
     .InnerJoin(R, UR.ColRoleCode == R.ColRoleCode, R.ColStatus == "O")
     .Where(U.ColStatus == "O")
-    .ToView(U.ColUserAccount.As("SYS_USER"), U.ColUserName, R.ColRoleCode.As("SYS_ROLE"), R.ColRoleName); ////子查询
+    .ToView(U.ColUserAccount.As("SYS_USER"), U.ColUserName, R.ColRoleCode.As("SYS_ROLE"), R.ColRoleName); ////建立视图
 
 var data =  Admin.InnerJoin(UA, UA.ColUserAccount == Admin.ViewColumns[1],UA.ColIsForbidden == "N")
     .InnerJoin(RA,RA.ColRoleCode == Admin.ViewColumns[2],RA.ColIsForbidden =="N") 
@@ -261,8 +286,8 @@ var U = ctx.GetCmd<CmdSysUser>();
 var UR = ctx.GetCmd<CmdSysUserRole>();
 
 var data = U.InnerJoin(UR, U.ColUserAccount == UR.ColUserAccount, UR.ColStatus == "O")
-    .Where(U.ColStatus == "O", U.ColEmailAddr.IsNotNull.Or(U.ColEmailAddr == "riwfnsse@163.com"), U.ColIsLocked == "N")
-    .Where(UR.ColRoleCode.In("Administrator", "Admin", "PowerUser", "User", "Guest")) 
+    .Where(U.ColStatus == "O", U.ColEmailAddr.IsNotNull.Or(U.ColEmailAddr == "riwfnsse@163.com"),
+    U.ColIsLocked == "N",UR.ColRoleCode.In("Administrator", "Admin", "PowerUser", "User", "Guest")) 
     .Groupby(UR.ColRoleCode)
     .Having(U.ColUserAccount.Count > 2)
     .OrderbyAsc(U.ColUserAccount.Count)
@@ -278,9 +303,27 @@ U.Groupby(UR.ColRoleCode);
 U.Having(U.ColUserAccount.Count > 2);
 U.OrderbyAsc(U.ColUserAccount.Count);
 data = U.Select(U.ColUserAccount.Count.As("USER_COUNT"), UR.ColRoleCode);
+
+/*
+SELECT COUNT(T0.USER_ACCOUNT) AS USER_COUNT, T1.ROLE_CODE
+  FROM SYS_USER T0
+ INNER JOIN SYS_USER_ROLE T1
+    ON T0.USER_ACCOUNT = T1.USER_ACCOUNT
+   AND T1.STATUS = 'O'
+ WHERE T0.STATUS ='O'
+   AND (T0.EMAIL_ADDR IS NOT NULL OR T0.EMAIL_ADDR = 'riwfnsse@163.com')
+   AND T0.IS_LOCKED = 'N'
+   AND T1.ROLE_CODE IN ('Administrator', 'Admin', 'PowerUser', 'User', 'Guest')
+ GROUP BY T1.ROLE_CODE
+HAVING COUNT(T0.USER_ACCOUNT) > 2
+ ORDER BY COUNT(T0.USER_ACCOUNT) ASC;
+*/
+
 ```
 #### 分组统计, Groupby  Having
-Groupby 、Having、OrderbyAsc 方法里支持 Function 运算；
+Groupby 、Having、OrderbyAsc 方法里支持 Function 运算；</br>
+Count、Max、Min、Sum、Upper、Lower等数据库通用的内置函数，已在ODA字段里内置了。</br>
+其他函数可以使用 ODA Function 。
 ```C#
  ODAContext ctx = new ODAContext();
  var U = ctx.GetCmd<CmdSysUser>();
@@ -356,6 +399,7 @@ var data = new ODAContext().GetJoinCmd<CmdSysUser>()
 
 ### 更新数据
 #### 通常的 update 方式
+Update 语句通常不会更新所有的字段，而是update指定字段。</br>
 Update 的 where 条件与 查询是语句是一致的。
 ```C#
 ODAContext ctx = new ODAContext();
