@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("NYear.ODA")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Creative.")]
+[assembly: AssemblyCompany("NYear")]
 [assembly: AssemblyProduct("NYear.ODA")]
-[assembly: AssemblyCopyright("Copyright © Creative. 2012")]
+[assembly: AssemblyCopyright("Copyright © NYear. 2012")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

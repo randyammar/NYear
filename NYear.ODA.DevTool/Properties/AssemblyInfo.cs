@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("NYear.ODA.DevTool")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("NYear")]
 [assembly: AssemblyProduct("NYear.ODA.DevTool")]
-[assembly: AssemblyCopyright("Copyright ©  2016")]
+[assembly: AssemblyCopyright("Copyright ©  NYear2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
