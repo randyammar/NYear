@@ -62,8 +62,6 @@ namespace NYear.ODA.Model
 		 public string RESOURCE_ID {get; set;}
 		 public string IS_FORBIDDEN {get; set;}
 	}
-
-    [SugarTable("SYS_USER")]
     public partial class SYS_USER
 	{
 		 public string STATUS {get; set;}

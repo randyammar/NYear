@@ -195,16 +195,15 @@ namespace NYear.ODA
         /// 获取当前数据库访问上下文的访问命令实列
         /// </summary>
         /// <typeparam name="U">命令类型</typeparam>
-        /// <param name="Alias">别名</param>
+        /// <param name="Schema">别名</param>
         /// <returns></returns>
-        public virtual U GetCmd<U>(string Alias = "") where U : IODACmd, new()
+        public virtual U GetCmd<U>(string Schema = "") where U : IODACmd, new()
         {
             U cmd = new U();
             cmd.GetDBAccess = GetDBAccess;
-            if (string.IsNullOrWhiteSpace(Alias))
-                cmd.Alias = this.GetAlias();
-            else
-                cmd.Alias = Alias;
+            if (!string.IsNullOrWhiteSpace(Schema))
+                cmd.Schema = Schema;
+            cmd.Alias = this.GetAlias();
             cmd.GetAlias = this.GetAlias;
             cmd.DBCharSet = Encoding.UTF8;
             return cmd;

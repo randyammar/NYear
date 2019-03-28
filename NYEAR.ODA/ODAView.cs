@@ -2,15 +2,15 @@
 
 namespace NYear.ODA
 {
-    public class ODACmdView : ODACmd
+    public class ODAView : ODACmd
     {
-        private ODACmd _CmdView = null;
+        private ODACmd _Cmd = null;
         private IODAColumns[] SelectCols = null;
         public override string CmdName
         {
             get
             {
-                return _CmdView.CmdName;
+                return _Cmd.CmdName;
             }
         } 
         public ODAColumns[] ViewColumns
@@ -33,7 +33,7 @@ namespace NYear.ODA
         {
             get
             {
-                return _CmdView;
+                return _Cmd;
             }
         }
 
@@ -41,17 +41,17 @@ namespace NYear.ODA
         {
             get
             {
-                return ((IODACmd)_CmdView).DBObjectMap;
+                return ((IODACmd)_Cmd).DBObjectMap;
             }
             set
             {
-                ((IODACmd)_CmdView).DBObjectMap = value;
+                ((IODACmd)_Cmd).DBObjectMap = value;
             }
         }
 
         protected override ODAScript GetCmdSql()
         {
-            var view = ((ODACmd)_CmdView).GetSelectSql(SelectCols);
+            var view = ((ODACmd)_Cmd).GetSelectSql(SelectCols);
             view.SqlScript.Insert(0, "(").Append(")");
             return view;
         }
@@ -60,9 +60,9 @@ namespace NYear.ODA
             return new ODAColumns(this, ColName, ColType, size);
         }
 
-        internal ODACmdView(ODACmd Cmd, params IODAColumns[] Cols)
+        internal ODAView(ODACmd Cmd, params IODAColumns[] Cols)
         {
-            _CmdView = Cmd;
+            _Cmd = Cmd;
             Alias = Cmd.GetAlias();
             SelectCols = Cols; 
         }

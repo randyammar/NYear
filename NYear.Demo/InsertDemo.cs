@@ -18,6 +18,9 @@ namespace NYear.Demo
                 U.ColUserAccount == "Nyear", U.ColUserName == "多年", U.ColUserPassword == "123", U.ColFeMale == "M", U.ColFailTimes ==0,U.ColIsLocked =="N");
 
         }
+
+  
+
         [Demo(Demo = FuncType.Insert, MethodName = "InsertModel", MethodDescript = "插入模型的数据")]
         public static void InsertModel()
         {

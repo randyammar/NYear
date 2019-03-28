@@ -66,14 +66,6 @@ namespace NYear.ODA
                 this.Clear();
             }
         }
-        public bool Update(Func<ORMCmd<T>, ODAColumns[]> ColVal)
-        {
-            return base.Update(ColVal(this));
-        }
-        public bool Insert(Func<ORMCmd<T>, ODAColumns[]> ColVal)
-        {
-            return base.Insert(ColVal(this));
-        }
         public List<T> SelectM(params ODAColumns[] Cols)
         {
             return this.Select<T>(Cols); 
@@ -114,33 +106,33 @@ namespace NYear.ODA
         {
             return (ORMCmd<T>)base.StartWithConnectBy(StartWithExpress, ConnectBy, Prior, ConnectColumn, ConnectStr, MaxLevel);
         }
-        public new ORMCmd<T> OrderbyAsc(params IODAColumns[] ColumnNames)
+        public new ORMCmd<T> OrderbyAsc(params IODAColumns[] Columns)
         {
-            return (ORMCmd<T>)base.OrderbyAsc(ColumnNames);
+            return (ORMCmd<T>)base.OrderbyAsc(Columns);
         }
-        public new ORMCmd<T> OrderbyDesc(params IODAColumns[] ColumnNames)
+        public new ORMCmd<T> OrderbyDesc(params IODAColumns[] Columns)
         {
-            return (ORMCmd<T>)base.OrderbyDesc(ColumnNames);
+            return (ORMCmd<T>)base.OrderbyDesc(Columns);
         }
-        public new ORMCmd<T> Groupby(params IODAColumns[] ColumnNames)
+        public new ORMCmd<T> Groupby(params IODAColumns[] Columns)
         {
-            return (ORMCmd<T>)base.Groupby(ColumnNames);
+            return (ORMCmd<T>)base.Groupby(Columns);
         }
-        public new ORMCmd<T> Having(params IODAColumns[] Params)
+        public new ORMCmd<T> Having(params IODAColumns[] Condition)
         {
-            return (ORMCmd<T>)base.Having(Params);
+            return (ORMCmd<T>)base.Having(Condition);
         }
-        public new ORMCmd<T> Where(params IODAColumns[] Cols)
+        public new ORMCmd<T> Where(params IODAColumns[] Condition)
         {
-            return (ORMCmd<T>)base.Where(Cols);
+            return (ORMCmd<T>)base.Where(Condition);
         }
-        public new ORMCmd<T> And(params IODAColumns[] Cols)
+        public new ORMCmd<T> And(params IODAColumns[] Condition)
         {
-            return (ORMCmd<T>)base.And(Cols);
+            return (ORMCmd<T>)base.And(Condition);
         }
-        public new ORMCmd<T> Or(params IODAColumns[] Cols)
+        public new ORMCmd<T> Or(params IODAColumns[] Condition)
         {
-            return (ORMCmd<T>)base.Or(Cols);
+            return (ORMCmd<T>)base.Or(Condition);
         }
     }
 }

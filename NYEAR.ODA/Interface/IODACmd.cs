@@ -8,6 +8,7 @@ namespace NYear.ODA
     public interface IODACmd
     {
         string Alias { get; set; }
+        string Schema { get; set; }
         GetDBAccessHandler GetDBAccess { get; set; }
         Func<string> GetAlias { get; set; }
         string DBObjectMap { get; set; }

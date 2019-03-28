@@ -104,7 +104,7 @@
     <Compile Include="ODACmd.Dynamic.cs" />
     <Compile Include="ODAContext.cs" />
     <Compile Include="ODAFunction.cs" />
-    <Compile Include="ODACmdView.cs" />
+    <Compile Include="ODAView.cs" />
     <Compile Include="ODAReflection.cs" />
     <Compile Include="ORMCmd.cs" />
     <Compile Include="SQLCmd.cs" />

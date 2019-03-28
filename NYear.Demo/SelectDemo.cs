@@ -21,6 +21,7 @@ namespace NYear.Demo
         [Demo(Demo = FuncType.Select, MethodName = "Select", MethodDescript = "简单查询")]
         public static object Select()
         { 
+            ///ODA语法就SQL语法的直接映射,并尽量简法
             ODAContext ctx = new ODAContext();
             var U = ctx.GetCmd<CmdSysUser>();
             object data = U.Where(U.ColUserAccount == "User1")
@@ -108,8 +109,9 @@ namespace NYear.Demo
             var R = ctx.GetCmd<CmdSysRole>();
             var UR = ctx.GetCmd<CmdSysUserRole>();
 
+            ///LeftJoin\InnerJoin\RightJoin 可以无限连接，但实际上每种数据库都有对SQL语句长度作限制。
             var data = U.InnerJoin(UR, U.ColUserAccount == UR.ColUserAccount, UR.ColStatus == "O")
-                .InnerJoin(R, UR.ColRoleCode == R.ColRoleCode, R.ColStatus == "O")
+                .LeftJoin(R, UR.ColRoleCode == R.ColRoleCode, R.ColStatus == "O")
                 .Where(U.ColStatus == "O",R.ColRoleCode == "Administrator")
                  .Select<UserDefineModel>(U.ColUserAccount.As("UserAccount"), U.ColUserName.As("UserName"),R.ColRoleCode.As("Role"), R.ColRoleName.As("RoleName"));
             return data;

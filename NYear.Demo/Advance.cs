@@ -11,6 +11,33 @@ namespace NYear.Demo
 {
     public class Advance
     {
+
+        [Demo(Demo = FuncType.Advance, MethodName = "Transaction", MethodDescript = "事务")]
+        public static object Transaction()
+        {
+            ODAContext ctx = new ODAContext();
+            var U1 = ctx.GetCmd<CmdSysUser>();
+            ctx.BeginTransaction();
+            try
+            {
+                var U = ctx.GetCmd<CmdSysUser>();
+                U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColStatus == "O", U.ColEmailAddr.IsNotNull)
+                 .Update(
+                    U.ColUserName == "新的名字", U.ColIsLocked == "Y"
+                    ); 
+                U1.Insert(U.ColStatus == "O", U1.ColCreatedBy == "User1", U1.ColLastUpdatedBy == "User1", U1.ColLastUpdatedDate == DateTime.Now, U1.ColCreatedDate == DateTime.Now,
+                    U1.ColUserAccount == "Nyear", U1.ColUserName == "多年", U1.ColUserPassword == "123", U1.ColFeMale == "M", U1.ColFailTimes == 0, U1.ColIsLocked == "N");
+                 
+                ctx.Commit();
+            }
+            catch
+            {
+                ctx.RollBack();
+            }
+            return null;
+
+        }
+
         [Demo(Demo = FuncType.Advance, MethodName = "ColumnJoin", MethodDescript = "字段连接")]
         public static object ColumnJoin()
         {

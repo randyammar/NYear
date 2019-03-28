@@ -583,16 +583,16 @@ namespace NYear.ODA
             return this;
         }
     
-        public ODAColumns SetCondition(CmdConditionSymbol Symbol, object CompareValue)
+        public ODAColumns SetCondition(CmdConditionSymbol Symbol, object Val)
         {
             if (Symbol == CmdConditionSymbol.NONE)
                 throw new ODAException(20007, (string.IsNullOrEmpty(_ColumnComment) ? _ColumnName : _ColumnComment) + "Condition Symbol Should not be NONE");
             if (_Symbol != CmdConditionSymbol.NONE)
                 throw new ODAException(20008, (string.IsNullOrEmpty(_ColumnComment) ? _ColumnName : _ColumnComment) + "Condition Symbol was setted");
-            if (this.Equals(CompareValue))
+            if (this.Equals(Val))
                 throw new ODAException(200081, (string.IsNullOrEmpty(_ColumnComment) ? _ColumnName : _ColumnComment) + "Condition can't be  itself");
             _Symbol = Symbol;
-            _CompareValue = CompareValue == null ? System.DBNull.Value : CompareValue;
+            _CompareValue = Val == null ? System.DBNull.Value : Val;
             return this;
         }
         public ODAColumns IsNull
@@ -609,29 +609,29 @@ namespace NYear.ODA
                 return SetCondition(CmdConditionSymbol.ISNOTNULL, System.DBNull.Value);
             }
         }
-        public ODAColumns Like(object CompareValue)
+        public ODAColumns Like(object Val)
         {
-            return SetCondition(CmdConditionSymbol.LIKE, CompareValue);
+            return SetCondition(CmdConditionSymbol.LIKE, Val);
         }
-        public ODAColumns NotLike(object CompareValue)
+        public ODAColumns NotLike(object Val)
         {
-            return SetCondition(CmdConditionSymbol.NOTLIKE, CompareValue);
+            return SetCondition(CmdConditionSymbol.NOTLIKE, Val);
         }
-        public ODAColumns In(params object[] CompareValue)
+        public ODAColumns In(params object[] Val)
         {
-            if (CompareValue == null)
+            if (Val == null)
                 throw new ODAException(20009, (string.IsNullOrEmpty(_ColumnComment) ? _ColumnName : _ColumnComment) + " In statement CompareValue Can't be null");
-            if (CompareValue.Length == 0)
+            if (Val.Length == 0)
                 throw new ODAException(20010, (string.IsNullOrEmpty(_ColumnComment) ? _ColumnName : _ColumnComment) + " In statement  CompareValue Can't be empty");
-            return SetCondition(CmdConditionSymbol.IN, CompareValue);
+            return SetCondition(CmdConditionSymbol.IN, Val);
         }
-        public ODAColumns NotIn(params object[] CompareValue)
+        public ODAColumns NotIn(params object[] Val)
         {
-            if (CompareValue == null)
+            if (Val == null)
                 throw new ODAException(20011, (string.IsNullOrEmpty(_ColumnComment) ? _ColumnName : _ColumnComment) + "In statement  CompareValue Can't be null");
-            if (CompareValue.Length == 0)
+            if (Val.Length == 0)
                 throw new ODAException(20012, (string.IsNullOrEmpty(_ColumnComment) ? _ColumnName : _ColumnComment) + "In statement CompareValue Can't be empty");
-            return SetCondition(CmdConditionSymbol.NOTIN, CompareValue);
+            return SetCondition(CmdConditionSymbol.NOTIN, Val);
         }
         public ODAColumns In(ODACmd Cmd, ODAColumns Col)
         {
@@ -649,20 +649,20 @@ namespace NYear.ODA
             _InCmd = Cmd;
             return SetCondition(CmdConditionSymbol.NOTIN, null);
         }
-        public ODAColumns And(params ODAColumns[] Columns)
+        public ODAColumns And(params ODAColumns[] Condition)
         {
-            if (Columns != null)
+            if (Condition != null)
             {
-                foreach (ODAColumns cl in Columns)
+                foreach (ODAColumns cl in Condition)
                     _SqlColumnList.Add(new SqlColumnScript() { ConnScript = " AND ", SqlColumn = cl });
             }
             return this;
         }
-        public ODAColumns Or(params ODAColumns[] Columns)
+        public ODAColumns Or(params ODAColumns[] Condition)
         {
-            if (Columns != null)
+            if (Condition != null)
             {
-                foreach (ODAColumns cl in Columns)
+                foreach (ODAColumns cl in Condition)
                     _SqlColumnList.Add(new SqlColumnScript() { ConnScript = " OR ", SqlColumn = cl });
             }
             return this;

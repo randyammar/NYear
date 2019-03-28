@@ -42,7 +42,14 @@ namespace NYear.ODA
         public virtual string CmdName
         {
             get;
-        } 
+        }
+        /// <summary>
+        /// 命令名称
+        /// </summary>
+        public virtual string Schema
+        {
+            get;set;
+        }
         /// <summary>
         /// 确定输入项长度
         /// </summary>
@@ -76,7 +83,12 @@ namespace NYear.ODA
         {
             get
             {
-                return string.IsNullOrWhiteSpace(_DBObjectMap) ? this.CmdName : _DBObjectMap;
+                string TableName = string.IsNullOrWhiteSpace(_DBObjectMap) ? this.CmdName : _DBObjectMap;
+                if (!string.IsNullOrWhiteSpace(Schema))
+                {
+                    TableName = Schema + "." + TableName;
+                }
+                return TableName;
             }
             set
             {
@@ -151,9 +163,9 @@ namespace NYear.ODA
         /// </summary>
         /// <param name="Cols">子查询的字段</param>
         /// <returns></returns>
-        public virtual ODACmdView ToView(params IODAColumns[] Cols)
+        public virtual ODAView ToView(params IODAColumns[] Cols)
         {
-            return new ODACmdView(this, Cols)
+            return new ODAView(this, Cols)
             {
                 GetDBAccess = this.GetDBAccess,
                 GetAlias = this.GetAlias,
@@ -245,64 +257,64 @@ namespace NYear.ODA
             _MaxLevel = MaxLevel;
             return this;
         }
-        public virtual ODACmd OrderbyAsc(params IODAColumns[] ColumnNames)
+        public virtual ODACmd OrderbyAsc(params IODAColumns[] Columns)
         {
-            if (ColumnNames != null)
-                for (int i = 0; i < ColumnNames.Length; i++)
-                    _Orderby.Add(new SqlOrderbyScript() { OrderbyCol = ColumnNames[i], OrderbyScript = " ASC " });
+            if (Columns != null)
+                for (int i = 0; i < Columns.Length; i++)
+                    _Orderby.Add(new SqlOrderbyScript() { OrderbyCol = Columns[i], OrderbyScript = " ASC " });
             return this;
         }
-        public virtual ODACmd OrderbyDesc(params IODAColumns[] ColumnNames)
+        public virtual ODACmd OrderbyDesc(params IODAColumns[] Columns)
         {
-            if (ColumnNames != null)
-                for (int i = 0; i < ColumnNames.Length; i++)
-                    _Orderby.Add(new SqlOrderbyScript() { OrderbyCol = ColumnNames[i], OrderbyScript = " DESC " });
+            if (Columns != null)
+                for (int i = 0; i < Columns.Length; i++)
+                    _Orderby.Add(new SqlOrderbyScript() { OrderbyCol = Columns[i], OrderbyScript = " DESC " });
             return this;
         }
-        public virtual ODACmd Groupby(params IODAColumns[] ColumnNames)
+        public virtual ODACmd Groupby(params IODAColumns[] Columns)
         {
-            _Groupby.AddRange(ColumnNames);
+            _Groupby.AddRange(Columns);
             return this;
         }
-        public virtual ODACmd Having(params IODAColumns[] Params)
+        public virtual ODACmd Having(params IODAColumns[] Condition)
         {
-            _Having.AddRange(Params);
+            _Having.AddRange(Condition);
             return this;
         }
-        public virtual ODACmd Where(params IODAColumns[] Cols)
+        public virtual ODACmd Where(params IODAColumns[] Condition)
         {
-            _WhereList.AddRange(Cols);
+            _WhereList.AddRange(Condition);
             return this;
         }
-        public virtual ODACmd And(params IODAColumns[] Cols)
+        public virtual ODACmd And(params IODAColumns[] Condition)
         {
-            _WhereList.AddRange(Cols);
+            _WhereList.AddRange(Condition);
             return this;
         }
-        public virtual ODACmd Or(params IODAColumns[] Cols)
+        public virtual ODACmd Or(params IODAColumns[] Condition)
         {
             if (_WhereList.Count == 0)
                 throw new ODAException(10005, "Where Condition is null,Add Where first");
-            _OrList.AddRange(Cols);
+            _OrList.AddRange(Condition);
             return this;
         }
 
-        public virtual ODACmd Union(ODACmdView Union)
+        public virtual ODACmd Union(ODAView ODAView)
         {
-            if (Union._Orderby.Count > 0)
+            if (ODAView._Orderby.Count > 0)
             {
                 throw new ODAException(10020, "There is [Order by] expression  in Union ODACmd !"); 
             }
-            _UnionCmd.Add(new SqlUnionScript() { UnionCmd = Union, JoinScript = " UNION " }); 
+            _UnionCmd.Add(new SqlUnionScript() { UnionCmd = ODAView, JoinScript = " UNION " }); 
             return this;
         }
-        public virtual ODACmd UnionAll(ODACmdView Union)
+        public virtual ODACmd UnionAll(ODAView ODAView)
         {
-            if (Union._Orderby.Count > 0)
+            if (ODAView._Orderby.Count > 0)
             {
                 throw new ODAException(10020, "There is [Order by] expression  in Union ODACmd !"); 
             }
-            _UnionCmd.Add(new SqlUnionScript() { UnionCmd = Union, JoinScript = " UNION ALL " });
+            _UnionCmd.Add(new SqlUnionScript() { UnionCmd = ODAView, JoinScript = " UNION ALL " });
             return this;
         }
         #endregion
@@ -359,18 +371,18 @@ namespace NYear.ODA
         /// <summary>
         /// 获取查询语主中 where 字符串有变量
         /// </summary>
-        /// <param name="WhereList"></param>
+        /// <param name="ConditionList"></param>
         /// <param name="RelationStr"></param>
         /// <param name="SubSql"></param>
         /// <returns></returns>
-        protected virtual ODAScript GetWhereSubSql(List<IODAColumns> WhereList, string RelationStr)
+        protected virtual ODAScript GetWhereSubSql(List<IODAColumns> ConditionList, string RelationStr)
         {
             var sql = new ODAScript();
-            if (WhereList == null || WhereList.Count == 0)
+            if (ConditionList == null || ConditionList.Count == 0)
                 return sql; 
             List<ODAParameter> ParamsList = new List<ODAParameter>();
           
-            foreach (IODAColumns W in WhereList)
+            foreach (IODAColumns W in ConditionList)
             {
                 var sub = W.GetWhereSubstring();
                 sql.Merge(sub);
@@ -700,13 +712,13 @@ namespace NYear.ODA
         /// <param name="Sql"></param>
         /// <param name="Cols"></param>
         /// <returns></returns>
-        protected virtual ODAParameter[] GetProcedureSql(out string Sql, params IODAColumns[] Cols)
+        protected virtual ODAParameter[] GetProcedureSql(out string Sql, params IODAColumns[] Params)
         {
             List<ODAParameter> ParamList = new List<ODAParameter>();
             Sql = this.DBObjectMap;
-            for (int i = 0; i < Cols.Length; i++)
+            for (int i = 0; i < Params.Length; i++)
             {
-                ParamList.Add( Cols[i].GetProcedureParams());
+                ParamList.Add(Params[i].GetProcedureParams());
             }
             return ParamList.ToArray();
         }
@@ -1027,11 +1039,11 @@ namespace NYear.ODA
         /// </summary>
         /// <param name="Cols">需要更新的字段及其值</param>
         /// <returns></returns>
-        public virtual bool Update(params IODAColumns[] Cols)
+        public virtual bool Update(params IODAColumns[] ColumnValues)
         {
             try
             {
-                var sql = this.GetUpdateSql(Cols);
+                var sql = this.GetUpdateSql(ColumnValues);
                 var db = this.GetDBAccess(sql);
                 if (db == null)
                     throw new ODAException(10014, "ODACmd Update 没有执行程序");
@@ -1049,11 +1061,11 @@ namespace NYear.ODA
         /// </summary>
         /// <param name="Cols">插件的字段及其值</param>
         /// <returns></returns>
-        public virtual bool Insert(params IODAColumns[] Cols)
+        public virtual bool Insert(params IODAColumns[] ColumnValues)
         {
             try
             {
-                var sql = this.GetInsertSql(Cols);
+                var sql = this.GetInsertSql(ColumnValues);
                 var db = this.GetDBAccess(sql);
                 if (db == null)
                     throw new ODAException(10015, "ODACmd Update 没有执行程序");
@@ -1069,9 +1081,9 @@ namespace NYear.ODA
         /// insert () select
         /// </summary>
         /// <param name="SelectCmd"></param>
-        /// <param name="Cols">select的字段</param>
+        /// <param name="Columns">select的字段</param>
         /// <returns></returns>
-        public virtual bool Insert(ODACmd SelectCmd, params IODAColumns[] Cols)
+        public virtual bool Insert(ODACmd SelectCmd, params IODAColumns[] Columns)
         {
             try
             {
@@ -1081,10 +1093,10 @@ namespace NYear.ODA
                 };
                 sql.SqlScript.Append("INSERT INTO ").Append(this.CmdName).Append("(");
                 string Column = "";
-                for (int i = 0; i < Cols.Length; i++)
-                    Column += Cols[i].ColumnName + ",";
+                for (int i = 0; i < Columns.Length; i++)
+                    Column += Columns[i].ColumnName + ",";
                 sql.SqlScript.Append(Column.Remove(Column.Length - 1, 1)).Append(") ");
-                var sSql = SelectCmd.GetSelectSql(Cols);
+                var sSql = SelectCmd.GetSelectSql(Columns);
                 sql.Merge(sSql);
 
                 var db = this.GetDBAccess(sql);
@@ -1102,14 +1114,14 @@ namespace NYear.ODA
         /// <summary>
         /// 在数据库中Procedure
         /// </summary>
-        /// <param name="Cols">存储过程的参数及其值</param>
+        /// <param name="Params">存储过程的参数及其值</param>
         /// <returns></returns>
-        public virtual DataSet Procedure(params IODAColumns[] Cols)
+        public virtual DataSet Procedure(params IODAColumns[] Params)
         {
             try
             {
                 string sqlScript = "";
-                var prms = this.GetProcedureSql(out sqlScript, Cols);
+                var prms = this.GetProcedureSql(out sqlScript, Params);
                 var sql = new ODAScript()
                 {
                     ScriptType = SQLType.Procedure,
@@ -1154,7 +1166,7 @@ namespace NYear.ODA
         }
         public virtual void Clear()
         {
-            Alias = "";
+            //Alias = "";
             _StartWithExpress = null;
             _ConnectByParent = null;
             _PriorChild = null;

@@ -233,7 +233,7 @@ namespace NYear.ODA
     }
     public class SqlUnionScript
     {
-        public ODACmdView UnionCmd { get; set; }
+        public ODAView UnionCmd { get; set; }
         public string JoinScript { get; set; }
     }
 

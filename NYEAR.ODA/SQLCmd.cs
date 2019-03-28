@@ -15,7 +15,7 @@ namespace NYear.ODA
         Func<string> IODACmd.GetAlias { get; set; }
         string IODACmd.DBObjectMap {get;set;} 
         Encoding IODACmd.DBCharSet { get; set; }
-
+        public string Schema { get; set; }
         public string Alias { get; set; }
         private GetDBAccessHandler GetDBAccess
         {
