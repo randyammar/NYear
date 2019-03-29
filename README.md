@@ -562,32 +562,30 @@ for (int i = 0; i < 10000; i++)
  U.Import(data);
 ```
 ### 事务
-事务的管理控制 ODAContext 里，每一个 ODAContext 实例同一时间只会开启一个事务。</br>
-ODA 可以指定事务的超时时间，默认是30秒。</br>
+ODA 事务的控制管理在 ODAContext 里，每一个 ODAContext 实例同一时间只会开启一个事务。</br>
+ODA 事务有默认的超时时间是30秒，用户也可以自己指定一个事务的超时时间。</br>
 一般来说，越是大型的系统，数据库资源就越是珍贵，事务的应用就越要谨慎。</br>
 能不用事务完成的事情绝不用事务，事务里的DML操作能少一个就少一个，事务运行的时间能少一点就少一点</br>
-因为事务锁定的数据库对象，只有在事务完成的时间才能释放，而且同一时间只允许一个用户锁定。</br>
-降低系统可用性、并发性能；长时间锁定数据库对象，或发生等待锁、死锁等，对系统的影响将是致命的。</br>
+因为事务锁定的数据库对象，只有在事务完成的时候才能释放，而且同一时间只允许一个用户锁定。</br>
+因此事务会降低系统的并发性能，长时间锁定数据库对象，或发生等待锁、死锁等，对系统的影响将是致命的。</br>
 ```C#
   ODAContext ctx = new ODAContext();
-            var U1 = ctx.GetCmd<CmdSysUser>();
-            ctx.BeginTransaction();
-            try
-            {
-                var U = ctx.GetCmd<CmdSysUser>();
-                U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColStatus == "O", U.ColEmailAddr.IsNotNull)
-                 .Update(
-                    U.ColUserName == "新的名字", U.ColIsLocked == "Y"
-                    ); 
-                U1.Insert(U.ColStatus == "O", U1.ColCreatedBy == "User1", U1.ColLastUpdatedBy == "User1", U1.ColLastUpdatedDate == DateTime.Now, U1.ColCreatedDate == DateTime.Now,
-                    U1.ColUserAccount == "Nyear", U1.ColUserName == "多年", U1.ColUserPassword == "123", U1.ColFeMale == "M", U1.ColFailTimes == 0, U1.ColIsLocked == "N");
-                 
-                ctx.Commit();
-            }
-            catch
-            {
-                ctx.RollBack();
-            }
+  var U1 = ctx.GetCmd<CmdSysUser>();
+  ctx.BeginTransaction();
+  try
+  {
+      var U = ctx.GetCmd<CmdSysUser>();
+      U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColStatus == "O", U.ColEmailAddr.IsNotNull)
+      .Update(U.ColUserName == "新的名字", U.ColIsLocked == "Y"); 
+      
+      U1.Insert(U.ColStatus == "O", U1.ColCreatedBy == "User1", U1.ColLastUpdatedBy == "User1", U1.ColLastUpdatedDate == DateTime.Now, U1.ColCreatedDate == DateTime.Now,U1.ColUserAccount == "Nyear", U1.ColUserName == "多年", U1.ColUserPassword == "123", U1.ColFeMale == "M", U1.ColFailTimes == 0, U1.ColIsLocked == "N");
+      
+       ctx.Commit();
+   }
+   catch
+   {
+      ctx.RollBack();
+   }
 ```
 
 ### 函数
