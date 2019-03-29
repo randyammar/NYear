@@ -577,7 +577,7 @@ object data = RS.Where(RS.ColStatus == "O",RS.ColResourceType =="MENU")
  WHERE T0.STATUS = 'O' AND T0.RESOURCE_TYPE = 'MENU';
  */
 ```
-#### 数据转内容转换 CaseWhen
+#### 数据内容转换 CaseWhen
 SQL 语句： case when  条件 then  值 when 条件 then 值 else 默认值 end 
 ```C#
 ODAContext ctx = new ODAContext();  
@@ -633,7 +633,7 @@ SELECT ( CASE  WHEN T0.ADDRESS IS NULL  THEN '无用户地址数据...' ELSE T0.
 FROM SYS_USER T0 WHERE T0.STATUS = 'O' AND T0.IS_LOCKED = 'N';
 */
 ```
-#### 数据转内容转换 Case
+#### 数据内容转换 Case
 SQL 语句： case 字段 when  对比值 then 值 when 对比值 then 值 else 默认值 end 
 ```C#
 ODAContext ctx = new ODAContext();
@@ -675,7 +675,7 @@ SELECT (CASE T0.ADDRESS
 */
  
 ```
-#### 数据转内容转换Decode
+#### 数据内容转换Decode
 ODA Decode方法 模拟Oracle内置Decode函数,对Case方法的再次封装，以方便应用
 ```C#
 ODAContext ctx = new ODAContext();
