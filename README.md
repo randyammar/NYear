@@ -400,6 +400,7 @@ var data = new ODAContext().GetJoinCmd<CmdSysUser>()
 ```
 
 ### 更新数据
+
 #### 通常的 update 方式
 Update 语句通常不会更新所有的字段，而是update指定字段。</br>
 Update 的 where 条件与 查询是语句是一致的。
@@ -408,6 +409,15 @@ ODAContext ctx = new ODAContext();
 var U = ctx.GetCmd<CmdSysUser>();
 U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColStatus == "O", U.ColEmailAddr.IsNotNull)
  .Update(U.ColUserName == "新的名字", U.ColIsLocked == "Y");
+ /*
+ UPDATE SYS_USER
+   SET USER_NAME = '新的名字', IS_LOCKED ='Y'
+ WHERE USER_ACCOUNT = 'User1'
+   AND IS_LOCKED = 'N'
+   AND STATUS = 'O'
+   AND EMAIL_ADDR IS NOT NULL;
+   */
+ 
 ```
 #### 模型数据 Upadte
 使用实体 Update 数据时，对于属性值为 null 的字段不作更新。<br/>
@@ -428,6 +438,23 @@ var U = ctx.GetCmd<CmdSysUser>();
         USER_PASSWORD = "123",
         IS_LOCKED = "N",
     });
+ /*
+ UPDATE SYS_USER
+   SET STATUS        = 'O',
+       CREATED_BY    = 'InsertModel',
+       CREATED_DATE  = '2019-03-29',,
+       USER_ACCOUNT  = 'NYear1',
+       USER_NAME     = '多年1',
+       USER_PASSWORD = '123',
+       ADDRESS       = '自由国度',
+       IS_LOCKED     = 'N'
+ WHERE USER_ACCOUNT = 'User1'
+   AND IS_LOCKED = 'N'
+   AND STATUS = 'O'
+   AND EMAIL_ADDR IS NOT NULL;
+
+ */
+    
 ```
 #### 更新运算
  支持的运算符号：+ 、 - 、*、/、%
@@ -437,6 +464,13 @@ ODAContext ctx = new ODAContext();
 var U = ctx.GetCmd<CmdSysUser>();
 var data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColEmailAddr.IsNotNull)
     .Update(U.ColFailTimes == U.ColFailTimes + 1, U.ColUserName == U.ColUserAccount + U.ColEmailAddr ); 
+  /*
+  UPDATE SYS_USER
+   SET FAIL_TIMES = FAIL_TIMES + 1, USER_NAME = USER_ACCOUNT + EMAIL_ADDR
+ WHERE USER_ACCOUNT = 'User1'
+   AND IS_LOCKED ='N'
+   AND EMAIL_ADDR IS NOT NULL;
+  */
 ```
 #### 删除数据
 Delete的where条件  SELECT 语句一致
@@ -445,9 +479,17 @@ ODAContext ctx = new ODAContext();
 var U = ctx.GetCmd<CmdSysUser>();
 var data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColEmailAddr.IsNotNull)
    .Delete();
+   
+   /*
+   DELETE FROM SYS_USER T0
+ WHERE T0.USER_ACCOUNT = 'User1'
+   AND T0.IS_LOCKED = 'N'
+   AND T0.EMAIL_ADDR IS NOT NULL;
+   */
 ```
 ### 插入数据据
 #### 插入指定字段的数据
+没有指下指定的字段，不会出现在SQL语句里。
 ```C#
 ODAContext ctx = new ODAContext();
 var U = ctx.GetCmd<CmdSysUser>();
@@ -456,6 +498,7 @@ U.Insert(U.ColStatus == "O", U.ColCreatedBy == "User1", U.ColLastUpdatedBy == "U
         U.ColFeMale == "M", U.ColFailTimes ==0,U.ColIsLocked =="N");
 ```
 #### 插入模型的数据
+对于实体属性值为 null 的字段不作插入。
 ```C#
 ODAContext ctx = new ODAContext();
 var U = ctx.GetCmd<CmdSysUser>(); 
@@ -473,7 +516,10 @@ U.Insert(new SYS_USER()
   }); 
 ```
 #### 批量导入数据d 
-导入 DataTable 数据时，要保证 DataTable 字段类型与数据库对应的字段类型一致
+导入 DataTable 数据时，要保证 DataTable 字段类型与数据库对应的字段类型一致。</br>
+DB2、Oracle、MsSql、MySql、SQLite都实现了高整导入，比循环插入快好几倍，甚至几十倍。</br>
+但对于MySql数据库，因为驱动不支持Blob字段的导入，所以包含Blob字段的表，ODA内部自动识别使用循环插入。
+
 ```C#
 DataTable data = new DataTable();
 data.Columns.Add(new DataColumn("ADDRESS"));
