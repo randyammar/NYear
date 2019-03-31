@@ -85,5 +85,12 @@
   <ItemGroup>
     <WCFMetadata Include="Connected Services\" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="DatabaseScript\test.sql" />
+    <Content Include="Result\SQL.png" />
+    <Content Include="Result\GetById.png" />
+    <Content Include="Result\ReadData.png" />
+    <Content Include="Result\Paging.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

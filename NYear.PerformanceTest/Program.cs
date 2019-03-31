@@ -10,186 +10,177 @@ namespace NYear.PerformanceTest
 {
     class Program
     {
+        const int readData = 1;
+        const int paging = 100;
+        const int sql = 100;
+        const int byId = 100;
         static void Main(string[] args)
         {
-      
-
+            Test(OrmType.EF, TestType.Paging, 10);
+            Test(OrmType.ODA, TestType.Paging, 10);
+            Test(OrmType.SqlSugar, TestType.Paging, 10);
+            Test(OrmType.Dapper, TestType.Paging, 10);
             Console.ReadKey();
         }
 
-
-        static void ReadDataTest()
-        {
-            Stopwatch ODAsw = new Stopwatch();
-            ODAsw.Start();
-            for (int i = 0; i < 10; i++)
-                ODATest.ReadData();
-            ODAsw.Stop();
-
-            Stopwatch Sugarsw = new Stopwatch();
-            Sugarsw.Start();
-            for (int i = 0; i < 10; i++)
-                SqlSugarTest.ReadData();
-            Sugarsw.Stop();
-
-            Stopwatch EFsw = new Stopwatch();
-            EFsw.Start();
-            for (int i = 0; i < 10; i++)
-                EFTest.ReadData();
-            EFsw.Stop();
-
-            Stopwatch Dappersw = new Stopwatch();
-            Dappersw.Start();
-            for (int i = 0; i < 10; i++)
-                DapperTest.ReadData();
-            Dappersw.Stop();
-
-            Console.WriteLine(string.Format("ODA :{0} , Sugar {1}, EF :{2} ,Dapper :{3} ",
-                ODAsw.ElapsedMilliseconds.ToString(),
-                Sugarsw.ElapsedMilliseconds.ToString(),
-                EFsw.ElapsedMilliseconds.ToString(),
-                Dappersw.ElapsedMilliseconds.ToString()
-               ));
-        }
-        static void PagingTest()
-        {
-            Stopwatch ODAsw = new Stopwatch();
-            ODAsw.Start();
-            for (int i = 0; i < 10000; i++)
-                ODATest.Paging();
-            ODAsw.Stop();
-
-            Stopwatch Sugarsw = new Stopwatch();
-            Sugarsw.Start();
-            for (int i = 0; i < 10000; i++)
-                SqlSugarTest.Paging();
-            Sugarsw.Stop();
-
-            Stopwatch EFsw = new Stopwatch();
-            EFsw.Start();
-            for (int i = 0; i < 10000; i++)
-                EFTest.Paging();
-            EFsw.Stop();
-
-            Stopwatch Dappersw = new Stopwatch();
-            Dappersw.Start();
-            for (int i = 0; i < 10000; i++)
-                DapperTest.Paging();
-            Dappersw.Stop();
-
-            Console.WriteLine(string.Format("ODA :{0} , Sugar {1}, EF :{2} ,Dapper :{3} ",
-                ODAsw.ElapsedMilliseconds.ToString(),
-                Sugarsw.ElapsedMilliseconds.ToString(),
-                EFsw.ElapsedMilliseconds.ToString(),
-                Dappersw.ElapsedMilliseconds.ToString()
-               ));
-        }
-        static void SqlTest()
-        {
-            Stopwatch ODAsw = new Stopwatch();
-            ODAsw.Start();
-            for (int i = 0; i < 10000; i++)
-                ODATest.Sql();
-            ODAsw.Stop();
-
-            Stopwatch Sugarsw = new Stopwatch();
-            Sugarsw.Start();
-            for (int i = 0; i < 10000; i++)
-                SqlSugarTest.Sql();
-            Sugarsw.Stop();
-
-            Stopwatch EFsw = new Stopwatch();
-            EFsw.Start();
-            for (int i = 0; i < 10000; i++)
-                EFTest.Sql();
-            EFsw.Stop();
-
-            Stopwatch Dappersw = new Stopwatch();
-            Dappersw.Start();
-            for (int i = 0; i < 10000; i++)
-                DapperTest.Sql();
-            Dappersw.Stop();
-
-            Console.WriteLine(string.Format("ODA :{0} , Sugar {1}, EF :{2} ,Dapper :{3} ",
-                ODAsw.ElapsedMilliseconds.ToString(),
-                Sugarsw.ElapsedMilliseconds.ToString(),
-                EFsw.ElapsedMilliseconds.ToString(),
-                Dappersw.ElapsedMilliseconds.ToString()
-               ));
-        }
-        static void ByIdTest()
-        {
-            Stopwatch ODAsw = new Stopwatch();
-            ODAsw.Start();
-            for (int i = 0; i < 10000; i++)
-                ODATest.GetById();
-            ODAsw.Stop();
-
-            Stopwatch Sugarsw = new Stopwatch();
-            Sugarsw.Start();
-            for (int i = 0; i < 10000; i++)
-                SqlSugarTest.GetById();
-            Sugarsw.Stop();
-
-            Stopwatch EFsw = new Stopwatch();
-            EFsw.Start();
-            for (int i = 0; i < 10000; i++)
-                EFTest.GetById();
-            EFsw.Stop();
-
-            Stopwatch Dappersw = new Stopwatch();
-            Dappersw.Start();
-            for (int i = 0; i < 10000; i++)
-                DapperTest.GetById();
-            Dappersw.Stop();
-
-            Console.WriteLine(string.Format("ODA :{0} , Sugar {1}, EF :{2} ,Dapper :{3} ",
-                ODAsw.ElapsedMilliseconds.ToString(),
-                Sugarsw.ElapsedMilliseconds.ToString(),
-                EFsw.ElapsedMilliseconds.ToString(),
-                Dappersw.ElapsedMilliseconds.ToString()
-               ));
-        }
-
-
-        static void Test(OrmType Orm, PerformanceType Per,int Times)
-        {
-            new Action(() => 
-            {
-                Stopwatch sw = new Stopwatch();
-                sw.Start();
-
-                
-
-                sw.Stop(); 
-                Console.WriteLine(string.Format("{0} runn {1} testing {2} times total spand {3} milliseconds", Enum.GetName( Orm.GetType(), Orm), Enum.GetName(Per.GetType(), Per), Times, sw.ElapsedMilliseconds)); 
-            }).BeginInvoke(null, null);
-        }
-
-        static void Test(OrmType Orm, PerformanceType Per, int TestTimes,int ExecuteTimes)
-        {
-            new Action(() =>
-            {
-                Stopwatch sw = new Stopwatch();
-                sw.Start();
-
-
-
-                sw.Stop();
-                Console.WriteLine(string.Format("{0} runn {1} testing {2} times total spand {3} milliseconds", Enum.GetName(Orm.GetType(), Orm), Enum.GetName(Per.GetType(), Per), TestTimes, sw.ElapsedMilliseconds));
-            }).BeginInvoke(null, null);
-        }
-
-
-        static void Execute(string TesstName, int Times, Action TestFunc)
+        static long ODAPerformanceTest(TestType Ttype)
         {
             Stopwatch sw = new Stopwatch();
             sw.Start();
-            for (int i = 0; i < Times; i++)
-                TestFunc();
+            switch (Ttype)
+            {
+                case TestType.ReadData:
+                    for (int i = 0; i < readData; i++)
+                        ODATest.ReadData();
+                    break;
+                case TestType.Paging:
+                    for (int i = 0; i < paging; i++)
+                        ODATest.Paging();
+                    break;
+                case TestType.Sql:
+                    for (int i = 0; i < sql; i++)
+                        ODATest.Sql();
+                    break;
+                case TestType.GetById:
+                    for (int i = 0; i < byId; i++)
+                        ODATest.GetById();
+                    break;
+            }
             sw.Stop();
-            Console.WriteLine(string.Format("{0} run {1} times spand {2} milliseconds", TesstName, Times, sw.ElapsedMilliseconds));
+            Console.WriteLine(string.Format(" ODA Performance Test {0} cost : {1} ", Enum.GetName(typeof(TestType), Ttype), sw.ElapsedMilliseconds));
+            return sw.ElapsedMilliseconds;
+
         }
+
+        static long EFPerformanceTest(TestType Ttype)
+        {
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+            switch (Ttype)
+            {
+                case TestType.ReadData:
+                    for (int i = 0; i < readData; i++)
+                        EFTest.ReadData();
+                    break;
+                case TestType.Paging:
+                    for (int i = 0; i < paging; i++)
+                        EFTest.Paging();
+                    break;
+                case TestType.Sql:
+                    for (int i = 0; i < sql; i++)
+                        EFTest.Sql();
+                    break;
+                case TestType.GetById:
+                    for (int i = 0; i < byId; i++)
+                        EFTest.GetById();
+                    break;
+            }
+            sw.Stop();
+            Console.WriteLine(string.Format(" EF Performance Test {0} cost : {1} ", Enum.GetName(typeof(TestType), Ttype), sw.ElapsedMilliseconds));
+            return sw.ElapsedMilliseconds;
+        }
+
+        static long SqlSugarPerformanceTest(TestType Ttype)
+        {
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+            switch (Ttype)
+            {
+                case TestType.ReadData:
+                    for (int i = 0; i < readData; i++)
+                        SqlSugarTest.ReadData();
+                    break;
+                case TestType.Paging:
+                    for (int i = 0; i < paging; i++)
+                        SqlSugarTest.Paging();
+                    break;
+                case TestType.Sql:
+                    for (int i = 0; i < sql; i++)
+                        SqlSugarTest.Sql();
+                    break;
+                case TestType.GetById:
+                    for (int i = 0; i < byId; i++)
+                        SqlSugarTest.GetById();
+                    break;
+            }
+            sw.Stop();
+            Console.WriteLine(string.Format(" SqlSugar Performance Test {0} cost : {1} ", Enum.GetName(typeof(TestType), Ttype), sw.ElapsedMilliseconds));
+            return sw.ElapsedMilliseconds;
+        }
+
+        static long DapperPerformanceTest(TestType Ttype)
+        {
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+            switch (Ttype)
+            {
+                case TestType.ReadData:
+                    for (int i = 0; i < readData; i++)
+                        DapperTest.ReadData();
+                    break;
+                case TestType.Paging:
+                    for (int i = 0; i < paging; i++)
+                        DapperTest.Paging();
+                    break;
+                case TestType.Sql:
+                    for (int i = 0; i < sql; i++)
+                        DapperTest.Sql();
+                    break;
+                case TestType.GetById:
+                    for (int i = 0; i < byId; i++)
+                        DapperTest.GetById();
+                    break;
+            }
+            sw.Stop();
+            Console.WriteLine(string.Format(" Dapper Performance Test {0} cost : {1} ", Enum.GetName(typeof(TestType), Ttype), sw.ElapsedMilliseconds));
+            return sw.ElapsedMilliseconds;
+        } 
+
+        /// <summary>
+        /// 单线程测试
+        /// </summary>
+        /// <param name="Orm"></param>
+        /// <param name="Ttype"></param>
+        /// <param name="Times"></param>
+        static void Test(OrmType Orm, TestType Ttype, int Times)
+        {
+            Console.WriteLine(string.Format("Single Thread Test ORM {0} TestType {1} ", Enum.GetName(typeof(OrmType), Orm), Enum.GetName(typeof(TestType), Ttype))); 
+            System.Threading.Thread.Sleep(50);
+            GC.Collect();
+            System.Threading.Thread.Sleep(50);
+            long total = 0;
+            switch (Orm)
+            {
+                case OrmType.Dapper:
+                    for (int i = 0; i < Times; i++)
+                    {
+                        total += DapperPerformanceTest(Ttype);
+                    }
+                    break;
+                case OrmType.EF:
+                    for (int i = 0; i < Times; i++)
+                    {
+                        total += EFPerformanceTest(Ttype); 
+                    }
+                    break;
+                case OrmType.ODA:
+                    for (int i = 0; i < Times; i++)
+                    {
+                        total += ODAPerformanceTest(Ttype);
+                    }
+                    break;
+                case OrmType.SqlSugar:
+                    for (int i = 0; i < Times; i++)
+                    {
+                        total += SqlSugarPerformanceTest(Ttype);
+
+                    }
+                    break;
+            }
+            Console.WriteLine(string.Format("{0} Test {1} Times Total cost : {2} ", Enum.GetName(typeof(TestType), Ttype), Times, total));
+        }
+
+        
     }
 
     public enum OrmType
@@ -199,12 +190,12 @@ namespace NYear.PerformanceTest
         EF,
         ODA,
     }
-    enum PerformanceType
+
+    public enum TestType
     {
         ReadData,
-        Paging, 
+        Paging,
         Sql,
-        ById
-
+        GetById
     }
 }

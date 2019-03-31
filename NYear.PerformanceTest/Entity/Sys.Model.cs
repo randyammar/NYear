@@ -61,7 +61,7 @@ namespace NYear.ODA.Model
         public DateTime? F_DateTime { get; set; }
         public Guid? F_Guid { get; set; }
         public string F_String { get; set; }
-        public byte[] F_Bytes { get; set; }
+       // public byte[] F_Bytes { get; set; }
     }
 
 

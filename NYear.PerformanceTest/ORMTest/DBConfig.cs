@@ -20,6 +20,7 @@ namespace NYear.PerformanceTest.ORMTest
         } 
         public static SqlSugarClient GetSugarConn()
         {
+             
             return new SqlSugarClient(new ConnectionConfig() { IsAutoCloseConnection = true, InitKeyType = InitKeyType.SystemTable, ConnectionString = DBConfig.ConnectionString, DbType = DbType.SqlServer });
         }
         public static EFContext GetEFConn()

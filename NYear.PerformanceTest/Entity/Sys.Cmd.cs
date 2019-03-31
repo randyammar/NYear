@@ -60,11 +60,11 @@ namespace NYear.ODA.Cmd
         public ODAColumns ColFDatetime { get { return new ODAColumns(this, "F_DateTime", ODAdbType.ODatetime, 8, false); } }
         public ODAColumns ColFGuid { get { return new ODAColumns(this, "F_Guid", ODAdbType.OVarchar, 16, false); } }
         public ODAColumns ColFString { get { return new ODAColumns(this, "F_String", ODAdbType.OVarchar, 200, false); } }
-        public ODAColumns ColFBytes { get { return new ODAColumns(this, "F_Bytes", ODAdbType.OBinary, 16, false); } }
+        //public ODAColumns ColFBytes { get { return new ODAColumns(this, "F_Bytes", ODAdbType.OBinary, 16, false); } }
         public override string CmdName { get { return "TEST"; } }
         public override List<ODAColumns> GetColumnList()
         {
-            return new List<ODAColumns>() { ColId, ColFByte, ColFInt16, ColFInt32, ColFInt64, ColFDouble, ColFFloat, ColFDecimal, ColFBool, ColFDatetime, ColFGuid, ColFString, ColFBytes };
+            return new List<ODAColumns>() { ColId, ColFByte, ColFInt16, ColFInt32, ColFInt64, ColFDouble, ColFFloat, ColFDecimal, ColFBool, ColFDatetime, ColFGuid, ColFString };
         }
     }
 }

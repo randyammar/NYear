@@ -12,8 +12,8 @@ namespace NYear.ODA.Adapter
     {
         static DbAMySql()
         {
-            ODAReflection.DBTypeMapping.AddOrUpdate(typeof(MySqlDateTime), typeof(DateTime), (t1, t2) =>   typeof(DateTime) );
-            ODAReflection.DBTypeMapping.AddOrUpdate(typeof(MySqlDecimal), typeof(decimal), (t1, t2) => typeof(decimal));
+            ODAReflection.DBTypeMapping.Add(typeof(MySqlDateTime), typeof(DateTime));
+            ODAReflection.DBTypeMapping.Add(typeof(MySqlDecimal), typeof(decimal));
         }
         public DbAMySql(string ConnectionString)
             : base(ConnectionString)

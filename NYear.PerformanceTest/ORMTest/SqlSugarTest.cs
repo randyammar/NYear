@@ -22,6 +22,7 @@ namespace NYear.PerformanceTest.ORMTest
         {
             using (SqlSugarClient conn = DBConfig.GetSugarConn())
             {
+                 
                 int total = 0;
                 var list2 = conn.Queryable<Test>().ToPageList(20, 50, ref total);
             }
@@ -31,7 +32,7 @@ namespace NYear.PerformanceTest.ORMTest
             using (SqlSugarClient db = DBConfig.GetSugarConn())
             {
                 string[] roles = new string[] { "Administrator", "Admin", "PowerUser", "User", "Guest" };
-                var data = db.Queryable<SYS_USER, SYS_USER_ROLE>((u, ur) => new object[] { JoinType.Inner, u.USER_ACCOUNT == ur.USER_ACCOUNT, ur.STATUS == "O" })
+                var data = db.Queryable<SYS_USER, SYS_USER_ROLE>((u, ur) => new object[] { JoinType.Inner, u.USER_ACCOUNT == ur.USER_ACCOUNT && ur.STATUS == "O" })
                      .Where((u, ur) => u.STATUS == "O" && (u.EMAIL_ADDR != null || u.EMAIL_ADDR == "riwfnsse@163.com") && u.IS_LOCKED == "N"
                      && roles.Contains(ur.ROLE_CODE))
                      .GroupBy((u, ur) => ur.ROLE_CODE)
@@ -41,7 +42,7 @@ namespace NYear.PerformanceTest.ORMTest
                         {
                             USER_COUNT = SqlFunc.AggregateCount(u.USER_ACCOUNT),
                             ROLE_CODE = ur.ROLE_CODE
-                        });
+                        }).ToDataTable();
 
             }
         }

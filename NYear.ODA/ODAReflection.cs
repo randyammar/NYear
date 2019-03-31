@@ -50,8 +50,8 @@ namespace NYear.ODA
             public Type FieldType = null;
         }
 
-        private static ConcurrentDictionary<string, object> CreatorsCache = new ConcurrentDictionary<string, object>();
-        public static ConcurrentDictionary<Type, Type> DBTypeMapping { get; private set; } = new ConcurrentDictionary<Type, Type>();
+        private static SafeDictionary<string, object> CreatorsCache = new SafeDictionary<string, object>();
+        public static SafeDictionary<Type, Type> DBTypeMapping { get; private set; } = new SafeDictionary<Type, Type>();
 
         public static Func<IDataReader, T> GetCreator<T>(IDataReader Reader)
         {
@@ -124,7 +124,7 @@ namespace NYear.ODA
             il.Emit(OpCodes.Ldloc, result);
             il.Emit(OpCodes.Ret);
             object reator = method.CreateDelegate(typeof(Func<IDataReader, T>));
-            CreatorsCache.AddOrUpdate(sber.ToString(), reator,(arg1,arg2)=> reator);
+            CreatorsCache.Add(sber.ToString(), reator);
             GC.KeepAlive(reator);
             return (Func<IDataReader, T>)reator;
         }
