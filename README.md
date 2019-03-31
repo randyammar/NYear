@@ -400,6 +400,7 @@ var data = new ODAContext().GetJoinCmd<CmdSysUser>()
 ```
 
 ### 更新数据
+
 #### 通常的 update 方式
 Update 语句通常不会更新所有的字段，而是update指定字段。</br>
 Update 的 where 条件与 查询是语句是一致的。
@@ -408,6 +409,15 @@ ODAContext ctx = new ODAContext();
 var U = ctx.GetCmd<CmdSysUser>();
 U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColStatus == "O", U.ColEmailAddr.IsNotNull)
  .Update(U.ColUserName == "新的名字", U.ColIsLocked == "Y");
+ /*
+ UPDATE SYS_USER
+   SET USER_NAME = '新的名字', IS_LOCKED ='Y'
+ WHERE USER_ACCOUNT = 'User1'
+   AND IS_LOCKED = 'N'
+   AND STATUS = 'O'
+   AND EMAIL_ADDR IS NOT NULL;
+   */
+ 
 ```
 #### 模型数据 Upadte
 使用实体 Update 数据时，对于属性值为 null 的字段不作更新。<br/>
@@ -428,6 +438,23 @@ var U = ctx.GetCmd<CmdSysUser>();
         USER_PASSWORD = "123",
         IS_LOCKED = "N",
     });
+ /*
+ UPDATE SYS_USER
+   SET STATUS        = 'O',
+       CREATED_BY    = 'InsertModel',
+       CREATED_DATE  = '2019-03-29',,
+       USER_ACCOUNT  = 'NYear1',
+       USER_NAME     = '多年1',
+       USER_PASSWORD = '123',
+       ADDRESS       = '自由国度',
+       IS_LOCKED     = 'N'
+ WHERE USER_ACCOUNT = 'User1'
+   AND IS_LOCKED = 'N'
+   AND STATUS = 'O'
+   AND EMAIL_ADDR IS NOT NULL;
+
+ */
+    
 ```
 #### 更新运算
  支持的运算符号：+ 、 - 、*、/、%
@@ -437,6 +464,13 @@ ODAContext ctx = new ODAContext();
 var U = ctx.GetCmd<CmdSysUser>();
 var data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColEmailAddr.IsNotNull)
     .Update(U.ColFailTimes == U.ColFailTimes + 1, U.ColUserName == U.ColUserAccount + U.ColEmailAddr ); 
+  /*
+  UPDATE SYS_USER
+   SET FAIL_TIMES = FAIL_TIMES + 1, USER_NAME = USER_ACCOUNT + EMAIL_ADDR
+ WHERE USER_ACCOUNT = 'User1'
+   AND IS_LOCKED ='N'
+   AND EMAIL_ADDR IS NOT NULL;
+  */
 ```
 #### 删除数据
 Delete的where条件  SELECT 语句一致
@@ -445,9 +479,17 @@ ODAContext ctx = new ODAContext();
 var U = ctx.GetCmd<CmdSysUser>();
 var data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColEmailAddr.IsNotNull)
    .Delete();
+   
+   /*
+   DELETE FROM SYS_USER T0
+ WHERE T0.USER_ACCOUNT = 'User1'
+   AND T0.IS_LOCKED = 'N'
+   AND T0.EMAIL_ADDR IS NOT NULL;
+   */
 ```
 ### 插入数据据
 #### 插入指定字段的数据
+没有指下指定的字段，不会出现在SQL语句里。
 ```C#
 ODAContext ctx = new ODAContext();
 var U = ctx.GetCmd<CmdSysUser>();
@@ -456,6 +498,7 @@ U.Insert(U.ColStatus == "O", U.ColCreatedBy == "User1", U.ColLastUpdatedBy == "U
         U.ColFeMale == "M", U.ColFailTimes ==0,U.ColIsLocked =="N");
 ```
 #### 插入模型的数据
+对于实体属性值为 null 的字段不作插入。
 ```C#
 ODAContext ctx = new ODAContext();
 var U = ctx.GetCmd<CmdSysUser>(); 
@@ -473,7 +516,10 @@ U.Insert(new SYS_USER()
   }); 
 ```
 #### 批量导入数据d 
-导入 DataTable 数据时，要保证 DataTable 字段类型与数据库对应的字段类型一致
+导入 DataTable 数据时，要保证 DataTable 字段类型与数据库对应的字段类型一致。</br>
+DB2、Oracle、MsSql、MySql、SQLite都实现了高整导入，比循环插入快好几倍，甚至几十倍。</br>
+但对于MySql数据库，因为驱动不支持Blob字段的导入，所以包含Blob字段的表，ODA内部自动识别使用循环插入。
+
 ```C#
 DataTable data = new DataTable();
 data.Columns.Add(new DataColumn("ADDRESS"));
@@ -515,6 +561,33 @@ for (int i = 0; i < 10000; i++)
  var U = ctx.GetCmd<CmdSysUser>();
  U.Import(data);
 ```
+### 事务
+ODA 事务的控制管理在 ODAContext 里，每一个 ODAContext 实例同一时间只会开启一个事务。</br>
+ODA 事务有默认的超时时间是30秒，用户也可以自己指定一个事务的超时时间。</br>
+一般来说，越是大型的系统，数据库资源就越是珍贵，事务的应用就越要谨慎。</br>
+能不用事务完成的事情绝不用事务，事务里的DML操作能少一个就少一个，事务运行的时间能少一点就少一点</br>
+因为事务锁定的数据库对象，只有在事务完成的时候才能释放，而且同一时间只允许一个用户锁定。</br>
+因此事务会降低系统的并发性能，长时间锁定数据库对象，或发生等待锁、死锁等，对系统的影响将是致命的。</br>
+```C#
+  ODAContext ctx = new ODAContext();
+  var U1 = ctx.GetCmd<CmdSysUser>();
+  ctx.BeginTransaction();
+  try
+  {
+      var U = ctx.GetCmd<CmdSysUser>();
+      U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColStatus == "O", U.ColEmailAddr.IsNotNull)
+      .Update(U.ColUserName == "新的名字", U.ColIsLocked == "Y"); 
+      
+      U1.Insert(U.ColStatus == "O", U1.ColCreatedBy == "User1", U1.ColLastUpdatedBy == "User1", U1.ColLastUpdatedDate == DateTime.Now, U1.ColCreatedDate == DateTime.Now,U1.ColUserAccount == "Nyear", U1.ColUserName == "多年", U1.ColUserPassword == "123", U1.ColFeMale == "M", U1.ColFailTimes == 0, U1.ColIsLocked == "N");
+      
+       ctx.Commit();
+   }
+   catch
+   {
+      ctx.RollBack();
+   }
+```
+
 ### 函数
 #### 数据库函数
 ODA提供数据库常用的通用系统函数：MAX, MIN,  COUNT, SUM, AVG, LENGTH, LTRIM, RTRIM, TRIM, ASCII, UPPER,  LOWER <br/>
@@ -577,7 +650,7 @@ object data = RS.Where(RS.ColStatus == "O",RS.ColResourceType =="MENU")
  WHERE T0.STATUS = 'O' AND T0.RESOURCE_TYPE = 'MENU';
  */
 ```
-#### 数据转内容转换 CaseWhen
+#### 数据内容转换 CaseWhen
 SQL 语句： case when  条件 then  值 when 条件 then 值 else 默认值 end 
 ```C#
 ODAContext ctx = new ODAContext();  
@@ -633,7 +706,7 @@ SELECT ( CASE  WHEN T0.ADDRESS IS NULL  THEN '无用户地址数据...' ELSE T0.
 FROM SYS_USER T0 WHERE T0.STATUS = 'O' AND T0.IS_LOCKED = 'N';
 */
 ```
-#### 数据转内容转换 Case
+#### 数据内容转换 Case
 SQL 语句： case 字段 when  对比值 then 值 when 对比值 then 值 else 默认值 end 
 ```C#
 ODAContext ctx = new ODAContext();
@@ -675,7 +748,7 @@ SELECT (CASE T0.ADDRESS
 */
  
 ```
-#### 数据转内容转换Decode
+#### 数据内容转换Decode
 ODA Decode方法 模拟Oracle内置Decode函数,对Case方法的再次封装，以方便应用
 ```C#
 ODAContext ctx = new ODAContext();
