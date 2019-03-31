@@ -22,6 +22,26 @@ ODA使用的是链式编程语法，对SQL语句进行直接映射，所以ODA�
 ODA为求通用各种数据库，转换出来的SQL都是标准通用的SQL语句；一些常用但数据不兼容的部分，在ODA内部实现（如递归树查询、分页等)。 <br/>
 NYear.ODA以 Select、Insert、Update、Delete、Procedure 方法为最终执行方法，调用这些方法时，ODA 将会把生成的SQL语句发送给数据库运行。
 
+## 性能测试
+
+### 数据映射性
+1000000条数据记录，查询出来并转成对应的实体对象。</br>
+相较于EF 、Dapper 和 Sqlsugar，ODA 的性能是最好的  <br/>
+ ![image](https://github.com/riwfnsse/NYear/blob/master/NYear.PerformanceTest/Result/ReadData.png)
+
+### 读取单条数据记录
+Dapper比ODA 略胜一点，但预热时间（第一条）比较长，ODA 比 EF与SqlSugar的优势就很明显了;</br>
+特别是EF相较其他差了好几倍。</br>
+ ![image](https://github.com/riwfnsse/NYear/blob/master/NYear.PerformanceTest/Result/GetById.png)
+
+### SQL生成性能
+Dapper、没有处功能不作对比；EF 语句生成速度，简直不忍直视。ODA 比 Sqlsugar 好几倍。
+ ![image](https://github.com/riwfnsse/NYear/blob/master/NYear.PerformanceTest/Result/SQL.png)
+
+### 查询分页
+Dapper、没有处功能不作对比；EF 、ODA、Sqlsugar 性能相差无几。
+ ![image](https://github.com/riwfnsse/NYear/blob/master/NYear.PerformanceTest/Result/Paging.png)
+
 ## 用法示例
 ###  查询
 #### 简单查询
