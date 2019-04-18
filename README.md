@@ -174,6 +174,14 @@ var data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColEmail
 string UserName = "";
 if (data.Count > 0)
 UserName =  data[0].USER_NAME; ///与 ColUserName  的 ColumnName一致.
+
+/*
+SELECT T0.USER_ACCOUNT, T0.USER_NAME, T0.PHONE_NO, T0.EMAIL_ADDR
+  FROM SYS_USER T0
+ WHERE T0.USER_ACCOUNT = @T1
+   AND T0.IS_LOCKED = @T2
+   AND T0.EMAIL_ADDR IS NOT NULL;
+*/
 ```
 #### 去重复 Distinct
 ```C#
@@ -181,6 +189,12 @@ ODAContext ctx = new ODAContext();
 var U = ctx.GetCmd<CmdSysUser>();
 var data = U.Where( U.ColIsLocked == "N", U.ColEmailAddr.IsNotNull)
     .Distinct.Select(U.ColUserAccount, U.ColUserName, U.ColPhoneNo, U.ColEmailAddr);
+```
+```SQL
+SELECT DISTINCT T0.USER_ACCOUNT, T0.USER_NAME, T0.PHONE_NO, T0.EMAIL_ADDR
+  FROM SYS_USER T0
+ WHERE T0.IS_LOCKED = @T1
+   AND T0.EMAIL_ADDR IS NOT NULL;
 ```
 #### 连接查询
 ODA支持 InnerJoin、LeftJoin、RightJion，且可以无限的Join。</br>
