@@ -66,6 +66,18 @@ DataTable data = U.Where(U.ColUserAccount == "User1")
        .And(U.ColStatus == "O")
        .And(U.ColEmailAddr.IsNotNull)  
        .Select(U.ColUserAccount, U.ColUserPassword.As("PWD"), U.ColUserName, U.ColPhoneNo, U.ColEmailAddr); 
+       /*
+SELECT T0.USER_ACCOUNT,
+       T0.USER_PASSWORD AS PWD,
+       T0.USER_NAME,
+       T0.PHONE_NO,
+       T0.EMAIL_ADDR
+  FROM SYS_USER T0
+ WHERE T0.USER_ACCOUNT = @T1
+   AND T0.IS_LOCKED = @T2
+   AND T0.STATUS = @T3
+   AND T0.EMAIL_ADDR IS NOT NULL;
+       */
 ```
 #### 查询默认实体
 为简化单表查询转为实体写法，ODA提供 SelectM 方法，返回默认实体数据。</br>
@@ -75,6 +87,14 @@ ODAContext ctx = new ODAContext();
 var U = ctx.GetCmd<CmdSysUser>();
 List<SYS_USER> data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColStatus == "O", U.ColEmailAddr.IsNotNull)
                .SelectM(U.ColUserAccount, U.ColUserName, U.ColPhoneNo, U.ColEmailAddr);
+/*
+SELECT T0.USER_ACCOUNT, T0.USER_NAME, T0.PHONE_NO, T0.EMAIL_ADDR
+  FROM SYS_USER T0
+ WHERE T0.USER_ACCOUNT = @T1
+   AND T0.IS_LOCKED = @T2
+   AND T0.STATUS = @T3
+   AND T0.EMAIL_ADDR IS NOT NULL;
+*/         
 ```
 #### 查询并返回指定实体类型
 返回的实体类型可以是任意自定义类型，并不一定是对应数据库的实体.</br>
@@ -85,6 +105,14 @@ ODAContext ctx = new ODAContext();
 var U = ctx.GetCmd<CmdSysUser>();
 List<SYS_USER> data = U.Where(U.ColUserAccount == "User1",U.ColIsLocked == "N",U.ColStatus == "O",U.ColEmailAddr.IsNotNull)
                .Select<SYS_USER>(U.ColUserAccount, U.ColUserName, U.ColPhoneNo, U.ColEmailAddr);
+/*
+SELECT T0.USER_ACCOUNT, T0.USER_NAME, T0.PHONE_NO, T0.EMAIL_ADDR
+  FROM SYS_USER T0
+ WHERE T0.USER_ACCOUNT = @T1
+   AND T0.IS_LOCKED = @T2
+   AND T0.STATUS = @T3
+   AND T0.EMAIL_ADDR IS NOT NULL;
+*/
 ```
 #### 查询分页
 ```C#
@@ -93,6 +121,20 @@ int total = 0;
 var U = ctx.GetCmd<CmdSysUser>();
 var data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColEmailAddr.IsNotNull)
     .SelectM(0,20,out total, U.ColUserAccount, U.ColUserName, U.ColPhoneNo, U.ColEmailAddr); 
+    
+/*    
+SELECT T0.USER_ACCOUNT, T0.USER_NAME, T0.PHONE_NO, T0.EMAIL_ADDR
+  FROM SYS_USER T0
+ WHERE T0.USER_ACCOUNT = @T1
+   AND T0.IS_LOCKED = @T2
+   AND T0.EMAIL_ADDR IS NOT NULL;
+
+SELECT COUNT(*) AS TOTAL_RECORD
+  FROM SYS_USER T0
+ WHERE T0.USER_ACCOUNT = @T4
+   AND T0.IS_LOCKED = @T5
+   AND T0.EMAIL_ADDR IS NOT NULL;
+*/ 
 ```
 #### 查询第一行
 很多时候我们查询数据库只需取第一行的数据。ODA为简化应用，提供了查询第一行数据返回动态类型数据的方法。</br>
@@ -104,6 +146,21 @@ var data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColEmail
     .SelectDynamicFirst(U.ColUserAccount, U.ColUserName, U.ColPhoneNo, U.ColEmailAddr);
             
     string UserName = data.USER_NAME;///属性 USER_NAME 与 ColUserName 的ColumnName一致，如果没有数据则返回null
+    
+    
+/*    
+SELECT T0.USER_ACCOUNT, T0.USER_NAME, T0.PHONE_NO, T0.EMAIL_ADDR
+  FROM SYS_USER T0
+ WHERE T0.USER_ACCOUNT = @T1
+   AND T0.IS_LOCKED = @T2
+   AND T0.EMAIL_ADDR IS NOT NULL;
+
+SELECT COUNT(*) AS TOTAL_RECORD
+  FROM SYS_USER T0
+ WHERE T0.USER_ACCOUNT = @T4
+   AND T0.IS_LOCKED = @T5
+   AND T0.EMAIL_ADDR IS NOT NULL;
+ */   
  ```
 #### 返回动态数据模型
 很多时候为一种查询编写一个实体类，实在是很麻烦。</br>
