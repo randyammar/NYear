@@ -105,14 +105,14 @@ ODAContext ctx = new ODAContext();
 var U = ctx.GetCmd<CmdSysUser>();
 List<SYS_USER> data = U.Where(U.ColUserAccount == "User1",U.ColIsLocked == "N",U.ColStatus == "O",U.ColEmailAddr.IsNotNull)
                .Select<SYS_USER>(U.ColUserAccount, U.ColUserName, U.ColPhoneNo, U.ColEmailAddr);
-/*
+```
+```SQL
 SELECT T0.USER_ACCOUNT, T0.USER_NAME, T0.PHONE_NO, T0.EMAIL_ADDR
   FROM SYS_USER T0
  WHERE T0.USER_ACCOUNT = @T1
    AND T0.IS_LOCKED = @T2
    AND T0.STATUS = @T3
    AND T0.EMAIL_ADDR IS NOT NULL;
-*/
 ```
 #### 查询分页
 ```C#
@@ -122,7 +122,8 @@ var U = ctx.GetCmd<CmdSysUser>();
 var data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColEmailAddr.IsNotNull)
     .SelectM(0,20,out total, U.ColUserAccount, U.ColUserName, U.ColPhoneNo, U.ColEmailAddr); 
     
-/*    
+```
+```SQL   
 SELECT T0.USER_ACCOUNT, T0.USER_NAME, T0.PHONE_NO, T0.EMAIL_ADDR
   FROM SYS_USER T0
  WHERE T0.USER_ACCOUNT = @T1
@@ -134,7 +135,6 @@ SELECT COUNT(*) AS TOTAL_RECORD
  WHERE T0.USER_ACCOUNT = @T4
    AND T0.IS_LOCKED = @T5
    AND T0.EMAIL_ADDR IS NOT NULL;
-*/ 
 ```
 #### 查询第一行
 很多时候我们查询数据库只需取第一行的数据。ODA为简化应用，提供了查询第一行数据返回动态类型数据的方法。</br>
@@ -146,9 +146,8 @@ var data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColEmail
     .SelectDynamicFirst(U.ColUserAccount, U.ColUserName, U.ColPhoneNo, U.ColEmailAddr);
             
     string UserName = data.USER_NAME;///属性 USER_NAME 与 ColUserName 的ColumnName一致，如果没有数据则返回null
-    
-    
-/*    
+```
+```SQL    
 SELECT T0.USER_ACCOUNT, T0.USER_NAME, T0.PHONE_NO, T0.EMAIL_ADDR
   FROM SYS_USER T0
  WHERE T0.USER_ACCOUNT = @T1
@@ -160,7 +159,6 @@ SELECT COUNT(*) AS TOTAL_RECORD
  WHERE T0.USER_ACCOUNT = @T4
    AND T0.IS_LOCKED = @T5
    AND T0.EMAIL_ADDR IS NOT NULL;
- */   
  ```
 #### 返回动态数据模型
 很多时候为一种查询编写一个实体类，实在是很麻烦。</br>
@@ -174,14 +172,13 @@ var data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColEmail
 string UserName = "";
 if (data.Count > 0)
 UserName =  data[0].USER_NAME; ///与 ColUserName  的 ColumnName一致.
-
-/*
+```
+```SQL
 SELECT T0.USER_ACCOUNT, T0.USER_NAME, T0.PHONE_NO, T0.EMAIL_ADDR
   FROM SYS_USER T0
  WHERE T0.USER_ACCOUNT = @T1
    AND T0.IS_LOCKED = @T2
    AND T0.EMAIL_ADDR IS NOT NULL;
-*/
 ```
 #### 去重复 Distinct
 ```C#
@@ -209,8 +206,8 @@ var data = U.InnerJoin(UR, U.ColUserAccount == UR.ColUserAccount, UR.ColStatus =
     .LeftJoin(R, UR.ColRoleCode == R.ColRoleCode, R.ColStatus == "O")
     .Where(U.ColStatus == "O",R.ColRoleCode == "Administrator")
     .Select<UserDefineModel>(U.ColUserAccount.As("UserAccount"), U.ColUserName.As("UserName"),R.ColRoleCode.As("Role"), R.ColRoleName.As("RoleName"));
-    
-/*
+```
+```SQL
 SELECT T0.USER_ACCOUNT AS UserAccount,
        T0.USER_NAME    AS UserName,
        T1.ROLE_CODE    AS Role,
@@ -224,7 +221,6 @@ SELECT T0.USER_ACCOUNT AS UserAccount,
    AND T1.STATUS ='O'
  WHERE T0.STATUS = 'O'
    AND T1.ROLE_CODE = 'Administrator';
-*/
 ```
 #### 简单内连接 
 内连接有很多人只使用 join , 但对形如 SELECT t1.* FROM TABLE1 T1,TABLE2 T2,TABLE3 T3,TABLE4 这种写法比较陌生，<br/>
@@ -242,7 +238,8 @@ var data =  U.ListCmd(UR,R)
            U.ColStatus == "O",
            R.ColRoleCode == "Administrator")
 .Select< UserDefineModel>(U.ColUserAccount.As("UserAccount"), U.ColUserName.As("UserName"),U.ColEmailAddr.As("Email"), R.ColRoleCode.As("Role"), R.ColRoleName.As("RoleName"));
-/*
+```
+```SQL
 SELECT T0.USER_ACCOUNT AS UserAccount,
        T0.USER_NAME    AS UserName,
        T0.EMAIL_ADDR   AS Email,
@@ -255,8 +252,6 @@ SELECT T0.USER_ACCOUNT AS UserAccount,
    AND T1.STATUS = @T4
    AND T0.STATUS = @T5
    AND T1.ROLE_CODE = @T6;
-*/
-
 ```
 #### 嵌套子查询
 嵌套子查询需要把一个查询子句转换成视图(ToView方法)，转换成视图之后可以把它视作普通的Cmd使用。<br/>
@@ -280,7 +275,8 @@ var data =  Admin.InnerJoin(UA, UA.ColUserAccount == Admin.ViewColumns[1],UA.Col
     .Where(Admin.ViewColumns[1] == "张三",
            Admin.ViewColumns[2] == "Administrator"
      ).Select(); 
-/*
+```
+```SQL
 SELECT *
   FROM (SELECT T0.USER_ACCOUNT AS SYS_USER,
                T0.USER_NAME,
@@ -302,7 +298,6 @@ SELECT *
    AND T4.IS_FORBIDDEN = 'N'
  WHERE T6.USER_NAME = '张三'
    AND T6.SYS_ROLE = 'Administrator';
-   */
 ```
 #### Union UnionAll
 Union 语句要求被Union或UnionAll的是视图。要求视图与查询的字段的数据库类型及顺序及数据一致（数据库本身的要求，非ODA要求)。
@@ -331,7 +326,8 @@ var data = U.Union(U1.ToView(U1.ColUserAccount, U1.ColUserName, UA.ColIsForbidde
       )).Select(U.ColUserAccount, U.ColUserName, RA.ColIsForbidden,
                 RS.ColId, RS.ColResourceType, RS.ColResourceScope, RS.ColResourceLocation
                 ); 
-/*
+```
+```SQL
 SELECT T0.USER_ACCOUNT,
        T0.USER_NAME,
        T2.IS_FORBIDDEN,
@@ -365,8 +361,7 @@ SELECT T4.USER_ACCOUNT,
  INNER JOIN SYS_RESOURCE T6
     ON T6.ID = T5.RESOURCE_ID
    AND T6.STATUS = 'O'
- WHERE T4.USER_ACCOUNT = 'User1';
- */         
+ WHERE T4.USER_ACCOUNT = 'User1';         
 ```
 #### 查询排序
 OrderbyAsc 或OrderbyDesc 对数据按顺序或倒序排列，先给出的排序条件优先排。
@@ -408,7 +403,8 @@ U.Having(U.ColUserAccount.Count > 2);
 U.OrderbyAsc(U.ColUserAccount.Count);
 data = U.Select(U.ColUserAccount.Count.As("USER_COUNT"), UR.ColRoleCode);
 
-/*
+```
+```SQL
 SELECT COUNT(T0.USER_ACCOUNT) AS USER_COUNT, T1.ROLE_CODE
   FROM SYS_USER T0
  INNER JOIN SYS_USER_ROLE T1
@@ -421,8 +417,6 @@ SELECT COUNT(T0.USER_ACCOUNT) AS USER_COUNT, T1.ROLE_CODE
  GROUP BY T1.ROLE_CODE
 HAVING COUNT(T0.USER_ACCOUNT) > 2
  ORDER BY COUNT(T0.USER_ACCOUNT) ASC;
-*/
-
 ```
 #### 分组统计, Groupby  Having
 Groupby 、Having、OrderbyAsc 方法里支持 Function 运算；</br>
@@ -439,6 +433,18 @@ Count、Max、Min、Sum、Upper、Lower等数据库通用的内置函数，已�
      .OrderbyAsc(UR.ColRoleCode,U.ColUserAccount.Count)
      .Select(U.ColUserAccount.Count.As("USER_COUNT"), UR.ColRoleCode);
 ```
+```SQL
+SELECT COUNT(T0.USER_ACCOUNT) AS USER_COUNT, T1.ROLE_CODE
+  FROM SYS_USER T0
+ INNER JOIN SYS_USER_ROLE T1
+    ON T0.USER_ACCOUNT = T1.USER_ACCOUNT
+   AND T1.STATUS = @T2
+ WHERE T0.STATUS = @T3
+   AND T1.ROLE_CODE IN (@T5_0, @T5_1, @T5_2, @T5_3, @T5_4)
+ GROUP BY T1.ROLE_CODE
+HAVING COUNT(T0.USER_ACCOUNT) > @T6
+ ORDER BY T1.ROLE_CODE ASC, COUNT(T0.USER_ACCOUNT) ASC;
+```
 
 #### IN/NOT IN 条件
 IN/NOT IN 有两个重载，一个是in数组，一个是in子查询
@@ -453,6 +459,17 @@ RA.Where(RA.ColIsForbidden == "N", RA.ColStatus == "O", RA.ColRoleCode.In("Admin
 var data = RS.Where(RS.ColStatus == "O", RS.ColId.In(RA, RA.ColResourceId)) 
     .SelectM(); 
 ```
+```SQL
+SELECT *
+  FROM SYS_RESOURCE T1
+ WHERE T1.STATUS = @T2
+   AND T1.ID IN (SELECT T0.RESOURCE_ID
+                   FROM SYS_ROLE_AUTHORIZATION T0
+                  WHERE T0.IS_FORBIDDEN = @T4
+                    AND T0.STATUS = @T5
+                    AND T0.ROLE_CODE IN (@T7_0, @T7_1, @T7_2));
+
+```
 #### Exists/NOT Exists 子查询
 ```C#
 ODAContext ctx = new ODAContext();
@@ -464,6 +481,17 @@ RA.Where(RA.ColIsForbidden == "N", RA.ColStatus == "O", RA.ColResourceId == RS.C
 var data = RS.Where(RS.ColStatus == "O", RS.Function.Exists(RA, RA.AllColumn)) 
     .SelectM();
 ```
+```SQL
+SELECT *
+  FROM SYS_RESOURCE T1
+ WHERE T1.STATUS = @T2
+   AND EXISTS (SELECT T0.*
+          FROM SYS_ROLE_AUTHORIZATION T0
+         WHERE T0.IS_FORBIDDEN = @T3
+           AND T0.STATUS = @T4
+           AND T0.RESOURCE_ID = T1.ID);
+```
+
 #### 递归查询
 ODA 递归查询效果与Oracle的StartWith ConnectBy语句一致。<br/>
 ODA 处理原理：先以 where 条作查出需要递归筛先的数据，然后在内存中递归筛选。<br/>
@@ -485,6 +513,20 @@ var rlt1 = RS.Where(RS.ColStatus == "O", RS.ColResourceType == "MENU")
     .StartWithConnectBy(RS.ColResourceName.ColumnName + "='菜单1'", RS.ColId.ColumnName, RS.ColParentId.ColumnName, "MENU_PATH", "<-", 10)
 .Select(RS.ColResourceName.As("MENU_PATH"), RS.ColId, RS.ColParentId, RS.ColResourceName, RS.ColResourceType, RS.ColResourceScope, RS.ColResourceLocation, RS.ColResourceIndex);
 ```
+```SQL
+SELECT T0.RESOURCE_NAME AS MENU_PATH,
+       T0.ID,
+       T0.PARENT_ID,
+       T0.RESOURCE_NAME,
+       T0.RESOURCE_TYPE,
+       T0.RESOURCE_SCOPE,
+       T0.RESOURCE_LOCATION,
+       T0.RESOURCE_INDEX
+  FROM SYS_RESOURCE T0
+ WHERE T0.STATUS = @T4
+   AND T0.RESOURCE_TYPE = @T5;
+```
+
 #### Lambda语法支持
 Lambda 语法是由 ODA 原生语法扩展而来的，ODA 使用者也可以自行扩展。<br/>
 ODA 原生语法是可以无限连接的，但目前 Lambda 语法支持最多九个表的连接查询。
@@ -500,7 +542,11 @@ var data = new ODAContext().GetJoinCmd<CmdSysUser>()
    .OrderbyAsc((u, ur, r, ra) => new IODAColumns[] { ra.ColResourceId.Count })
    .Select(0, 20, out total, (u, ur, r, ra) => new IODAColumns[] { r.ColRoleCode, u.ColUserAccount, ra.ColResourceId.Count.As("ResourceCount") });        
 ```
+```SQL
+SELECT T2.ROLE_CODE,T0.USER_ACCOUNT,COUNT(T3.RESOURCE_ID) AS ResourceCount FROM SYS_USER T0 INNER JOIN SYS_USER_ROLE T1 ON (T0.USER_ACCOUNT = T1.USER_ACCOUNT AND T1.STATUS = @T4) INNER JOIN SYS_ROLE T2 ON (T1.ROLE_CODE = T2.ROLE_CODE AND T2.STATUS = @T5) INNER JOIN SYS_ROLE_AUTHORIZATION T3 ON (T2.ROLE_CODE = T3.ROLE_CODE AND T3.IS_FORBIDDEN = @T6 AND T3.STATUS = @T7) WHERE (T0.STATUS = @T8 AND (T2.ROLE_CODE = @T9 OR T2.ROLE_CODE = @T10) AND T0.IS_LOCKED = @T11) GROUP BY T2.ROLE_CODE,T0.USER_ACCOUNT HAVING COUNT(T3.RESOURCE_ID) > @T12 ORDER BY COUNT(T3.RESOURCE_ID) ASC ;
 
+SELECT COUNT(*) AS TOTAL_RECORD FROM (SELECT T2.ROLE_CODE,T0.USER_ACCOUNT,COUNT(T3.RESOURCE_ID) AS ResourceCount FROM SYS_USER T0 INNER JOIN SYS_USER_ROLE T1 ON (T0.USER_ACCOUNT = T1.USER_ACCOUNT AND T1.STATUS = @T15) INNER JOIN SYS_ROLE T2 ON (T1.ROLE_CODE = T2.ROLE_CODE AND T2.STATUS = @T16) INNER JOIN SYS_ROLE_AUTHORIZATION T3 ON (T2.ROLE_CODE = T3.ROLE_CODE AND T3.IS_FORBIDDEN = @T17 AND T3.STATUS = @T18) WHERE (T0.STATUS = @T19 AND (T2.ROLE_CODE = @T20 OR T2.ROLE_CODE = @T21) AND T0.IS_LOCKED = @T22) GROUP BY T2.ROLE_CODE,T0.USER_ACCOUNT HAVING COUNT(T3.RESOURCE_ID) > @T23) T14;
+```
 ### 更新数据
 
 #### 通常的 update 方式
