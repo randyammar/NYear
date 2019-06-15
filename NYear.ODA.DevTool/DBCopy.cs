@@ -251,6 +251,9 @@ namespace NYear.ODA.DevTool
                         continue;
                     DatabaseColumnInfo[] ColumnInfo = new DatabaseColumnInfo[drs.Length];
                     ODAParameter[] Oprms = new ODAParameter[drs.Length];
+
+                    bool isBigData = false;
+
                     for (int j = 0; j < drs.Length; j++)
                     {
                         int Scale = 0; 
@@ -259,11 +262,17 @@ namespace NYear.ODA.DevTool
                         int.TryParse(drs[j]["LENGTH"].ToString().Trim(), out length);
                         ColumnInfo[j] = prm.TargetDB.ODAColumnToOrigin(drs[j]["COLUMN_NAME"].ToString(), drs[j]["ODA_DATATYPE"].ToString().Trim(), length, Scale);
 
-                        ColumnInfo[j].NotNull = drs[j]["NOT_NULL"].ToString().Trim().ToUpper() == "Y";
+                        ColumnInfo[j].NotNull = drs[j]["NOT_NULL"].ToString().Trim().ToUpper() == "Y"; 
+                        ODAdbType DBDataType = ODAdbType.OVarchar; 
+                        Enum.TryParse<ODAdbType>( drs[j]["ODA_DATATYPE"].ToString().Trim(), out DBDataType);
+
+                        if (DBDataType == ODAdbType.OBinary)
+                            isBigData = true;
+
                         Oprms[j] = new ODAParameter()
                         {
                             ColumnName = drs[j]["COLUMN_NAME"].ToString(),
-                            DBDataType = (ODAdbType)Enum.Parse(typeof(ODAdbType), drs[j]["ODA_DATATYPE"].ToString().Trim()),
+                            DBDataType = DBDataType,
                             Direction = ParameterDirection.Input,
                             ParamsName = drs[j]["COLUMN_NAME"].ToString(),
                             Size = ColumnInfo[j].Length
@@ -302,7 +311,7 @@ namespace NYear.ODA.DevTool
                         }
 
                         int total = 0;
-                        int maxR = 10000;
+                        int maxR = isBigData ? 50 : 10000;
                         int startIndx = 0;
                         DataTable DT_total = CurrentDatabase.DataSource.Select("SELECT COUNT(*) FROM " + prm.TranTable[i], null);
                         int.TryParse(DT_total.Rows[0][0].ToString(), out total);

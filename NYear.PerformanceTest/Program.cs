@@ -16,13 +16,13 @@ namespace NYear.PerformanceTest
         const int byId = 100;
         static void Main(string[] args)
         {
-            Test(OrmType.EF, TestType.Paging, 10);
-            Test(OrmType.ODA, TestType.Paging, 10);
-            Test(OrmType.SqlSugar, TestType.Paging, 10);
-            Test(OrmType.Dapper, TestType.Paging, 10);
+            Test(OrmType.EF, TestType.GetById, 10);
+            Test(OrmType.ODA, TestType.GetById, 10);
+            Test(OrmType.SqlSugar, TestType.GetById, 10);
+            Test(OrmType.Dapper, TestType.GetById, 10);
             Console.ReadKey();
         }
-
+         
         static long ODAPerformanceTest(TestType Ttype)
         {
             Stopwatch sw = new Stopwatch();

@@ -180,6 +180,7 @@ namespace NYear.ODA.Adapter
             {
                 ColInof.ColumnType = "DECIMAL";
                 ColInof.NoLength = false;
+                ColInof.Length = Length * 2;
             }
             else if (ColumnType.Trim() == ODAdbType.OInt.ToString())
             {
@@ -295,7 +296,7 @@ namespace NYear.ODA.Adapter
                 {
                     sqlbulkcopy = new SqlBulkCopy((SqlConnection)this.Transaction.Connection, SqlBulkCopyOptions.Default, (SqlTransaction)this.Transaction);
                 }
-                
+
                 for (int i = 0; i < Prms.Length; i++)
                 {
                     if (ImportData.Columns.Contains(Prms[i].ParamsName))
@@ -310,6 +311,10 @@ namespace NYear.ODA.Adapter
                 //将内存表表写入  
                 sqlbulkcopy.WriteToServer(ImportData);
                 return true;
+            }
+            catch (Exception ex)
+            {
+                throw new ODAException(202,string.Format("Import data into table [{0}] error:{1}", ImportData.TableName,ex.Message));
             }
             finally
             {
