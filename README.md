@@ -22,6 +22,37 @@ ODA使用的是链式编程语法，对SQL语句进行直接映射，所以ODA�
 ODA为求通用各种数据库，转换出来的SQL都是标准通用的SQL语句；一些常用但数据不兼容的部分，在ODA内部实现（如递归树查询、分页等)。 <br/>
 NYear.ODA以 Select、Insert、Update、Delete、Procedure 方法为最终执行方法，调用这些方法时，ODA 将会把生成的SQL语句发送给数据库运行。
 
+## 性能测试
+在信息管理系统中，业务功能程序不会去追求极致的性能，满足一般的人机交互需求就可以；</br>
+但在框架底层或影响全局的程序中(如 ORM 组件、AOP 容器等)，特别是在并发量到达一定规模的时候，我们都会追求极致的性能。</br>
+ORM 本身的性能会影响系统整体的性能，而且它的使用方式，可维护性，及对程序开发人员的约束，对系统整体性能有全面的影响。</br>
+由于 ORM 对程序的侵入性，不好的ORM会把开发人员带偏，走向万劫不复的深渊，EF就是一个很好的反面教材；</br>
+EF本身数据映性能就不好、SQL语句生成速度差，但要算最不靠谱的，应该就是生成出来的SQL语句了。</br>
+EF生成的SQL有很多的转换，语句非常复杂，经常走不上索引，还没办法优化，导致这些SQL语句在数据库里头运行的简直就是奇慢无比。</br>
+再加上EF、Linq的语法需要花大力气去学，使用起来的开发效率也十分低下，代码难以维护，综合起来就是一个恶梦。</br>
+要说 ORM 本身的性能其实是比较其次的（虽然ODA的性非常强悍），但关键是 ORM 不要带偏开发者，</br>
+然后就是能够规范访问数据库程序代码，提高程序的可维护性同时也要提高开发效率，支持后续的延申应用（如分库、分表，多数据库混用等），</br>
+而且 ORM 应该要做到数据库通，同时也要约束开发者不要去使用某个数据库特有的东西。</br>
+这才是 ORM 的追求。
+
+### 数据映射性
+1000000条数据记录，查询出来并转成对应的实体对象。</br>
+相较于EF 、Dapper 和 Sqlsugar，ODA 的性能是最好的  <br/>
+ ![image](https://github.com/riwfnsse/NYear/blob/master/NYear.PerformanceTest/Result/ReadData.png)
+
+### 读取单条数据记录
+Dapper比ODA 略胜一点，但预热时间（第一条）比较长，ODA 比 EF与SqlSugar的优势就很明显了;</br>
+特别是EF相较其他差了好几倍。</br>
+ ![image](https://github.com/riwfnsse/NYear/blob/master/NYear.PerformanceTest/Result/GetById.png)
+
+### SQL生成性能
+Dapper、没有处功能不作对比；EF 语句生成速度，简直不忍直视。ODA 比 Sqlsugar 好几倍。
+ ![image](https://github.com/riwfnsse/NYear/blob/master/NYear.PerformanceTest/Result/SQL.png)
+
+### 查询分页
+Dapper、没有处功能不作对比；EF 、ODA、Sqlsugar 性能相差无几。
+ ![image](https://github.com/riwfnsse/NYear/blob/master/NYear.PerformanceTest/Result/Paging.png)
+
 ## 用法示例
 ###  查询
 #### 简单查询
@@ -36,6 +67,19 @@ DataTable data = U.Where(U.ColUserAccount == "User1")
        .And(U.ColEmailAddr.IsNotNull)  
        .Select(U.ColUserAccount, U.ColUserPassword.As("PWD"), U.ColUserName, U.ColPhoneNo, U.ColEmailAddr); 
 ```
+```SQL
+SELECT T0.USER_ACCOUNT,
+       T0.USER_PASSWORD AS PWD,
+       T0.USER_NAME,
+       T0.PHONE_NO,
+       T0.EMAIL_ADDR
+  FROM SYS_USER T0
+ WHERE T0.USER_ACCOUNT = @T1
+   AND T0.IS_LOCKED = @T2
+   AND T0.STATUS = @T3
+   AND T0.EMAIL_ADDR IS NOT NULL;
+ 
+```
 #### 查询默认实体
 为简化单表查询转为实体写法，ODA提供 SelectM 方法，返回默认实体数据。</br>
 此方法是泛型方法 Select<> 的再次封装，它与调用Select<>是一样的。
@@ -44,6 +88,14 @@ ODAContext ctx = new ODAContext();
 var U = ctx.GetCmd<CmdSysUser>();
 List<SYS_USER> data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColStatus == "O", U.ColEmailAddr.IsNotNull)
                .SelectM(U.ColUserAccount, U.ColUserName, U.ColPhoneNo, U.ColEmailAddr);
+```
+```SQL
+SELECT T0.USER_ACCOUNT, T0.USER_NAME, T0.PHONE_NO, T0.EMAIL_ADDR
+  FROM SYS_USER T0
+ WHERE T0.USER_ACCOUNT = @T1
+   AND T0.IS_LOCKED = @T2
+   AND T0.STATUS = @T3
+   AND T0.EMAIL_ADDR IS NOT NULL;        
 ```
 #### 查询并返回指定实体类型
 返回的实体类型可以是任意自定义类型，并不一定是对应数据库的实体.</br>
@@ -55,6 +107,14 @@ var U = ctx.GetCmd<CmdSysUser>();
 List<SYS_USER> data = U.Where(U.ColUserAccount == "User1",U.ColIsLocked == "N",U.ColStatus == "O",U.ColEmailAddr.IsNotNull)
                .Select<SYS_USER>(U.ColUserAccount, U.ColUserName, U.ColPhoneNo, U.ColEmailAddr);
 ```
+```SQL
+SELECT T0.USER_ACCOUNT, T0.USER_NAME, T0.PHONE_NO, T0.EMAIL_ADDR
+  FROM SYS_USER T0
+ WHERE T0.USER_ACCOUNT = @T1
+   AND T0.IS_LOCKED = @T2
+   AND T0.STATUS = @T3
+   AND T0.EMAIL_ADDR IS NOT NULL;
+```
 #### 查询分页
 ```C#
 ODAContext ctx = new ODAContext(); 
@@ -62,6 +122,20 @@ int total = 0;
 var U = ctx.GetCmd<CmdSysUser>();
 var data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColEmailAddr.IsNotNull)
     .SelectM(0,20,out total, U.ColUserAccount, U.ColUserName, U.ColPhoneNo, U.ColEmailAddr); 
+    
+```
+```SQL   
+SELECT T0.USER_ACCOUNT, T0.USER_NAME, T0.PHONE_NO, T0.EMAIL_ADDR
+  FROM SYS_USER T0
+ WHERE T0.USER_ACCOUNT = @T1
+   AND T0.IS_LOCKED = @T2
+   AND T0.EMAIL_ADDR IS NOT NULL;
+
+SELECT COUNT(*) AS TOTAL_RECORD
+  FROM SYS_USER T0
+ WHERE T0.USER_ACCOUNT = @T4
+   AND T0.IS_LOCKED = @T5
+   AND T0.EMAIL_ADDR IS NOT NULL;
 ```
 #### 查询第一行
 很多时候我们查询数据库只需取第一行的数据。ODA为简化应用，提供了查询第一行数据返回动态类型数据的方法。</br>
@@ -73,6 +147,19 @@ var data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColEmail
     .SelectDynamicFirst(U.ColUserAccount, U.ColUserName, U.ColPhoneNo, U.ColEmailAddr);
             
     string UserName = data.USER_NAME;///属性 USER_NAME 与 ColUserName 的ColumnName一致，如果没有数据则返回null
+```
+```SQL    
+SELECT T0.USER_ACCOUNT, T0.USER_NAME, T0.PHONE_NO, T0.EMAIL_ADDR
+  FROM SYS_USER T0
+ WHERE T0.USER_ACCOUNT = @T1
+   AND T0.IS_LOCKED = @T2
+   AND T0.EMAIL_ADDR IS NOT NULL;
+
+SELECT COUNT(*) AS TOTAL_RECORD
+  FROM SYS_USER T0
+ WHERE T0.USER_ACCOUNT = @T4
+   AND T0.IS_LOCKED = @T5
+   AND T0.EMAIL_ADDR IS NOT NULL;
  ```
 #### 返回动态数据模型
 很多时候为一种查询编写一个实体类，实在是很麻烦。</br>
@@ -87,12 +174,25 @@ string UserName = "";
 if (data.Count > 0)
 UserName =  data[0].USER_NAME; ///与 ColUserName  的 ColumnName一致.
 ```
+```SQL
+SELECT T0.USER_ACCOUNT, T0.USER_NAME, T0.PHONE_NO, T0.EMAIL_ADDR
+  FROM SYS_USER T0
+ WHERE T0.USER_ACCOUNT = @T1
+   AND T0.IS_LOCKED = @T2
+   AND T0.EMAIL_ADDR IS NOT NULL;
+```
 #### 去重复 Distinct
 ```C#
 ODAContext ctx = new ODAContext();
 var U = ctx.GetCmd<CmdSysUser>();
 var data = U.Where( U.ColIsLocked == "N", U.ColEmailAddr.IsNotNull)
     .Distinct.Select(U.ColUserAccount, U.ColUserName, U.ColPhoneNo, U.ColEmailAddr);
+```
+```SQL
+SELECT DISTINCT T0.USER_ACCOUNT, T0.USER_NAME, T0.PHONE_NO, T0.EMAIL_ADDR
+  FROM SYS_USER T0
+ WHERE T0.IS_LOCKED = @T1
+   AND T0.EMAIL_ADDR IS NOT NULL;
 ```
 #### 连接查询
 ODA支持 InnerJoin、LeftJoin、RightJion，且可以无限的Join。</br>
@@ -107,8 +207,8 @@ var data = U.InnerJoin(UR, U.ColUserAccount == UR.ColUserAccount, UR.ColStatus =
     .LeftJoin(R, UR.ColRoleCode == R.ColRoleCode, R.ColStatus == "O")
     .Where(U.ColStatus == "O",R.ColRoleCode == "Administrator")
     .Select<UserDefineModel>(U.ColUserAccount.As("UserAccount"), U.ColUserName.As("UserName"),R.ColRoleCode.As("Role"), R.ColRoleName.As("RoleName"));
-    
-/*
+```
+```SQL
 SELECT T0.USER_ACCOUNT AS UserAccount,
        T0.USER_NAME    AS UserName,
        T1.ROLE_CODE    AS Role,
@@ -122,7 +222,6 @@ SELECT T0.USER_ACCOUNT AS UserAccount,
    AND T1.STATUS ='O'
  WHERE T0.STATUS = 'O'
    AND T1.ROLE_CODE = 'Administrator';
-*/
 ```
 #### 简单内连接 
 内连接有很多人只使用 join , 但对形如 SELECT t1.* FROM TABLE1 T1,TABLE2 T2,TABLE3 T3,TABLE4 这种写法比较陌生，<br/>
@@ -140,7 +239,8 @@ var data =  U.ListCmd(UR,R)
            U.ColStatus == "O",
            R.ColRoleCode == "Administrator")
 .Select< UserDefineModel>(U.ColUserAccount.As("UserAccount"), U.ColUserName.As("UserName"),U.ColEmailAddr.As("Email"), R.ColRoleCode.As("Role"), R.ColRoleName.As("RoleName"));
-/*
+```
+```SQL
 SELECT T0.USER_ACCOUNT AS UserAccount,
        T0.USER_NAME    AS UserName,
        T0.EMAIL_ADDR   AS Email,
@@ -153,8 +253,6 @@ SELECT T0.USER_ACCOUNT AS UserAccount,
    AND T1.STATUS = @T4
    AND T0.STATUS = @T5
    AND T1.ROLE_CODE = @T6;
-*/
-
 ```
 #### 嵌套子查询
 嵌套子查询需要把一个查询子句转换成视图(ToView方法)，转换成视图之后可以把它视作普通的Cmd使用。<br/>
@@ -178,7 +276,8 @@ var data =  Admin.InnerJoin(UA, UA.ColUserAccount == Admin.ViewColumns[1],UA.Col
     .Where(Admin.ViewColumns[1] == "张三",
            Admin.ViewColumns[2] == "Administrator"
      ).Select(); 
-/*
+```
+```SQL
 SELECT *
   FROM (SELECT T0.USER_ACCOUNT AS SYS_USER,
                T0.USER_NAME,
@@ -200,7 +299,6 @@ SELECT *
    AND T4.IS_FORBIDDEN = 'N'
  WHERE T6.USER_NAME = '张三'
    AND T6.SYS_ROLE = 'Administrator';
-   */
 ```
 #### Union UnionAll
 Union 语句要求被Union或UnionAll的是视图。要求视图与查询的字段的数据库类型及顺序及数据一致（数据库本身的要求，非ODA要求)。
@@ -229,7 +327,8 @@ var data = U.Union(U1.ToView(U1.ColUserAccount, U1.ColUserName, UA.ColIsForbidde
       )).Select(U.ColUserAccount, U.ColUserName, RA.ColIsForbidden,
                 RS.ColId, RS.ColResourceType, RS.ColResourceScope, RS.ColResourceLocation
                 ); 
-/*
+```
+```SQL
 SELECT T0.USER_ACCOUNT,
        T0.USER_NAME,
        T2.IS_FORBIDDEN,
@@ -263,8 +362,7 @@ SELECT T4.USER_ACCOUNT,
  INNER JOIN SYS_RESOURCE T6
     ON T6.ID = T5.RESOURCE_ID
    AND T6.STATUS = 'O'
- WHERE T4.USER_ACCOUNT = 'User1';
- */         
+ WHERE T4.USER_ACCOUNT = 'User1';         
 ```
 #### 查询排序
 OrderbyAsc 或OrderbyDesc 对数据按顺序或倒序排列，先给出的排序条件优先排。
@@ -306,7 +404,8 @@ U.Having(U.ColUserAccount.Count > 2);
 U.OrderbyAsc(U.ColUserAccount.Count);
 data = U.Select(U.ColUserAccount.Count.As("USER_COUNT"), UR.ColRoleCode);
 
-/*
+```
+```SQL
 SELECT COUNT(T0.USER_ACCOUNT) AS USER_COUNT, T1.ROLE_CODE
   FROM SYS_USER T0
  INNER JOIN SYS_USER_ROLE T1
@@ -319,8 +418,6 @@ SELECT COUNT(T0.USER_ACCOUNT) AS USER_COUNT, T1.ROLE_CODE
  GROUP BY T1.ROLE_CODE
 HAVING COUNT(T0.USER_ACCOUNT) > 2
  ORDER BY COUNT(T0.USER_ACCOUNT) ASC;
-*/
-
 ```
 #### 分组统计, Groupby  Having
 Groupby 、Having、OrderbyAsc 方法里支持 Function 运算；</br>
@@ -337,6 +434,18 @@ Count、Max、Min、Sum、Upper、Lower等数据库通用的内置函数，已�
      .OrderbyAsc(UR.ColRoleCode,U.ColUserAccount.Count)
      .Select(U.ColUserAccount.Count.As("USER_COUNT"), UR.ColRoleCode);
 ```
+```SQL
+SELECT COUNT(T0.USER_ACCOUNT) AS USER_COUNT, T1.ROLE_CODE
+  FROM SYS_USER T0
+ INNER JOIN SYS_USER_ROLE T1
+    ON T0.USER_ACCOUNT = T1.USER_ACCOUNT
+   AND T1.STATUS = @T2
+ WHERE T0.STATUS = @T3
+   AND T1.ROLE_CODE IN (@T5_0, @T5_1, @T5_2, @T5_3, @T5_4)
+ GROUP BY T1.ROLE_CODE
+HAVING COUNT(T0.USER_ACCOUNT) > @T6
+ ORDER BY T1.ROLE_CODE ASC, COUNT(T0.USER_ACCOUNT) ASC;
+```
 
 #### IN/NOT IN 条件
 IN/NOT IN 有两个重载，一个是in数组，一个是in子查询
@@ -351,6 +460,17 @@ RA.Where(RA.ColIsForbidden == "N", RA.ColStatus == "O", RA.ColRoleCode.In("Admin
 var data = RS.Where(RS.ColStatus == "O", RS.ColId.In(RA, RA.ColResourceId)) 
     .SelectM(); 
 ```
+```SQL
+SELECT *
+  FROM SYS_RESOURCE T1
+ WHERE T1.STATUS = @T2
+   AND T1.ID IN (SELECT T0.RESOURCE_ID
+                   FROM SYS_ROLE_AUTHORIZATION T0
+                  WHERE T0.IS_FORBIDDEN = @T4
+                    AND T0.STATUS = @T5
+                    AND T0.ROLE_CODE IN (@T7_0, @T7_1, @T7_2));
+
+```
 #### Exists/NOT Exists 子查询
 ```C#
 ODAContext ctx = new ODAContext();
@@ -362,6 +482,17 @@ RA.Where(RA.ColIsForbidden == "N", RA.ColStatus == "O", RA.ColResourceId == RS.C
 var data = RS.Where(RS.ColStatus == "O", RS.Function.Exists(RA, RA.AllColumn)) 
     .SelectM();
 ```
+```SQL
+SELECT *
+  FROM SYS_RESOURCE T1
+ WHERE T1.STATUS = @T2
+   AND EXISTS (SELECT T0.*
+          FROM SYS_ROLE_AUTHORIZATION T0
+         WHERE T0.IS_FORBIDDEN = @T3
+           AND T0.STATUS = @T4
+           AND T0.RESOURCE_ID = T1.ID);
+```
+
 #### 递归查询
 ODA 递归查询效果与Oracle的StartWith ConnectBy语句一致。<br/>
 ODA 处理原理：先以 where 条作查出需要递归筛先的数据，然后在内存中递归筛选。<br/>
@@ -383,6 +514,20 @@ var rlt1 = RS.Where(RS.ColStatus == "O", RS.ColResourceType == "MENU")
     .StartWithConnectBy(RS.ColResourceName.ColumnName + "='菜单1'", RS.ColId.ColumnName, RS.ColParentId.ColumnName, "MENU_PATH", "<-", 10)
 .Select(RS.ColResourceName.As("MENU_PATH"), RS.ColId, RS.ColParentId, RS.ColResourceName, RS.ColResourceType, RS.ColResourceScope, RS.ColResourceLocation, RS.ColResourceIndex);
 ```
+```SQL
+SELECT T0.RESOURCE_NAME AS MENU_PATH,
+       T0.ID,
+       T0.PARENT_ID,
+       T0.RESOURCE_NAME,
+       T0.RESOURCE_TYPE,
+       T0.RESOURCE_SCOPE,
+       T0.RESOURCE_LOCATION,
+       T0.RESOURCE_INDEX
+  FROM SYS_RESOURCE T0
+ WHERE T0.STATUS = @T4
+   AND T0.RESOURCE_TYPE = @T5;
+```
+
 #### Lambda语法支持
 Lambda 语法是由 ODA 原生语法扩展而来的，ODA 使用者也可以自行扩展。<br/>
 ODA 原生语法是可以无限连接的，但目前 Lambda 语法支持最多九个表的连接查询。
@@ -398,7 +543,42 @@ var data = new ODAContext().GetJoinCmd<CmdSysUser>()
    .OrderbyAsc((u, ur, r, ra) => new IODAColumns[] { ra.ColResourceId.Count })
    .Select(0, 20, out total, (u, ur, r, ra) => new IODAColumns[] { r.ColRoleCode, u.ColUserAccount, ra.ColResourceId.Count.As("ResourceCount") });        
 ```
+```SQL
+SELECT T2.ROLE_CODE,
+       T0.USER_ACCOUNT,
+       COUNT(T3.RESOURCE_ID) AS ResourceCount
+  FROM SYS_USER T0
+ INNER JOIN SYS_USER_ROLE T1
+    ON (T0.USER_ACCOUNT = T1.USER_ACCOUNT AND T1.STATUS = @T4)
+ INNER JOIN SYS_ROLE T2
+    ON (T1.ROLE_CODE = T2.ROLE_CODE AND T2.STATUS = @T5)
+ INNER JOIN SYS_ROLE_AUTHORIZATION T3
+    ON (T2.ROLE_CODE = T3.ROLE_CODE AND T3.IS_FORBIDDEN = @T6 AND
+       T3.STATUS = @T7)
+ WHERE (T0.STATUS = @T8 AND (T2.ROLE_CODE = @T9 OR T2.ROLE_CODE = @T10) AND
+       T0.IS_LOCKED = @T11)
+ GROUP BY T2.ROLE_CODE, T0.USER_ACCOUNT
+HAVING COUNT(T3.RESOURCE_ID) > @T12
+ ORDER BY COUNT(T3.RESOURCE_ID) ASC;
 
+SELECT COUNT(*) AS TOTAL_RECORD
+  FROM (SELECT T2.ROLE_CODE,
+               T0.USER_ACCOUNT,
+               COUNT(T3.RESOURCE_ID) AS ResourceCount
+          FROM SYS_USER T0
+         INNER JOIN SYS_USER_ROLE T1
+            ON (T0.USER_ACCOUNT = T1.USER_ACCOUNT AND T1.STATUS = @T15)
+         INNER JOIN SYS_ROLE T2
+            ON (T1.ROLE_CODE = T2.ROLE_CODE AND T2.STATUS = @T16)
+         INNER JOIN SYS_ROLE_AUTHORIZATION T3
+            ON (T2.ROLE_CODE = T3.ROLE_CODE AND T3.IS_FORBIDDEN = @T17 AND
+               T3.STATUS = @T18)
+         WHERE (T0.STATUS = @T19 AND
+               (T2.ROLE_CODE = @T20 OR T2.ROLE_CODE = @T21) AND
+               T0.IS_LOCKED = @T22)
+         GROUP BY T2.ROLE_CODE, T0.USER_ACCOUNT
+        HAVING COUNT(T3.RESOURCE_ID) > @T23) T14;
+```
 ### 更新数据
 
 #### 通常的 update 方式
@@ -409,15 +589,14 @@ ODAContext ctx = new ODAContext();
 var U = ctx.GetCmd<CmdSysUser>();
 U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColStatus == "O", U.ColEmailAddr.IsNotNull)
  .Update(U.ColUserName == "新的名字", U.ColIsLocked == "Y");
- /*
+```
+```SQL
  UPDATE SYS_USER
    SET USER_NAME = '新的名字', IS_LOCKED ='Y'
  WHERE USER_ACCOUNT = 'User1'
    AND IS_LOCKED = 'N'
    AND STATUS = 'O'
-   AND EMAIL_ADDR IS NOT NULL;
-   */
- 
+   AND EMAIL_ADDR IS NOT NULL; 
 ```
 #### 模型数据 Upadte
 使用实体 Update 数据时，对于属性值为 null 的字段不作更新。<br/>
@@ -438,7 +617,8 @@ var U = ctx.GetCmd<CmdSysUser>();
         USER_PASSWORD = "123",
         IS_LOCKED = "N",
     });
- /*
+```
+```SQL
  UPDATE SYS_USER
    SET STATUS        = 'O',
        CREATED_BY    = 'InsertModel',
@@ -451,10 +631,7 @@ var U = ctx.GetCmd<CmdSysUser>();
  WHERE USER_ACCOUNT = 'User1'
    AND IS_LOCKED = 'N'
    AND STATUS = 'O'
-   AND EMAIL_ADDR IS NOT NULL;
-
- */
-    
+   AND EMAIL_ADDR IS NOT NULL; 
 ```
 #### 更新运算
  支持的运算符号：+ 、 - 、*、/、%
@@ -464,13 +641,13 @@ ODAContext ctx = new ODAContext();
 var U = ctx.GetCmd<CmdSysUser>();
 var data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColEmailAddr.IsNotNull)
     .Update(U.ColFailTimes == U.ColFailTimes + 1, U.ColUserName == U.ColUserAccount + U.ColEmailAddr ); 
-  /*
+```
+```SQL
   UPDATE SYS_USER
    SET FAIL_TIMES = FAIL_TIMES + 1, USER_NAME = USER_ACCOUNT + EMAIL_ADDR
  WHERE USER_ACCOUNT = 'User1'
    AND IS_LOCKED ='N'
    AND EMAIL_ADDR IS NOT NULL;
-  */
 ```
 #### 删除数据
 Delete的where条件  SELECT 语句一致
@@ -480,12 +657,12 @@ var U = ctx.GetCmd<CmdSysUser>();
 var data = U.Where(U.ColUserAccount == "User1", U.ColIsLocked == "N", U.ColEmailAddr.IsNotNull)
    .Delete();
    
-   /*
+```
+```SQL
    DELETE FROM SYS_USER T0
  WHERE T0.USER_ACCOUNT = 'User1'
    AND T0.IS_LOCKED = 'N'
    AND T0.EMAIL_ADDR IS NOT NULL;
-   */
 ```
 ### 插入数据据
 #### 插入指定字段的数据
@@ -599,10 +776,16 @@ object data = U.Where(U.ColStatus == "O", U.ColIsLocked == "N")
        .Groupby(U.ColUserAccount)
        .Select(U.Function.Count.As("CountAll"), U.ColUserAccount.Count.As("CountOne"), U.ColUserAccount.Upper.As("UPPER_ACC"), U.ColUserAccount.Trim.Ltrim.As("TRIM_ACC"));
 
-/*
-SELECT COUNT(*) AS CountAll,COUNT(T0.USER_ACCOUNT) AS CountOne,UPPER(T0.USER_ACCOUNT) AS UPPER_ACC,LTRIM(T0.USER_ACCOUNT) AS TRIM_ACC FROM SYS_USER T0 WHERE T0.STATUS = 'O' AND T0.IS_LOCKED = 'N' GROUP BY T0.USER_ACCOUNT;
- */
-       
+```
+```SQL
+SELECT COUNT(*) AS CountAll,
+       COUNT(T0.USER_ACCOUNT) AS CountOne,
+       UPPER(T0.USER_ACCOUNT) AS UPPER_ACC,
+       LTRIM(T0.USER_ACCOUNT) AS TRIM_ACC
+  FROM SYS_USER T0
+ WHERE T0.STATUS = 'O'
+   AND T0.IS_LOCKED = 'N'
+ GROUP BY T0.USER_ACCOUNT;       
 ```
 #### 表达式
 Express方法, 用户可在 SELECT 字段中注入自定义的一段SQL脚本。
@@ -617,11 +800,15 @@ object data = U.Where(U.ColStatus == "O", U.ColIsLocked == "N")
         U.Function.Express(" null ").As("NULL_COLUMN"), 
         U.Function.Express(" 'Function( + " + ODAParameter.ODAParamsMark + "Params1, " + ODAParameter.ODAParamsMark + "Params2)' ", p1, p2).As("SQL_Injection"));
  
- /*
-SELECT 1+1 AS COMPUTED, null  AS NULL_COLUMN, 'Function( + @Params1, @Params2)'  AS SQL_Injection 
-FROM SYS_USER T0 WHERE T0.STATUS = @T1 AND T0.IS_LOCKED = @T2;
- */
-    
+```
+```SQL
+SELECT 1 + 1 AS COMPUTED,
+       null AS NULL_COLUMN,
+       'Function( + @Params1, @Params2)' AS SQL_Injection
+  FROM SYS_USER T0
+ WHERE T0.STATUS = @T1
+   AND T0.IS_LOCKED = @T2;
+
 ```
 #### 虚拟字段、临时字段
 VisualColumn 方法是对 Express 方法的再次封装，为应用提供方便，免出数据转换麻烦、避免SQL注入风险、保证数据库通用。
@@ -630,11 +817,14 @@ VisualColumn 方法是对 Express 方法的再次封装，为应用提供方便�
 var U = ctx.GetCmd<CmdSysUser>();
 object data = U.Where(U.ColStatus == "O", U.ColIsLocked == "N")
       .Select(U.Function.VisualColumn("HELLO , I am NYear software").As("STRING_COLUMN"), U.Function.VisualColumn(DateTime.Now).As("APPLICATION_DATETIME"), U.Function.VisualColumn(0).As("DIGIT_COLUMN"));
- /*
- SELECT 'HELLO , I am NYear software' AS STRING_COLUMN,@T1 AS APPLICATION_DATETIME,0 AS DIGIT_COLUMN 
- FROM SYS_USER T0 
- WHERE T0.STATUS = 'O' AND T0.IS_LOCKED = 'N'; 
-   */
+```
+```SQL
+SELECT 'HELLO , I am NYear software' AS STRING_COLUMN,
+       @T1 AS APPLICATION_DATETIME,
+       0 AS DIGIT_COLUMN
+  FROM SYS_USER T0
+ WHERE T0.STATUS = 'O'
+   AND T0.IS_LOCKED = 'N';
 ```
 #### 用户自定义的函数
 CreateFunc 方法,用可在 SELECT 字段中加入自定义的数据库函数，但不同的数据库对调用自定义函数的方法差异太大，ODA无法将其统一。<br/>
@@ -644,11 +834,11 @@ ODAContext ctx = new ODAContext();
 var RS = ctx.GetCmd<CmdSysResource>();
 object data = RS.Where(RS.ColStatus == "O",RS.ColResourceType =="MENU") 
        .Select(RS.AllColumn,RS.Function.CreateFunc("dbo.GET_RESOURCE_PATH", RS.ColId).As("RESOURCE_PATH"));
- /*
+```
+```SQL
  SELECT T0.*,dbo.GET_RESOURCE_PATH(T0.ID) AS RESOURCE_PATH 
  FROM SYS_RESOURCE T0 
  WHERE T0.STATUS = 'O' AND T0.RESOURCE_TYPE = 'MENU';
- */
 ```
 #### 数据内容转换 CaseWhen
 SQL 语句： case when  条件 then  值 when 条件 then 值 else 默认值 end 
@@ -667,7 +857,8 @@ phone.Add(U.ColAddress.NotLike("%公安局%"), "被抓了?");
 object data = U.Where(U.ColStatus == "O", U.ColIsLocked == "N")
        .Select(U.Function.CaseWhen(Addr, U.ColAddress).As("ADDRESS"), U.Function.CaseWhen(phone, "110").As("PHONE_NO"));
        
- /*
+```
+```SQL
  SELECT (CASE
          WHEN T0.ADDRESS IS NULL THEN
           '无用户地址数据...'
@@ -689,8 +880,7 @@ object data = U.Where(U.ColStatus == "O", U.ColIsLocked == "N")
   FROM SYS_USER T0
  WHERE T0.STATUS = 'O'
    AND T0.IS_LOCKED ='N';
-*/
-       
+    
 ```
 #### 空值转换
 NullDefault 是对CaseWhen方法的再次封装，以方便应用
@@ -700,11 +890,23 @@ var U = ctx.GetCmd<CmdSysUser>();
 object data = U.Where(U.ColStatus == "O", U.ColIsLocked == "N")
        .Select(U.Function.NullDefault(U.ColAddress, "无用户地址数据...").As("ADDRESS"), U.Function.NullDefault(U.ColPhoneNo,110).As("PHONE_NO"));
        
-/*
-SELECT ( CASE  WHEN T0.ADDRESS IS NULL  THEN '无用户地址数据...' ELSE T0.ADDRESS END ) AS ADDRESS,
-( CASE  WHEN T0.PHONE_NO IS NULL  THEN 110  ELSE T0.PHONE_NO END ) AS PHONE_NO 
-FROM SYS_USER T0 WHERE T0.STATUS = 'O' AND T0.IS_LOCKED = 'N';
-*/
+```
+```SQL
+SELECT (CASE
+         WHEN T0.ADDRESS IS NULL THEN
+          '无用户地址数据...'
+         ELSE
+          T0.ADDRESS
+       END) AS ADDRESS,
+       (CASE
+         WHEN T0.PHONE_NO IS NULL THEN
+          110
+         ELSE
+          T0.PHONE_NO
+       END) AS PHONE_NO
+  FROM SYS_USER T0
+ WHERE T0.STATUS = 'O'
+   AND T0.IS_LOCKED = 'N';
 ```
 #### 数据内容转换 Case
 SQL 语句： case 字段 when  对比值 then 值 when 对比值 then 值 else 默认值 end 
@@ -722,7 +924,8 @@ phone.Add(U.ColAddress, "资料有误，电话与地址相同");
 
 object data = U.Where(U.ColStatus == "O", U.ColIsLocked == "N")
        .Select(U.Function.Case(U.ColAddress,Addr, U.ColAddress).As("ADDRESS"), U.Function.Case(U.ColPhoneNo,phone, U.ColPhoneNo).As("PHONE_NO"));
-/*
+```
+```SQL
 SELECT (CASE T0.ADDRESS
          WHEN NULL THEN
           '无用户地址数据...'
@@ -744,8 +947,6 @@ SELECT (CASE T0.ADDRESS
   FROM SYS_USER T0
  WHERE T0.STATUS = 'O'
    AND T0.IS_LOCKED = 'N'
-
-*/
  
 ```
 #### 数据内容转换Decode
@@ -757,11 +958,24 @@ object data = RS.Where(RS.ColStatus == "O", RS.ColResourceType == "MENU")
        .Select(RS.Function.Decode(RS.ColResourceType, "未知类型", "WEB", "网页资源", "WFP_PAGE", "WPF页面资源", "WPF_WIN", "WPF程序窗口", "WIN_FORM", "FORM窗口").As("RESOURCE_TYPE")
                  , RS.AllColumn); 
                  
-/*
-SELECT ( CASE T0.RESOURCE_TYPE WHEN 'WEB' THEN '网页资源' WHEN 'WFP_PAGE' THEN 'WPF页面资源' 
-WHEN 'WPF_WIN' THEN 'WPF程序窗口' WHEN 'WIN_FORM' THEN 'FORM窗口' ELSE '未知类型' END )  AS RESOURCE_TYPE,T0.* FROM SYS_RESOURCE T0 WHERE T0.STATUS ='O' AND T0.RESOURCE_TYPE = 'MENU';
-*/
-                 
+```
+```SQL
+SELECT (CASE T0.RESOURCE_TYPE
+         WHEN 'WEB' THEN
+          '网页资源'
+         WHEN 'WFP_PAGE' THEN
+          'WPF页面资源'
+         WHEN 'WPF_WIN' THEN
+          'WPF程序窗口'
+         WHEN 'WIN_FORM' THEN
+          'FORM窗口'
+         ELSE
+          '未知类型'
+       END) AS RESOURCE_TYPE,
+       T0.*
+  FROM SYS_RESOURCE T0
+ WHERE T0.STATUS = 'O'
+   AND T0.RESOURCE_TYPE = 'MENU';            
 ```
 
 ### 进阶应用
