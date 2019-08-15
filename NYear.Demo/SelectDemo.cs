@@ -9,7 +9,6 @@ using NYear.ODA;
 using System.Data;
 using System.Reflection;
 using System.Reflection.Emit;
-using SqlSugar;
 using System.Windows.Forms;
 using System.Globalization;
 using MySql.Data.Types;

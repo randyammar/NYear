@@ -141,30 +141,15 @@ namespace NYear.ODA.DevTool
                     strCmd.AppendLine("\t\t public override bool Update(params ODAColumns[] Cols) {  throw new ODAException(\"Not Suport Update CmdName \" + CmdName);}");
                     strCmd.AppendLine("\t\t public override bool Delete() {  throw new ODAException(\"Not Suport Delete CmdName \" + CmdName);}");
                 }
-
+                 
                 for (int j = 0; j < drs.Length; j++)
                 {
                     string ColumnName = drs[j]["COLUMN_NAME"].ToString().Trim();
-                    string ColumnPascalName = "Col" + this.Pascal(ColumnName);
-                    string ColumnCSharpDatatype = "string";
-
-                    if (drs[j]["ODA_DATATYPE"].ToString().Trim() == ODAdbType.OBinary.ToString())
-                        ColumnCSharpDatatype = "byte[]";
-                    else if (drs[j]["ODA_DATATYPE"].ToString().Trim() == "OCursor")
-                        ColumnCSharpDatatype = "object";
-                    else if (drs[j]["ODA_DATATYPE"].ToString().Trim() == ODAdbType.ODatetime.ToString())
-                        ColumnCSharpDatatype = "DateTime?";
-                    else if (drs[j]["ODA_DATATYPE"].ToString().Trim() == ODAdbType.ODecimal.ToString())
-                        ColumnCSharpDatatype = "decimal?";
-                    else if (drs[j]["ODA_DATATYPE"].ToString().Trim() == ODAdbType.OInt.ToString())
-                        ColumnCSharpDatatype = "int?";
-                    else if (drs[j]["ODA_DATATYPE"].ToString().Trim() == ODAdbType.OChar.ToString())
-                        ColumnCSharpDatatype = "string";
-                    else if (drs[j]["ODA_DATATYPE"].ToString().Trim() == ODAdbType.OVarchar.ToString())
-                        ColumnCSharpDatatype = "string";
-
+                    string ColumnPascalName = "Col" + this.Pascal(ColumnName); 
+                    string ColumnCSharpDatatype = CurrentDatabase.GetTargetsType(drs[j]["DATATYPE"].ToString().Trim(), CurrentDatabase.DataSource.DBAType.ToString(), "CSHARP");
+                    string ODAType = CurrentDatabase.GetTargetsType(drs[j]["DATATYPE"].ToString().Trim(), CurrentDatabase.DataSource.DBAType.ToString(), "ODA");
                     strModel.AppendLine("\t\t public " + ColumnCSharpDatatype + " " + ColumnName + " {get; set;}");
-                    strCmd.AppendLine("\t\t public ODAColumns " + ColumnPascalName + "{ get { return new ODAColumns(this, \"" + ColumnName + "\", ODAdbType." + drs[j]["ODA_DATATYPE"].ToString().Trim() + ", " + drs[j]["LENGTH"].ToString().Trim() + "," + (drs[j]["NOT_NULL"].ToString().Trim()=="Y"? "true":"false") +" ); } }");
+                    strCmd.AppendLine("\t\t public ODAColumns " + ColumnPascalName + "{ get { return new ODAColumns(this, \"" + ColumnName + "\", ODAdbType." + ODAType.Trim() + ", " + drs[j]["LENGTH"].ToString().Trim() + "," + (drs[j]["NOT_NULL"].ToString().Trim()=="Y"? "true":"false") +" ); } }");
                     GetColumnList.Append(ColumnPascalName + ",");
                 }
 

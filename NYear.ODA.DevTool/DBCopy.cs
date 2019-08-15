@@ -14,7 +14,7 @@ namespace NYear.ODA.DevTool
     {
         public ODA.DBAccess TarDB = null;
         public DBCopy()
-        {
+        { 
             InitializeComponent();
         }
 
@@ -204,6 +204,7 @@ namespace NYear.ODA.DevTool
                 prm.TargetDB = TarDB;
                 prm.NeedTransData = cbxTransData.Checked;
                 prm.NeedTransTable = cbxCreateTable.Checked;
+                prm.TableScript = cbxTableScript.Checked;
                 prm.SrcTables = CurrentDatabase.DataSource.GetTableColumns();
                 prm.TranTable = new List<string>();
 
@@ -236,6 +237,8 @@ namespace NYear.ODA.DevTool
                 TransferParams prm = e.Argument as TransferParams;
                 BackgroundWorker bgw = sender as BackgroundWorker;
 
+                StringBuilder tblScript = new StringBuilder();
+                string TargetDB = prm.TargetDB.DBAType.ToString();
                 for (int i = 0; i < prm.TranTable.Count; i++)
                 {
                     ReportStatus RS = new ReportStatus()
@@ -260,11 +263,16 @@ namespace NYear.ODA.DevTool
                         int.TryParse(drs[j]["SCALE"].ToString().Trim(), out Scale); 
                         int length = 2000; 
                         int.TryParse(drs[j]["LENGTH"].ToString().Trim(), out length);
-                        ColumnInfo[j] = prm.TargetDB.ODAColumnToOrigin(drs[j]["COLUMN_NAME"].ToString(), drs[j]["ODA_DATATYPE"].ToString().Trim(), length, Scale);
+
+                        string TargetDBDataType = CurrentDatabase.GetTargetsType(drs[j]["DATATYPE"].ToString().Trim(), CurrentDatabase.DataSource.DBAType.ToString(), TargetDB);
+                        string ODAType = CurrentDatabase.GetTargetsType(drs[j]["DATATYPE"].ToString().Trim(), CurrentDatabase.DataSource.DBAType.ToString(), "ODA");
+
+
+                        ColumnInfo[j] = prm.TargetDB.ODAColumnToOrigin(drs[j]["COLUMN_NAME"].ToString(), TargetDBDataType, length, Scale);
 
                         ColumnInfo[j].NotNull = drs[j]["NOT_NULL"].ToString().Trim().ToUpper() == "Y"; 
                         ODAdbType DBDataType = ODAdbType.OVarchar; 
-                        Enum.TryParse<ODAdbType>( drs[j]["ODA_DATATYPE"].ToString().Trim(), out DBDataType);
+                        Enum.TryParse<ODAdbType>(ODAType, out DBDataType);
 
                         if (DBDataType == ODAdbType.OBinary)
                             isBigData = true;
@@ -278,15 +286,15 @@ namespace NYear.ODA.DevTool
                             Size = ColumnInfo[j].Length
                         };
                     }
-                    if (prm.NeedTransTable )
+                    if (prm.NeedTransTable || prm.TableScript)
                     {
                         string[] Pkeys = prm.SourceDB.GetPrimarykey(prm.TranTable[i]);
-                        string tlt = this.CreateTable(prm.TargetDB, prm.TranTable[i], ColumnInfo, Pkeys);
-                        if (!string.IsNullOrWhiteSpace(tlt))
-                        {
-                            sbrlt.AppendLine(tlt);
-                            continue;
-                        }
+                        string sql = this.CreateTable(prm.TargetDB, prm.TranTable[i], ColumnInfo, Pkeys); 
+                        if(prm.NeedTransTable)
+                            prm.TargetDB.ExecuteSQL(sql.ToString(), null);
+
+                        if (prm.TableScript)
+                            tblScript.AppendLine(sql); 
                         ReportStatus RST = new ReportStatus()
                         {
                             Percent = (i + 1) * 100 / prm.TranTable.Count,
@@ -298,18 +306,6 @@ namespace NYear.ODA.DevTool
 
                     if (prm.NeedTransData)
                     {
-                        for (int j = 0; j < drs.Length; j++)
-                        {
-                            Oprms[j] = new ODAParameter()
-                            {
-                                ColumnName = drs[j]["COLUMN_NAME"].ToString(),
-                                DBDataType = (ODAdbType)Enum.Parse(typeof(ODAdbType), drs[j]["ODA_DATATYPE"].ToString().Trim()),
-                                Direction = ParameterDirection.Input,
-                                ParamsName = drs[j]["COLUMN_NAME"].ToString(),
-                                Size = ColumnInfo[j].Length
-                            };
-                        }
-
                         int total = 0;
                         int maxR = isBigData ? 50 : 10000;
                         int startIndx = 0;
@@ -344,6 +340,18 @@ namespace NYear.ODA.DevTool
                 if (sbrlt.Length == 0)
                     sbrlt.Append("数据复制完成！");
                 e.Result = sbrlt.ToString();
+
+
+                if (prm.TableScript && tblScript.Length > 0)
+                {
+                    SaveFileDialog saveFile = new SaveFileDialog();
+                    saveFile.Filter = "*.sql";
+                    if (saveFile.ShowDialog() == DialogResult.OK)
+                    {
+                        System.IO.File.WriteAllText(saveFile.FileName, tblScript.ToString(), Encoding.UTF8);
+                    }
+                }
+
             }
             catch(Exception ex)
             {
@@ -457,15 +465,15 @@ namespace NYear.ODA.DevTool
                     creatSQL.AppendLine(" , primary key (" + p + ") ");
                 }
 
-                creatSQL.AppendLine(")");
-                TargetDB.ExecuteSQL( creatSQL.ToString(), null);
+                creatSQL.AppendLine(")"); 
+                return creatSQL.ToString();
             }
             catch(Exception ex)
             {
                 creatSQL.Insert(0, "Create Table Error: " + ex.Message);
                 return creatSQL.ToString();
             }
-            return "" ;
+          
         }
 
     }
@@ -477,6 +485,7 @@ namespace NYear.ODA.DevTool
         public DBAccess TargetDB { get; set; }
         public bool NeedTransData { get; set; }
         public bool NeedTransTable { get; set; }
+        public bool TableScript { get; set; }
         public DataTable SrcTables { get; set; }
         public List<string> TranTable { get; set; }
         public DataTable SrcData { get; set; }

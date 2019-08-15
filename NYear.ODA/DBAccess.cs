@@ -143,7 +143,7 @@ namespace NYear.ODA
                 Dt.Columns.Add(dcColumnName);
                 DataColumn dcColSeq = new DataColumn("COL_SEQ");
                 Dt.Columns.Add(dcColSeq); 
-                DataColumn dcOdaDatatype = new DataColumn("ODA_DATATYPE");
+                DataColumn dcOdaDatatype = new DataColumn("DATATYPE");
                 Dt.Columns.Add(dcOdaDatatype);
                 DataColumn dcLength = new DataColumn("LENGTH");
                 Dt.Columns.Add(dcLength);
@@ -177,7 +177,7 @@ namespace NYear.ODA
                             dr_tmp["NOT_NULL"] = ((bool)sch.Rows[j]["AllowDBNull"]) ? "N" : "Y";
                             dr_tmp["COL_SEQ"] = j;
 
-                            string ColumnDataType = "ODA_DATATYPE";
+                            string ColumnDataType = "DATATYPE";
                             Type Columntype = (Type)sch.Rows[j]["DataType"];
                             if (Columntype == typeof(string))
                             {

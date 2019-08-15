@@ -136,6 +136,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <None Include="DbType.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="Resources\CSharp_16x16.png" />
   </ItemGroup>
   <ItemGroup>
