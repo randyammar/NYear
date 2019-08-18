@@ -12,7 +12,7 @@ namespace NYear.ODA.DevTool
 {
     public partial class DBCopy : Form
     {
-        public ODA.DBAccess TarDB = null;
+        private ODA.DBAccess TarDB = null;
         public DBCopy()
         { 
             InitializeComponent();
@@ -182,8 +182,9 @@ namespace NYear.ODA.DevTool
                         TarDB = new ODA.Adapter.DbADB2(this.tbx_connectstring.Text);
                         break;
                     default:
-                        break;
+                        return "请选择目标数据库类型"; 
                 }
+                TarDB.GetUserTables();
                 return "Connect Success";
             }
             catch (Exception ex)
@@ -194,43 +195,62 @@ namespace NYear.ODA.DevTool
         }
         private void button1_Click(object sender, EventArgs e)
         {
-            string ConMsg = null;
+
+            if (!cbxTransData.Checked && !cbxCreateTable.Checked && !cbxTableScript.Checked)
+            {
+                MessageBox.Show("请选择复制类型", "提示", MessageBoxButtons.OK);
+                return;
+            }
+
+            if (!string.IsNullOrWhiteSpace(this.tbx_connectstring.Text))
+            {
+                string Msg = TarDBConnect();
+                MessageBox.Show(Msg, "提示", MessageBoxButtons.OK);
+                if (TarDB == null)
+                    return; 
+            }
             if (TarDB == null)
-                TarDBConnect();
-            if (TarDB != null)
             {
-                TransferParams prm = new TransferParams();
-                prm.SourceDB = CurrentDatabase.DataSource;
-                prm.TargetDB = TarDB;
-                prm.NeedTransData = cbxTransData.Checked;
-                prm.NeedTransTable = cbxCreateTable.Checked;
-                prm.TableScript = cbxTableScript.Checked;
-                prm.SrcTables = CurrentDatabase.DataSource.GetTableColumns();
-                prm.TranTable = new List<string>();
-
-                for (int i = 0; i < this.ckbxDatabaseobject.CheckedItems.Count; i++)
+                if (cbxTransData.Checked || cbxCreateTable.Checked)
                 {
-                    string TableName = this.ckbxDatabaseobject.CheckedItems[i].ToString();
-                    prm.TranTable.Add(TableName);
+                    MessageBox.Show("请输入目标数据库连接字符串", "提示", MessageBoxButtons.OK);
+                    return;
                 }
-
-                BackgroundWorker bgw = new BackgroundWorker();
-                bgw.WorkerReportsProgress = true;
-                bgw.WorkerSupportsCancellation = true;
-                bgw.ProgressChanged += bgw_ProgressChanged;
-                bgw.RunWorkerCompleted += bgw_RunWorkerCompleted;
-                bgw.DoWork += bgw_DoWork;
-                bgw.RunWorkerAsync(prm);
-
+                if (cbxTableScript.Checked )
+                {
+                    TarDB = CurrentDatabase.DataSource;
+                }
             }
-            else
+           
+
+            TransferParams prm = new TransferParams();
+            prm.SourceDB = CurrentDatabase.DataSource;
+            prm.TargetDB = TarDB;
+            prm.NeedTransData = cbxTransData.Checked;
+            prm.NeedTransTable = cbxCreateTable.Checked;
+            prm.TableScript = cbxTableScript.Checked;
+            prm.SrcTables = CurrentDatabase.DataSource.GetTableColumns();
+            prm.TranTable = new List<string>();
+
+            for (int i = 0; i < this.ckbxDatabaseobject.CheckedItems.Count; i++)
             {
-                MessageBox.Show("无法连接目标数据库," + ConMsg, "提示"); 
+                string TableName = this.ckbxDatabaseobject.CheckedItems[i].ToString();
+                prm.TranTable.Add(TableName);
             }
+
+            BackgroundWorker bgw = new BackgroundWorker();
+            bgw.WorkerReportsProgress = true;
+            bgw.WorkerSupportsCancellation = true;
+            bgw.ProgressChanged += bgw_ProgressChanged;
+            bgw.RunWorkerCompleted += bgw_RunWorkerCompleted;
+            bgw.DoWork += bgw_DoWork;
+            bgw.RunWorkerAsync(prm);
+
         }
 
         void bgw_DoWork(object sender, DoWorkEventArgs e)
         {
+            string[] rtlMsg = new string[2];
             try
             {
                 StringBuilder sbrlt = new StringBuilder();
@@ -267,7 +287,6 @@ namespace NYear.ODA.DevTool
                         string TargetDBDataType = CurrentDatabase.GetTargetsType(drs[j]["DATATYPE"].ToString().Trim(), CurrentDatabase.DataSource.DBAType.ToString(), TargetDB);
                         string ODAType = CurrentDatabase.GetTargetsType(drs[j]["DATATYPE"].ToString().Trim(), CurrentDatabase.DataSource.DBAType.ToString(), "ODA");
 
-
                         ColumnInfo[j] = prm.TargetDB.ODAColumnToOrigin(drs[j]["COLUMN_NAME"].ToString(), TargetDBDataType, length, Scale);
 
                         ColumnInfo[j].NotNull = drs[j]["NOT_NULL"].ToString().Trim().ToUpper() == "Y"; 
@@ -286,15 +305,23 @@ namespace NYear.ODA.DevTool
                             Size = ColumnInfo[j].Length
                         };
                     }
-                    if (prm.NeedTransTable || prm.TableScript)
+                    string[] Pkeys = prm.SourceDB.GetPrimarykey(prm.TranTable[i]);
+                    string sql = this.CreateTable(prm.TargetDB, prm.TranTable[i], ColumnInfo, Pkeys);
+                    tblScript.AppendLine(sql);
+                    if (prm.NeedTransTable )
                     {
-                        string[] Pkeys = prm.SourceDB.GetPrimarykey(prm.TranTable[i]);
-                        string sql = this.CreateTable(prm.TargetDB, prm.TranTable[i], ColumnInfo, Pkeys); 
-                        if(prm.NeedTransTable)
-                            prm.TargetDB.ExecuteSQL(sql.ToString(), null);
+                        if (prm.NeedTransTable)
+                        {
+                            try
+                            {
+                                string dropSQL = "DROP TABLE " + prm.TranTable[i];
 
-                        if (prm.TableScript)
-                            tblScript.AppendLine(sql); 
+                                prm.TargetDB.ExecuteSQL(dropSQL, null);
+
+                            }
+                            catch { } 
+                            prm.TargetDB.ExecuteSQL(sql.ToString(), null);
+                        } 
                         ReportStatus RST = new ReportStatus()
                         {
                             Percent = (i + 1) * 100 / prm.TranTable.Count,
@@ -339,24 +366,16 @@ namespace NYear.ODA.DevTool
                 }
                 if (sbrlt.Length == 0)
                     sbrlt.Append("数据复制完成！");
-                e.Result = sbrlt.ToString();
+                rtlMsg[0] = sbrlt.ToString();
+                rtlMsg[1] = tblScript.ToString();
 
-
-                if (prm.TableScript && tblScript.Length > 0)
-                {
-                    SaveFileDialog saveFile = new SaveFileDialog();
-                    saveFile.Filter = "*.sql";
-                    if (saveFile.ShowDialog() == DialogResult.OK)
-                    {
-                        System.IO.File.WriteAllText(saveFile.FileName, tblScript.ToString(), Encoding.UTF8);
-                    }
-                }
 
             }
             catch(Exception ex)
             {
-                e.Result = ex.ToString();
+                rtlMsg[0] = ex.ToString();
             }
+            e.Result = rtlMsg;
         }
 
         void bgw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
@@ -364,20 +383,43 @@ namespace NYear.ODA.DevTool
             if (!this.InvokeRequired)
             {
                 this.pnlTranStatus.Visible = false;
-                this.ckbxTarDB.Visible = true;
-                MessageBox.Show(e.Result.ToString(), "提示", MessageBoxButtons.OK);
+                this.ckbxTarDB.Visible = true; 
                 this.ckbxTarDB.Items.Clear();
                 this.ckbxTarDB.Items.AddRange(TarDB.GetUserTables());
+                if (cbxTableScript.Checked && !string.IsNullOrWhiteSpace(((string[])e.Result)[1]))
+                {
+
+                    SaveFileDialog saveFile = new SaveFileDialog();
+                    saveFile.Filter = "SQL|*.sql";
+                    if (saveFile.ShowDialog(this) == DialogResult.OK)
+                    {
+                        System.IO.File.WriteAllText(saveFile.FileName, ((string[])e.Result)[1], Encoding.UTF8);
+                    }
+                }
+                this.TarDB = null;
+                MessageBox.Show(((string[])e.Result)[0], "提示", MessageBoxButtons.OK);
             }
             else
             {
                 this.BeginInvoke(new Action(() =>
                 {
                     this.pnlTranStatus.Visible = false;
-                    this.ckbxTarDB.Visible = true;
-                    MessageBox.Show(e.Result.ToString(), "提示", MessageBoxButtons.OK);
+                    this.ckbxTarDB.Visible = true; 
                     this.ckbxTarDB.Items.Clear();
                     this.ckbxTarDB.Items.AddRange(TarDB.GetUserTables()); 
+
+                    if (cbxTableScript.Checked && !string.IsNullOrWhiteSpace(((string[])e.Result)[1]) )
+                    {
+                        SaveFileDialog saveFile = new SaveFileDialog();
+                        saveFile.Filter = "SQL|sql";
+                        if (saveFile.ShowDialog(this) == DialogResult.OK)
+                        {
+                            System.IO.File.WriteAllText(saveFile.FileName, ((string[])e.Result)[1], Encoding.UTF8);
+                        }
+                    }
+                    this.TarDB = null;
+                    MessageBox.Show(((string[])e.Result)[0], "提示", MessageBoxButtons.OK);
+
                 }), null);
 
             }
@@ -415,14 +457,6 @@ namespace NYear.ODA.DevTool
         }
         private string CreateTable(DBAccess TargetDB, string TableName, DatabaseColumnInfo[] ColumnInfo, string[]  Pkeys )
         {
-            try
-            {
-                string dropSQL = "DROP TABLE " + TableName;
-                TargetDB.ExecuteSQL(dropSQL, null);
-            }
-            catch { }
-
-
             StringBuilder creatSQL = new StringBuilder();
             try
             {
@@ -464,8 +498,8 @@ namespace NYear.ODA.DevTool
                     p = p.Remove(p.Length - ",".Length, ",".Length);
                     creatSQL.AppendLine(" , primary key (" + p + ") ");
                 }
-
-                creatSQL.AppendLine(")"); 
+                creatSQL.AppendLine("");
+                creatSQL.AppendLine(");"); 
                 return creatSQL.ToString();
             }
             catch(Exception ex)

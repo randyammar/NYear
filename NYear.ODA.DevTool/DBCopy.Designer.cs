@@ -32,6 +32,7 @@
             this.cbx_selectall = new System.Windows.Forms.CheckBox();
             this.ckbxDatabaseobject = new System.Windows.Forms.CheckedListBox();
             this.Target = new System.Windows.Forms.GroupBox();
+            this.cbxTableScript = new System.Windows.Forms.CheckBox();
             this.gbxInformation = new System.Windows.Forms.GroupBox();
             this.pnlTranStatus = new System.Windows.Forms.Panel();
             this.lblTransData = new System.Windows.Forms.Label();
@@ -46,7 +47,6 @@
             this.cbbx_database = new System.Windows.Forms.ComboBox();
             this.lbl_database = new System.Windows.Forms.Label();
             this.lbl_connect_string = new System.Windows.Forms.Label();
-            this.cbxTableScript = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -115,6 +115,14 @@
             this.Target.TabIndex = 35;
             this.Target.TabStop = false;
             this.Target.Text = "Target DataBase";
+            // 
+            // cbxTableScript
+            // 
+            this.cbxTableScript.Location = new System.Drawing.Point(335, 15);
+            this.cbxTableScript.Name = "cbxTableScript";
+            this.cbxTableScript.Size = new System.Drawing.Size(104, 24);
+            this.cbxTableScript.TabIndex = 36;
+            this.cbxTableScript.Text = "Table Script";
             // 
             // gbxInformation
             // 
@@ -224,7 +232,6 @@
             this.tbx_connectstring.Name = "tbx_connectstring";
             this.tbx_connectstring.Size = new System.Drawing.Size(515, 21);
             this.tbx_connectstring.TabIndex = 30;
-            this.tbx_connectstring.Text = "Connect String";
             // 
             // cbbx_database
             // 
@@ -259,14 +266,6 @@
             this.lbl_connect_string.Size = new System.Drawing.Size(59, 23);
             this.lbl_connect_string.TabIndex = 31;
             this.lbl_connect_string.Text = "Connect String";
-            // 
-            // cbxTableScript
-            // 
-            this.cbxTableScript.Location = new System.Drawing.Point(335, 15);
-            this.cbxTableScript.Name = "cbxTableScript";
-            this.cbxTableScript.Size = new System.Drawing.Size(104, 24);
-            this.cbxTableScript.TabIndex = 36;
-            this.cbxTableScript.Text = "Table Script";
             // 
             // DBCopy
             // 
