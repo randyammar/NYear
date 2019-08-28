@@ -40,6 +40,7 @@ namespace NYear.ODA.DevTool
             childForm.MdiParent = this;
             childForm.Text = "数据库复制";
             childForm.Show();
+            
         }
         private void ShowNewForm_ORMCode(object sender, EventArgs e)
         {
@@ -122,6 +123,8 @@ namespace NYear.ODA.DevTool
             }
         }
 
+ 
+
         void CurrentDatabase_DBConnected(object sender, EventArgs e)
         {
             if (CurrentDatabase.DataSource != null)
@@ -132,8 +135,18 @@ namespace NYear.ODA.DevTool
                 ShowNewForm_SQLDevlop(this, EventArgs.Empty);
                 if (this.MdiChildren.Length > 0)
                     this.MdiChildren[0].WindowState = FormWindowState.Maximized;
-
-                this.Text = CurrentDatabase.DataSource.DBAType.ToString();
+                System.Text.RegularExpressions.Regex rgx = new System.Text.RegularExpressions.Regex(@"\b((Data[\s]+Source)|(server))\s*=\s*[^;]*", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                string[] srv = CurrentDatabase.DataSource.ConnString.Split(';');
+                string server = "";
+                foreach (string sr in srv)
+                {
+                    if (rgx.IsMatch(sr))
+                    {
+                        server = sr;
+                        break;
+                    }
+                }
+                this.Text = string.Format("[{0}]-[{1}]-[{2}]", CurrentDatabase.DataSource.DBAType.ToString(), server, CurrentDatabase.DataSource.Database);
             }
         }
 

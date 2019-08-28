@@ -118,7 +118,7 @@
             // 
             // cbxTableScript
             // 
-            this.cbxTableScript.Location = new System.Drawing.Point(335, 15);
+            this.cbxTableScript.Location = new System.Drawing.Point(86, 15);
             this.cbxTableScript.Name = "cbxTableScript";
             this.cbxTableScript.Size = new System.Drawing.Size(104, 24);
             this.cbxTableScript.TabIndex = 36;
@@ -210,7 +210,7 @@
             // 
             // cbxCreateTable
             // 
-            this.cbxCreateTable.Location = new System.Drawing.Point(103, 15);
+            this.cbxCreateTable.Location = new System.Drawing.Point(196, 15);
             this.cbxCreateTable.Name = "cbxCreateTable";
             this.cbxCreateTable.Size = new System.Drawing.Size(104, 24);
             this.cbxCreateTable.TabIndex = 32;
@@ -218,7 +218,7 @@
             // 
             // cbxTransData
             // 
-            this.cbxTransData.Location = new System.Drawing.Point(225, 15);
+            this.cbxTransData.Location = new System.Drawing.Point(305, 15);
             this.cbxTransData.Name = "cbxTransData";
             this.cbxTransData.Size = new System.Drawing.Size(104, 24);
             this.cbxTransData.TabIndex = 33;

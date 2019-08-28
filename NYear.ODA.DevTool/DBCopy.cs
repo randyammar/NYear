@@ -61,7 +61,8 @@ namespace NYear.ODA.DevTool
         {
             try
             {
-                string ConMsg = TarDBConnect();
+                TarDBConnect(); 
+                TarDB.GetUserTables();
                 this.pnlTranStatus.Visible = false;
                 this.ckbxTarDB.Visible = true;
                 if (TarDB != null)
@@ -70,6 +71,7 @@ namespace NYear.ODA.DevTool
                     this.ckbxTarDB.Items.AddRange(TarDB.GetUserTables());
                 }
                 MessageBox.Show("连接测试成功", "成功");
+
             }
             catch (Exception ex)
             {
@@ -151,47 +153,39 @@ namespace NYear.ODA.DevTool
             }
         }
 
-        private string TarDBConnect()
+        private void TarDBConnect()
         {
-            try
+            switch (this.cbbx_database.Text)
             {
-                switch (this.cbbx_database.Text)
-                {
-                    case "MsSQL":
-                        TarDB = new ODA.Adapter.DbAMsSQL(this.tbx_connectstring.Text);
-                        break;
-                    case "MySql":
-                        TarDB = new ODA.Adapter.DbAMySql(this.tbx_connectstring.Text);
-                        break;
-                    case "OdbcInformix":
-                        TarDB = new ODA.Adapter.DbAOdbcInformix(this.tbx_connectstring.Text);
-                        break;
-                    case "OledbAccess":
-                        TarDB = new ODA.Adapter.DbAOledbAccess(this.tbx_connectstring.Text);
-                        break;
-                    case "Oracle":
-                        TarDB = new ODA.Adapter.DbAOracle(this.tbx_connectstring.Text);
-                        break;
-                    case "Sybase":
-                        TarDB = new ODA.Adapter.DbASybase(this.tbx_connectstring.Text);
-                        break;
-                    case "SQLite":
-                        TarDB = new ODA.Adapter.DbASQLite(this.tbx_connectstring.Text);
-                        break;
-                    case "DB2":
-                        TarDB = new ODA.Adapter.DbADB2(this.tbx_connectstring.Text);
-                        break;
-                    default:
-                        return "请选择目标数据库类型"; 
-                }
-                TarDB.GetUserTables();
-                return "Connect Success";
-            }
-            catch (Exception ex)
-            {
-                TarDB = null;
-                return ex.Message;
-            }
+                case "MsSQL":
+                    TarDB = new ODA.Adapter.DbAMsSQL(this.tbx_connectstring.Text);
+                    break;
+                case "MySql":
+                    TarDB = new ODA.Adapter.DbAMySql(this.tbx_connectstring.Text);
+                    break;
+                case "OdbcInformix":
+                    TarDB = new ODA.Adapter.DbAOdbcInformix(this.tbx_connectstring.Text);
+                    break;
+                case "OledbAccess":
+                    TarDB = new ODA.Adapter.DbAOledbAccess(this.tbx_connectstring.Text);
+                    break;
+                case "Oracle":
+                    TarDB = new ODA.Adapter.DbAOracle(this.tbx_connectstring.Text);
+                    break;
+                case "Sybase":
+                    TarDB = new ODA.Adapter.DbASybase(this.tbx_connectstring.Text);
+                    break;
+                case "SQLite":
+                    TarDB = new ODA.Adapter.DbASQLite(this.tbx_connectstring.Text);
+                    break;
+                case "DB2":
+                    TarDB = new ODA.Adapter.DbADB2(this.tbx_connectstring.Text);
+                    break;
+                default:
+                    TarDB = CurrentDatabase.DataSource;
+                    break;
+            } 
+
         }
         private void button1_Click(object sender, EventArgs e)
         {
@@ -202,26 +196,22 @@ namespace NYear.ODA.DevTool
                 return;
             }
 
-            if (!string.IsNullOrWhiteSpace(this.tbx_connectstring.Text))
+
+            TarDBConnect(); 
+            if (cbxTransData.Checked || cbxCreateTable.Checked)
             {
-                string Msg = TarDBConnect();
-                MessageBox.Show(Msg, "提示", MessageBoxButtons.OK);
-                if (TarDB == null)
-                    return; 
-            }
-            if (TarDB == null)
-            {
-                if (cbxTransData.Checked || cbxCreateTable.Checked)
+                try
                 {
-                    MessageBox.Show("请输入目标数据库连接字符串", "提示", MessageBoxButtons.OK);
+                    this.TarDB.GetUserTables();
+                }
+                catch (Exception ex)
+                {
+
+                    MessageBox.Show(ex.Message, "提示", MessageBoxButtons.OK);
                     return;
                 }
-                if (cbxTableScript.Checked )
-                {
-                    TarDB = CurrentDatabase.DataSource;
-                }
             }
-           
+
 
             TransferParams prm = new TransferParams();
             prm.SourceDB = CurrentDatabase.DataSource;
@@ -287,7 +277,7 @@ namespace NYear.ODA.DevTool
                         string TargetDBDataType = CurrentDatabase.GetTargetsType(drs[j]["DATATYPE"].ToString().Trim(), CurrentDatabase.DataSource.DBAType.ToString(), TargetDB);
                         string ODAType = CurrentDatabase.GetTargetsType(drs[j]["DATATYPE"].ToString().Trim(), CurrentDatabase.DataSource.DBAType.ToString(), "ODA");
 
-                        ColumnInfo[j] = prm.TargetDB.ODAColumnToOrigin(drs[j]["COLUMN_NAME"].ToString(), TargetDBDataType, length, Scale);
+                        ColumnInfo[j] = prm.TargetDB.ODAColumnToOrigin(drs[j]["COLUMN_NAME"].ToString(), ODAType, length, Scale);
 
                         ColumnInfo[j].NotNull = drs[j]["NOT_NULL"].ToString().Trim().ToUpper() == "Y"; 
                         ODAdbType DBDataType = ODAdbType.OVarchar; 
@@ -385,10 +375,11 @@ namespace NYear.ODA.DevTool
                 this.pnlTranStatus.Visible = false;
                 this.ckbxTarDB.Visible = true; 
                 this.ckbxTarDB.Items.Clear();
-                this.ckbxTarDB.Items.AddRange(TarDB.GetUserTables());
+                if (cbxTransData.Checked || cbxCreateTable.Checked) 
+                    this.ckbxTarDB.Items.AddRange(TarDB.GetUserTables());
+
                 if (cbxTableScript.Checked && !string.IsNullOrWhiteSpace(((string[])e.Result)[1]))
                 {
-
                     SaveFileDialog saveFile = new SaveFileDialog();
                     saveFile.Filter = "SQL|*.sql";
                     if (saveFile.ShowDialog(this) == DialogResult.OK)
@@ -406,7 +397,8 @@ namespace NYear.ODA.DevTool
                     this.pnlTranStatus.Visible = false;
                     this.ckbxTarDB.Visible = true; 
                     this.ckbxTarDB.Items.Clear();
-                    this.ckbxTarDB.Items.AddRange(TarDB.GetUserTables()); 
+                    if (cbxTransData.Checked || cbxCreateTable.Checked)
+                        this.ckbxTarDB.Items.AddRange(TarDB.GetUserTables());
 
                     if (cbxTableScript.Checked && !string.IsNullOrWhiteSpace(((string[])e.Result)[1]) )
                     {
