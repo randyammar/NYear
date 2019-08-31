@@ -82,47 +82,9 @@ namespace NYear.ODA
             string[] UserView = this.GetUserViews();
             return GetColumns(UserView, "VIEW_COLUMN");
         }
-        public virtual DatabaseColumnInfo ODAColumnToOrigin(string Name, string ColumnType, int Length, int Scale)
+        public virtual string ToDBColumnName(string CommonColumnName)
         {
-            DatabaseColumnInfo ColInof = new DatabaseColumnInfo();
-            ColInof.Name = Name;
-            ColInof.NoLength = false;
-            ColInof.Length = Length;
-            ColInof.Scale = Scale;
-
-            if (ColumnType.Trim() == ODAdbType.OBinary.ToString())
-            {
-                ColInof.ColumnType = "BINARY";
-                ColInof.NoLength = true;
-            }
-            else if (ColumnType.Trim() == ODAdbType.ODatetime.ToString())
-            {
-                ColInof.ColumnType = "DATETIME";
-                ColInof.NoLength = true;
-            }
-            else if (ColumnType.Trim() == ODAdbType.ODecimal.ToString())
-            {
-                ColInof.ColumnType = "DECIMAL";
-                ColInof.NoLength = false;
-            }
-            else if (ColumnType.Trim() == ODAdbType.OInt.ToString())
-            {
-                ColInof.ColumnType = "INT";
-                ColInof.NoLength = true;
-            }
-            else if (ColumnType.Trim() == ODAdbType.OChar.ToString())
-            {
-                ColInof.ColumnType = "CHAR";
-            }
-            else if (ColumnType.Trim() == ODAdbType.OVarchar.ToString())
-            {
-                ColInof.ColumnType = "VARCHAR";
-            } 
-            else
-            {
-                ColInof.ColumnType = "VARCHAR";
-            }
-            return ColInof;
+            return CommonColumnName;
         }
 
         private DataTable GetColumns(string[] TableViewNames, string TableName)

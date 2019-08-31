@@ -164,52 +164,10 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
         }
         public override DbAType DBAType { get { return DbAType.Oracle; } }
 
-        public override DatabaseColumnInfo ODAColumnToOrigin(string Name, string ColumnType, int Length, int Scale)
+        public override string ToDBColumnName(string CommonColumnName)
         {
-            DatabaseColumnInfo ColInof = new DatabaseColumnInfo();
-            ColInof.Name = "\"" + Name + "\"";
-            ColInof.NoLength = false;
-            ColInof.Length = Length > 2000 ? 2000 : Length < 0 ? 2000 : Length;
-            ColInof.Scale = Scale;
-
-            if (ColumnType.Trim() == ODAdbType.OBinary.ToString())
-            {
-                ColInof.ColumnType = "BLOB";
-                ColInof.NoLength = true;
-                ColInof.Length = 0;
-            }
-            else if (ColumnType.Trim() == ODAdbType.ODatetime.ToString())
-            {
-                ColInof.ColumnType = "DATE";
-                ColInof.NoLength = true;
-            }
-            else if (ColumnType.Trim() == ODAdbType.ODecimal.ToString())
-            {
-                ColInof.ColumnType = "NUMBER";
-                ColInof.NoLength = true; 
-            }
-            else if (ColumnType.Trim() == ODAdbType.OInt.ToString())
-            {
-                ColInof.ColumnType = "INT";
-                ColInof.NoLength = true; 
-            }
-            else if (ColumnType.Trim() == ODAdbType.OChar.ToString())
-            {
-                ColInof.ColumnType = "CHAR";
-                ColInof.Scale = 0;
-            }
-            else if (ColumnType.Trim() == ODAdbType.OVarchar.ToString())
-            {
-                ColInof.ColumnType = "VARCHAR2";
-                ColInof.Scale = 0;
-            }
-            else
-            {
-                ColInof.ColumnType = "VARCHAR2";
-                ColInof.Scale = 0;
-            }
-            return ColInof;
-        }
+            return "\"" + CommonColumnName + "\"";
+        } 
         public override string[] GetUserProcedure()
         {
             DataTable dt_table = Select("SELECT ARG.OBJECT_NAME PROCEDURE_NAME FROM USER_OBJECTS O,USER_ARGUMENTS ARG WHERE  O.OBJECT_TYPE='PROCEDURE' AND O.OBJECT_NAME = ARG.OBJECT_NAME AND ARG.PACKAGE_NAME IS NULL "

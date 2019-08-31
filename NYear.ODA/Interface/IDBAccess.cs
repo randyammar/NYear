@@ -76,7 +76,7 @@ namespace NYear.ODA
 #if FW
         [OperationContract]
 #endif
-        DatabaseColumnInfo ODAColumnToOrigin(string Name, string ColumnType,int Length,int Scale);
+        string ToDBColumnName(string CommonColumnName);
 #if FW
         [OperationContract]
 #endif

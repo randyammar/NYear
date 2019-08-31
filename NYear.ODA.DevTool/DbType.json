@@ -430,5 +430,23 @@
       "timestamp": "DateTime?",
       "varbinary": "byte[]"
     }
+  },
+  "SQLite": {
+    "ODA": {
+      "string": "OVarchar",
+      "Datetime": "ODatetime",
+      "int": "OInt",
+      "decimal": "ODecimal",
+      "float": "ODecimal",
+      "byte[]": "OBinary" 
+    },
+    "CSHARP": {
+      "string": "string",
+      "Datetime": "Datetime?",
+      "int": "int?",
+      "decimal": "decimal?",
+      "float": "decimal?",
+      "byte[]": "byte[]"
+    }
   }
 }

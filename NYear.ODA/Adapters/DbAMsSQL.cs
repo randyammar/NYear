@@ -160,51 +160,9 @@ namespace NYear.ODA.Adapter
             return str;
         }
 
-        public override DatabaseColumnInfo ODAColumnToOrigin(string Name, string ColumnType, int Length, int Scale)
+        public override string ToDBColumnName(string CommonColumnName)
         {
-            DatabaseColumnInfo ColInof = new DatabaseColumnInfo();
-            ColInof.Name = "[" + Name + "]";
-            ColInof.NoLength = false;
-            ColInof.Length = Length > 8000 ? 8000 : Length < 0 ? 8000 : Length;
-            ColInof.Scale = Scale;
-
-            if (ColumnType.Trim() == ODAdbType.OBinary.ToString())
-            {
-                ColInof.ColumnType = "IMAGE";
-                ColInof.NoLength = true;
-            }
-            else if (ColumnType.Trim() == ODAdbType.ODatetime.ToString())
-            {
-                ColInof.ColumnType = "DATETIME";
-                ColInof.NoLength = true;
-            }
-            else if (ColumnType.Trim() == ODAdbType.ODecimal.ToString())
-            {
-                ColInof.ColumnType = "DECIMAL";
-                ColInof.NoLength = false;
-                ColInof.Length = Length * 2;
-            }
-            else if (ColumnType.Trim() == ODAdbType.OInt.ToString())
-            {
-                ColInof.ColumnType = "INT";
-                ColInof.NoLength = true;
-            }
-            else if (ColumnType.Trim() == ODAdbType.OChar.ToString())
-            {
-                ColInof.ColumnType = "CHAR";
-                ColInof.Scale = 0;
-            }
-            else if (ColumnType.Trim() == ODAdbType.OVarchar.ToString())
-            {
-                ColInof.ColumnType = "NVARCHAR";
-                ColInof.Scale = 0;
-            }
-            else
-            {
-                ColInof.ColumnType = "VARCHAR";
-                ColInof.Scale = 0;
-            }
-            return ColInof;
+            return "[" + CommonColumnName + "]";
         }
 
         public override DataTable Select(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord, string Orderby)

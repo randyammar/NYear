@@ -118,56 +118,10 @@ namespace NYear.ODA.Adapter
         {
             return null;
         }
-
-        public override DatabaseColumnInfo ODAColumnToOrigin(string Name, string ColumnType, int Length, int Scale)
+        public override string ToDBColumnName(string CommonColumnName)
         {
-            DatabaseColumnInfo ColInof = new DatabaseColumnInfo();
-            ColInof.Name = Name;
-            ColInof.NoLength = false;
-            ColInof.Length = Length;
-            ColInof.Scale = Scale;
-
-            if (ColumnType.Trim() == ODAdbType.OBinary.ToString())
-            {
-                ColInof.ColumnType = "BLOB";
-                ColInof.NoLength = true;
-            }
-            else if (ColumnType.Trim() == ODAdbType.ODatetime.ToString())
-            {
-                ColInof.ColumnType = "DATETIME";
-                ColInof.NoLength = true;
-              
-            }
-            else if (ColumnType.Trim() == ODAdbType.ODecimal.ToString())
-            {
-                ColInof.ColumnType = "DECIMAL";
-                ColInof.NoLength = false;
-                ColInof.Length = 31;
-                ColInof.Scale = 12;
-            }
-            else if (ColumnType.Trim() == ODAdbType.OInt.ToString())
-            {
-                ColInof.ColumnType = "INT";
-                ColInof.NoLength = true;
-            }
-            else if (ColumnType.Trim() == ODAdbType.OChar.ToString())
-            {
-                ColInof.ColumnType = "CHAR";
-                ColInof.Scale = 0;
-            }
-            else if (ColumnType.Trim() == ODAdbType.OVarchar.ToString())
-            {
-                ColInof.ColumnType = "VARCHAR";
-                ColInof.Scale = 0;
-            }
-            else
-            {
-                ColInof.ColumnType = "VARCHAR";
-                ColInof.Scale = 0;
-            }
-            return ColInof;
+            return CommonColumnName;
         }
-
         public override DataTable Select(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord, string Orderby)
         {
             string BlockStr = "SELECT SKIP " + StartIndex.ToString() + " FIRST " + MaxRecord.ToString() + " "; ////取出MaxRecord记录
