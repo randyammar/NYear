@@ -94,7 +94,7 @@ namespace NYear.ODA.DevTool
                         tbx_connectstring.Text = "server=localhost;database=master;uid=sa;pwd=sa;";
                         break;
                     case "MySql":
-                        this.tbx_connectstring.Text = "Server=localhost;Database=; User=root;Password=;Use Procedure Bodies=false;Charset=utf8;Allow Zero Datetime=True; Pooling=false; Max Pool Size=50;Port=3306;";
+                        this.tbx_connectstring.Text = "Server=localhost;Database=; User=root;Password=;Use Procedure Bodies=false;Charset=utf8;Allow Zero Datetime=True; Pooling=false; Max Pool Size=50;Port=3306;Old Guids=true;";
                         break;
                     case "OdbcInformix":
                         tbx_connectstring.Text = "DSN=;User ID=;PWD=";
@@ -368,8 +368,6 @@ namespace NYear.ODA.DevTool
                     sbrlt.Append("数据复制完成！");
                 rtlMsg[0] = sbrlt.ToString();
                 rtlMsg[1] = tblScript.ToString();
-
-
             }
             catch(Exception ex)
             {

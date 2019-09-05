@@ -49,8 +49,8 @@ namespace NYear.ODA.DevTool
                         this.lblExecuteRlt.Text = "server=localhost;database=master;uid=sa;pwd=sa;";
                         break;
                     case "MySql":
-                        cbbxConnectstring.Text = "Server=localhost;Database=; User=root;Password=;Use Procedure Bodies=false;Charset=utf8;Allow Zero Datetime=True; Pooling=false; Max Pool Size=50;Port=3306;";
-                        this.lblExecuteRlt.Text = "Server=localhost;Database=; User=root;Password=;Use Procedure Bodies=false;Charset=utf8;Allow Zero Datetime=True; Pooling=false; Max Pool Size=50;Port=3306;";
+                        cbbxConnectstring.Text = "Server=localhost;Database=; User=root;Password=;Use Procedure Bodies=false;Charset=utf8;Allow Zero Datetime=True; Pooling=false; Max Pool Size=50;Port=3306;Old Guids=true;";
+                        this.lblExecuteRlt.Text = "Server=localhost;Database=; User=root;Password=;Use Procedure Bodies=false;Charset=utf8;Allow Zero Datetime=True; Pooling=false; Max Pool Size=50;Port=3306;Old Guids=true;";
                         break;
                     case "OdbcInformix":
                         cbbxConnectstring.Text = "DSN=;User ID=;PWD=";

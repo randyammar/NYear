@@ -20,7 +20,10 @@ namespace NYear.ODA.Adapter
         {
             get { return DbAOracle.DBParamsMark; }
         }
-
+        public override string[] ObjectFlag 
+        {
+            get { return new string[] { "\"", "\"" }; }
+        }
         private OracleConnection _DBConn = null;
         protected override IDbConnection GetConnection()
         {
@@ -151,7 +154,7 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
              */
         public override string[] GetPrimarykey(string TableName)
         {
-            string PrimaryCols = string.Format("SELECT A.COLUMN_NAME  FROM USER_CONS_COLUMNS A, USER_CONSTRAINTS B  WHERE A.CONSTRAINT_NAME = B.CONSTRAINT_NAME  AND B.CONSTRAINT_TYPE = 'P' AND A.TABLE_NAME ='{0}'", TableName);
+            string PrimaryCols = string.Format("SELECT DISTINCT  A.COLUMN_NAME  FROM USER_CONS_COLUMNS A, USER_CONSTRAINTS B  WHERE A.CONSTRAINT_NAME = B.CONSTRAINT_NAME  AND B.CONSTRAINT_TYPE = 'P' AND A.TABLE_NAME ='{0}'", TableName);
             DataTable Dt = this.Select(PrimaryCols, null);
             if (Dt != null && Dt.Rows.Count > 0)
             {
@@ -164,10 +167,7 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
         }
         public override DbAType DBAType { get { return DbAType.Oracle; } }
 
-        public override string ToDBColumnName(string CommonColumnName)
-        {
-            return "\"" + CommonColumnName + "\"";
-        } 
+ 
         public override string[] GetUserProcedure()
         {
             DataTable dt_table = Select("SELECT ARG.OBJECT_NAME PROCEDURE_NAME FROM USER_OBJECTS O,USER_ARGUMENTS ARG WHERE  O.OBJECT_TYPE='PROCEDURE' AND O.OBJECT_NAME = ARG.OBJECT_NAME AND ARG.PACKAGE_NAME IS NULL "

@@ -13,6 +13,10 @@ namespace NYear.ODA.Adapter
             : base(ConnectionString)
         {
         }
+        public override string[] ObjectFlag
+        {
+            get { return new string[] { "[", "]" }; }
+        }
         private SqlConnection _DBConn = null;
         protected override IDbConnection GetConnection()
         {
@@ -132,7 +136,7 @@ namespace NYear.ODA.Adapter
 
         public override string[] GetPrimarykey(string TableName)
         {
-            string PrimaryCols = new StringBuilder().Append("SELECT B.COLUMN_NAME ")
+            string PrimaryCols = new StringBuilder().Append("SELECT DISTINCT  B.COLUMN_NAME ")
             .Append(" FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS A ")
             .Append(" INNER JOIN INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE B ")
             .Append(" ON A.CONSTRAINT_NAME = B.CONSTRAINT_NAME ")
@@ -160,10 +164,7 @@ namespace NYear.ODA.Adapter
             return str;
         }
 
-        public override string ToDBColumnName(string CommonColumnName)
-        {
-            return "[" + CommonColumnName + "]";
-        }
+       
 
         public override DataTable Select(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord, string Orderby)
         { 

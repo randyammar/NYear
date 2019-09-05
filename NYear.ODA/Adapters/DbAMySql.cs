@@ -15,6 +15,11 @@ namespace NYear.ODA.Adapter
             ODAReflection.DBTypeMapping.Add(typeof(MySqlDateTime), typeof(DateTime));
             ODAReflection.DBTypeMapping.Add(typeof(MySqlDecimal), typeof(decimal));
         }
+
+        public override string[] ObjectFlag
+        {
+            get { return new string[] { "`", "`" }; }
+        }
         public DbAMySql(string ConnectionString)
             : base(ConnectionString)
         {
@@ -135,7 +140,7 @@ namespace NYear.ODA.Adapter
         public override string[] GetPrimarykey(string TableName)
         {
             var db = this.GetConnection();
-            string PrimaryCols = new StringBuilder().Append("SELECT CU.COLUMN_NAME ")
+            string PrimaryCols = new StringBuilder().Append("SELECT DISTINCT  CU.COLUMN_NAME ")
                 .Append(" FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE CU,INFORMATION_SCHEMA.TABLE_CONSTRAINTS TC ")
             .Append(" WHERE  CU.TABLE_NAME = TC.TABLE_NAME ")
             .Append(" AND CU.TABLE_SCHEMA = TC.TABLE_SCHEMA ")
@@ -153,11 +158,7 @@ namespace NYear.ODA.Adapter
             }
             return null;
         }
-        public override string ToDBColumnName(string CommonColumnName)
-        {
-            return "`" + CommonColumnName + "`";
-        }
-         
+       
 
         public override DataTable Select(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord, string Orderby)
         {

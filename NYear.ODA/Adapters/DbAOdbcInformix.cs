@@ -118,10 +118,7 @@ namespace NYear.ODA.Adapter
         {
             return null;
         }
-        public override string ToDBColumnName(string CommonColumnName)
-        {
-            return CommonColumnName;
-        }
+  
         public override DataTable Select(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord, string Orderby)
         {
             string BlockStr = "SELECT SKIP " + StartIndex.ToString() + " FIRST " + MaxRecord.ToString() + " "; ////取出MaxRecord记录

@@ -83,10 +83,6 @@ namespace NYear.ODA.Adapter
             }
             return list.ToArray();
         }
-        public override string ToDBColumnName(string CommonColumnName)
-        {
-            return   CommonColumnName ;
-        } 
 
         public override DbAType DBAType { get { return DbAType.SQLite; } }
 

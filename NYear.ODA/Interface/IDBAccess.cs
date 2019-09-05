@@ -15,6 +15,7 @@ namespace NYear.ODA
         char ParamsMark { get; }
         DbAType DBAType { get; }
         string ConnString { get; }
+        string[] ObjectFlag { get; }
         IDbTransaction Transaction { get; set; }
         Action<IDbCommand> ExecutingCommand { get; set; }
 #if FW
@@ -73,10 +74,6 @@ namespace NYear.ODA
         [OperationContract]
 #endif
         DataTable GetUniqueIndex(string TableName);
-#if FW
-        [OperationContract]
-#endif
-        string ToDBColumnName(string CommonColumnName);
 #if FW
         [OperationContract]
 #endif

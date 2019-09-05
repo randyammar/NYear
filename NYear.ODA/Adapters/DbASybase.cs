@@ -125,10 +125,6 @@ namespace NYear.ODA.Adapter
         {
             return null;
         }
-        public override string ToDBColumnName(string CommonColumnName)
-        {
-            return  CommonColumnName;
-        }
 
         public override bool Import(DataTable Data,ODAParameter[] Prms)
         {

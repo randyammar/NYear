@@ -35,8 +35,13 @@ namespace NYear.ODA
         {
             get { return ODAParameter.ODAParamsMark; }
         }
+        public virtual string[] ObjectFlag
+        {
+            get { return new string[] { "", "" }; }
+        }
         private string _ConnStr = null;
         public string ConnString { get { return _ConnStr; } }
+       
         public DBAccess(string ConnectionString)
         {
             _ConnStr = ConnectionString;
@@ -82,11 +87,6 @@ namespace NYear.ODA
             string[] UserView = this.GetUserViews();
             return GetColumns(UserView, "VIEW_COLUMN");
         }
-        public virtual string ToDBColumnName(string CommonColumnName)
-        {
-            return CommonColumnName;
-        }
-
         private DataTable GetColumns(string[] TableViewNames, string TableName)
         {
             IDbConnection Conn = (IDbConnection)GetConnection();

@@ -21,6 +21,10 @@ namespace NYear.ODA.Adapter
         {
         }
         public override DbAType DBAType { get { return DbAType.DB2; } }
+        public override string[] ObjectFlag
+        {
+            get { return new string[] { "\"", "\"" }; }
+        }
 
         private DB2Connection _DBConn = null;
         protected override IDbConnection GetConnection()
@@ -114,7 +118,7 @@ namespace NYear.ODA.Adapter
         }
         public override string[] GetPrimarykey(string TableName)
         {
-            StringBuilder sql = new StringBuilder().Append("SELECT N.TBNAME TABLE_NAME, N.COLNAMES FROM  SYSIBM.SYSTABLES D  ")
+            StringBuilder sql = new StringBuilder().Append("SELECT DISTINCT N.TBNAME TABLE_NAME, N.COLNAMES FROM  SYSIBM.SYSTABLES D  ")
                  .Append(" INNER JOIN SYSIBM.SYSINDEXES N ON N.TBNAME = D.NAME")
                  .Append(" WHERE D.TBSPACE = 'USERSPACE1'")
                  .Append(" AND D.TYPE = 'T'")
@@ -127,15 +131,7 @@ namespace NYear.ODA.Adapter
                 return Dt.Rows[0]["COLNAMES"].ToString().Split(new char[] { '+' }, StringSplitOptions.RemoveEmptyEntries);
             }
             return null;
-        }
-
-        // sysibm.syscolumns a
-        //INNER JOIN sysibm.systables d on a.tbname=d.name
-        //LEFT JOIN sysibm.sysindexes n on n.tbname= d.name and SUBSTR(colnames,2)=a.name
-        public override string ToDBColumnName(string CommonColumnName)
-        {
-            return "\"" + CommonColumnName + "\""; 
-        }
+        } 
 
         public override DataTable Select(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord, string Orderby)
         {
