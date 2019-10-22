@@ -141,15 +141,39 @@ namespace NYear.ODA.DevTool
                     strCmd.AppendLine("\t\t public override bool Update(params ODAColumns[] Cols) {  throw new ODAException(\"Not Suport Update CmdName \" + CmdName);}");
                     strCmd.AppendLine("\t\t public override bool Delete() {  throw new ODAException(\"Not Suport Delete CmdName \" + CmdName);}");
                 }
-                 
+
                 for (int j = 0; j < drs.Length; j++)
                 {
+
+                    int Scale = 0;
+                    int.TryParse(drs[j]["SCALE"].ToString().Trim(), out Scale);
+                    int length = 2000;
+                    int.TryParse(drs[j]["LENGTH"].ToString().Trim(), out length);
                     string ColumnName = drs[j]["COLUMN_NAME"].ToString().Trim();
-                    string ColumnPascalName = "Col" + this.Pascal(ColumnName); 
-                    string ColumnCSharpDatatype = CurrentDatabase.GetTargetsType(drs[j]["DATATYPE"].ToString().Trim(), CurrentDatabase.DataSource.DBAType.ToString(), "CSHARP");
-                    string ODAType = CurrentDatabase.GetTargetsType(drs[j]["DATATYPE"].ToString().Trim(), CurrentDatabase.DataSource.DBAType.ToString(), "ODA");
-                    strModel.AppendLine("\t\t public " + ColumnCSharpDatatype + " " + ColumnName + " {get; set;}");
-                    strCmd.AppendLine("\t\t public ODAColumns " + ColumnPascalName + "{ get { return new ODAColumns(this, \"" + ColumnName + "\", ODAdbType." + ODAType.Trim() + ", " + drs[j]["LENGTH"].ToString().Trim() + "," + (drs[j]["NOT_NULL"].ToString().Trim()=="Y"? "true":"false") +" ); } }");
+                    string ColumnPascalName = "Col" + this.Pascal(ColumnName);
+
+                    DBColumnInfo CsharpColumnInfo = new DBColumnInfo()
+                    {
+                        ColumnName = ColumnName,
+                        ColumnType = drs[j]["DATATYPE"].ToString().Trim(),
+                        Length = length,
+                        Scale = Scale,
+                        NotNull = drs[j]["NOT_NULL"].ToString().Trim().ToUpper() == "Y",
+                    };
+                    DBColumnInfo ODAColInfo = new DBColumnInfo()
+                    {
+                        ColumnName = ColumnName,
+                        ColumnType = drs[j]["DATATYPE"].ToString().Trim(),
+                        Length = length,
+                        Scale = Scale,
+                        NotNull = drs[j]["NOT_NULL"].ToString().Trim().ToUpper() == "Y",
+                    };
+
+
+                    CurrentDatabase.GetTargetsType(CurrentDatabase.DataSource.DBAType.ToString(), "CSHARP", ref CsharpColumnInfo);
+                    CurrentDatabase.GetTargetsType( CurrentDatabase.DataSource.DBAType.ToString(), "ODA",ref ODAColInfo);
+                    strModel.AppendLine("\t\t public " + CsharpColumnInfo.ColumnType + " " + ColumnName + " {get; set;}");
+                    strCmd.AppendLine("\t\t public ODAColumns " + ColumnPascalName + "{ get { return new ODAColumns(this, \"" + ColumnName + "\", ODAdbType." + ODAColInfo.ColumnType + ", " + ODAColInfo.Length + "," + (drs[j]["NOT_NULL"].ToString().Trim() == "Y" ? "true" : "false") + " ); } }");
                     GetColumnList.Append(ColumnPascalName + ",");
                 }
 

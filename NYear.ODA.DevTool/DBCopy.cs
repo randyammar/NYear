@@ -194,9 +194,7 @@ namespace NYear.ODA.DevTool
             {
                 MessageBox.Show("请选择复制类型", "提示", MessageBoxButtons.OK);
                 return;
-            }
-
-
+            } 
             TarDBConnect(); 
             if (cbxTransData.Checked || cbxCreateTable.Checked)
             {
@@ -262,7 +260,7 @@ namespace NYear.ODA.DevTool
                     DataRow[] drs = prm.SrcTables.Select("TABLE_NAME ='" + prm.TranTable[i] + "'");
                     if (drs == null || drs.Length == 0)
                         continue;
-                    DatabaseColumnInfo[] ColumnInfo = new DatabaseColumnInfo[drs.Length];
+                    DBColumnInfo[] ColumnInfo = new DBColumnInfo[drs.Length];
                     ODAParameter[] Oprms = new ODAParameter[drs.Length];
 
                     bool isBigData = false;
@@ -272,29 +270,40 @@ namespace NYear.ODA.DevTool
                         int Scale = 0;
                         int.TryParse(drs[j]["SCALE"].ToString().Trim(), out Scale);
                         int length = 2000;
-                        int.TryParse(drs[j]["LENGTH"].ToString().Trim(), out length);
+                        int.TryParse(drs[j]["LENGTH"].ToString().Trim(), out length); 
+                        string ColumnName = drs[j]["COLUMN_NAME"].ToString().Trim(); 
 
-                        string TargetDBDataType = CurrentDatabase.GetTargetsType(drs[j]["DATATYPE"].ToString().Trim(), prm.TargetDB.DBAType.ToString(), TargetDB);
-                        string ODAType = CurrentDatabase.GetTargetsType(drs[j]["DATATYPE"].ToString().Trim(), CurrentDatabase.DataSource.DBAType.ToString(), "ODA");
-                        ODAdbType DBDataType = ODAdbType.OVarchar;
-                        Enum.TryParse<ODAdbType>(ODAType, true, out DBDataType);
-                        ColumnInfo[j] = new DatabaseColumnInfo()
+                        DBColumnInfo DBColInfo = new DBColumnInfo()
                         {
-                            ColumnType = TargetDBDataType,
-                            Length = length <= 0 ? 2000 : length,
-                            Name = prm.TargetDB.ToDBColumnName(drs[j]["COLUMN_NAME"].ToString()),
-                            NotNull = drs[j]["NOT_NULL"].ToString().Trim().ToUpper() == "Y",
+                            ColumnName = ColumnName,
+                            ColumnType = drs[j]["DATATYPE"].ToString().Trim(),
+                            Length = length,
                             Scale = Scale,
-                            NoLength = DBDataType == ODAdbType.OBinary || DBDataType == ODAdbType.OInt || DBDataType == ODAdbType.ODatetime
+                            NotNull = drs[j]["NOT_NULL"].ToString().Trim().ToUpper() == "Y",
                         };
+                        CurrentDatabase.GetTargetsType(prm.SourceDB.DBAType.ToString(), TargetDB, ref DBColInfo); 
+                        ColumnInfo[j] = DBColInfo;
+                        isBigData = isBigData || DBColInfo.IsBigData;
 
-                        if (DBDataType == ODAdbType.OBinary)
-                            isBigData = true;
-
+                        DBColumnInfo ODAColInfo = new DBColumnInfo()
+                        {
+                            ColumnName = ColumnName,
+                            ColumnType = drs[j]["DATATYPE"].ToString().Trim(),
+                            Length = length,
+                            Scale = Scale,
+                            NotNull = drs[j]["NOT_NULL"].ToString().Trim().ToUpper() == "Y",
+                        }; 
+                        CurrentDatabase.GetTargetsType(prm.SourceDB.DBAType.ToString(), "ODA", ref ODAColInfo); 
+                        ODAdbType OdaType = ODAdbType.OVarchar;
+                        try
+                        {
+                            OdaType = (ODAdbType)Enum.Parse(typeof(ODAdbType), ODAColInfo.ColumnType, true);
+                        }
+                        catch { }
                         Oprms[j] = new ODAParameter()
                         {
                             ColumnName = drs[j]["COLUMN_NAME"].ToString(),
-                            DBDataType = DBDataType,
+                            DBDataType = OdaType,
                             Direction = ParameterDirection.Input,
                             ParamsName = drs[j]["COLUMN_NAME"].ToString(),
                             Size = ColumnInfo[j].Length
@@ -302,10 +311,7 @@ namespace NYear.ODA.DevTool
                     }
 
                     string[] Pkeys = prm.SourceDB.GetPrimarykey(prm.TranTable[i]);
-                    for (int k = 0; Pkeys != null && Pkeys.Length > k; k++)
-                    {
-                        Pkeys[k] = prm.TargetDB.ToDBColumnName(Pkeys[k]); 
-                    }
+     
                     string sql = this.CreateTable(prm.TargetDB, prm.TranTable[i], ColumnInfo, Pkeys);
                     tblScript.AppendLine(sql);
                     if (prm.NeedTransTable )
@@ -455,7 +461,7 @@ namespace NYear.ODA.DevTool
                 this.pgbData.Update();
             }
         }
-        private string CreateTable(DBAccess TargetDB, string TableName, DatabaseColumnInfo[] ColumnInfo, string[]  Pkeys )
+        private string CreateTable(DBAccess TargetDB, string TableName, DBColumnInfo[] ColumnInfo, string[]  Pkeys )
         {
             StringBuilder creatSQL = new StringBuilder();
             try
@@ -469,17 +475,17 @@ namespace NYear.ODA.DevTool
                     {
                         if (ColumnInfo[i].NoLength)
                         {
-                            creatSQL.Append(ColumnInfo[i].Name + " " + ColumnInfo[i].ColumnType);
+                            creatSQL.Append(ColumnInfo[i].ColumnName + " " + ColumnInfo[i].ColumnType);
                         }
                         else
                         {
                             if (ColumnInfo[i].Scale == 0)
                             {
-                                creatSQL.Append(ColumnInfo[i].Name + " " + ColumnInfo[i].ColumnType + "(" + ColumnInfo[i].Length.ToString() + ")");
+                                creatSQL.Append(ColumnInfo[i].ColumnName + " " + ColumnInfo[i].ColumnType + "(" + ColumnInfo[i].Length.ToString() + ")");
                             }
                             else
                             {
-                                creatSQL.Append(ColumnInfo[i].Name + " " + ColumnInfo[i].ColumnType + "(" + ColumnInfo[i].Length.ToString() + "," + ColumnInfo[i].Scale.ToString() + ")");
+                                creatSQL.Append(ColumnInfo[i].ColumnName + " " + ColumnInfo[i].ColumnType + "(" + ColumnInfo[i].Length.ToString() + "," + ColumnInfo[i].Scale.ToString() + ")");
                             }
                         }
 
@@ -496,7 +502,8 @@ namespace NYear.ODA.DevTool
                     for (int j = 0; j < Pkeys.Length; j++)
                         p += Pkeys[j] + ",";
                     p = p.Remove(p.Length - ",".Length, ",".Length);
-                    creatSQL.AppendLine(" , primary key (" + p + ") ");
+                    creatSQL.AppendLine(",");
+                    creatSQL.AppendLine("PRIMARY KEY (" + p + ") ");
                 }
                 else
                 {
@@ -534,13 +541,5 @@ namespace NYear.ODA.DevTool
         public string TransType { get; set; }
         public int Percent { get; set; }
     }
-    public class DatabaseColumnInfo
-    {
-        public string Name { get; set; }
-        public int Length { get; set; }
-        public int Scale { get; set; }
-        public string ColumnType { get; set; }
-        public bool NoLength { get; set; }
-        public bool NotNull { get; set; } 
-    }
+   
 }
