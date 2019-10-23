@@ -77,6 +77,7 @@ namespace NYear.ODA
 
         public abstract string[] GetPrimarykey(string TableName);
 
+        public abstract Dictionary<string, string[]> GetPrimarykey();
         public virtual DataTable GetUniqueIndex(string TableName)
         {
             return null;

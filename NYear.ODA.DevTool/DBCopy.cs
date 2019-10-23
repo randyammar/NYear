@@ -245,6 +245,9 @@ namespace NYear.ODA.DevTool
 
                 StringBuilder tblScript = new StringBuilder();
                 string TargetDB = prm.TargetDB.DBAType.ToString();
+
+                var TblPkeys = prm.SourceDB.GetPrimarykey();
+
                 for (int i = 0; i < prm.TranTable.Count; i++)
                 {
                     ReportStatus RS = new ReportStatus()
@@ -315,7 +318,11 @@ namespace NYear.ODA.DevTool
                     string sql = "";
                     try
                     {
-                        string[] Pkeys = prm.SourceDB.GetPrimarykey(prm.TranTable[i]);
+                        string[] Pkeys = null;
+                        if (TblPkeys != null && TblPkeys.ContainsKey(prm.TranTable[i]))
+                        {
+                            Pkeys = TblPkeys[prm.TranTable[i]];
+                        } 
                         sql = this.CreateTable(prm.TargetDB, prm.TranTable[i], ColumnInfo, Pkeys);
                         tblScript.AppendLine(sql);
                     }

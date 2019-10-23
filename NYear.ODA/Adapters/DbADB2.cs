@@ -124,15 +124,37 @@ namespace NYear.ODA.Adapter
                  .Append(" AND D.TYPE = 'T'")
                  .Append(" AND UNIQUERULE = 'P'")
                  .Append(" AND N.TBNAME = '")
-                 .Append( TableName.ToUpper()).Append( "'");
+                 .Append( TableName).Append( "'");
             DataTable Dt = this.Select(sql.ToString(), null);
             if (Dt != null && Dt.Rows.Count > 0)
             {
                 return Dt.Rows[0]["COLNAMES"].ToString().Split(new char[] { '+' }, StringSplitOptions.RemoveEmptyEntries);
             }
             return null;
-        } 
+        }
 
+
+        public override Dictionary<string, string[]> GetPrimarykey()
+        {
+            StringBuilder sql = new StringBuilder().Append("SELECT DISTINCT N.TBNAME TABLE_NAME, N.COLNAMES FROM  SYSIBM.SYSTABLES D  ")
+              .Append(" INNER JOIN SYSIBM.SYSINDEXES N ON N.TBNAME = D.NAME")
+              .Append(" WHERE D.TBSPACE = 'USERSPACE1'")
+              .Append(" AND D.TYPE = 'T'")
+              .Append(" AND UNIQUERULE = 'P'")
+              .Append(" ORDER BY N.TBNAME");
+
+            DataTable Dt = this.Select(sql.ToString(), null); 
+            Dictionary<string, string[]> pkeys = new Dictionary<string, string[]>();
+            if (Dt != null && Dt.Rows.Count > 0)
+            {
+                for (int i = 0; i < Dt.Rows.Count; i++)
+                {
+                    string[] pKey = Dt.Rows[i]["COLNAMES"].ToString().Split(new char[] { '+' }, StringSplitOptions.RemoveEmptyEntries);
+                    pkeys.Add(Dt.Rows[i]["COLNAMES"].ToString(), pKey);
+                }
+            }
+            return pkeys;
+        }
         public override DataTable Select(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord, string Orderby)
         {
             string BlockStr = "select * from (select row_number() over() as r_id_1,t_1.* from ( ";

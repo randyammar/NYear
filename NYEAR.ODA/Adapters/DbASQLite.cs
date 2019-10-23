@@ -49,7 +49,7 @@ namespace NYear.ODA.Adapter
             string[] str = new string[dt_table.Rows.Count];
             for (int i = 0; i < str.Length; i++)
             {
-                str[i] = dt_table.Rows[i]["TABLE_NAME"].ToString().Trim().ToUpper();
+                str[i] = dt_table.Rows[i]["TABLE_NAME"].ToString().Trim();
             }
             return str;
         }
@@ -59,7 +59,7 @@ namespace NYear.ODA.Adapter
             string[] str = new string[dt_table.Rows.Count];
             for (int i = 0; i < str.Length; i++)
             {
-                str[i] = dt_table.Rows[i]["VIEW_NAME"].ToString().Trim().ToUpper();
+                str[i] = dt_table.Rows[i]["VIEW_NAME"].ToString().Trim();
             }
             return str;
         }
@@ -82,6 +82,18 @@ namespace NYear.ODA.Adapter
                 }
             }
             return list.ToArray();
+        }
+
+        public override Dictionary<string, string[]> GetPrimarykey()
+        {
+            string[] tables = GetUserTables(); 
+            Dictionary<string, string[]> pkeys = new Dictionary<string, string[]>();
+            foreach (var t in tables)
+            {
+                string[] pKeys = GetPrimarykey(t);
+                pkeys.Add(t, pKeys);
+            }
+            return pkeys;
         }
 
         public override DbAType DBAType { get { return DbAType.SQLite; } }

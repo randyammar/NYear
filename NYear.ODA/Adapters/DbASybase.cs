@@ -1,5 +1,6 @@
 ﻿using Sybase.Data.AseClient;
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Text;
@@ -124,6 +125,11 @@ namespace NYear.ODA.Adapter
         public override string[] GetPrimarykey(string TableName)
         {
             return null;
+        }
+
+        public override Dictionary<string, string[]> GetPrimarykey()
+        {
+            return new Dictionary<string, string[]>();
         }
 
         public override bool Import(DataTable Data,ODAParameter[] Prms)

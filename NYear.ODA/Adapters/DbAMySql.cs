@@ -140,7 +140,7 @@ namespace NYear.ODA.Adapter
         public override string[] GetPrimarykey(string TableName)
         {
             var db = this.GetConnection();
-            string PrimaryCols = new StringBuilder().Append("SELECT DISTINCT  CU.COLUMN_NAME ")
+            string PrimaryCols = new StringBuilder().Append("SELECT DISTINCT  CU.TABLE_NAME,CU.COLUMN_NAME ")
                 .Append(" FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE CU,INFORMATION_SCHEMA.TABLE_CONSTRAINTS TC ")
             .Append(" WHERE  CU.TABLE_NAME = TC.TABLE_NAME ")
             .Append(" AND CU.TABLE_SCHEMA = TC.TABLE_SCHEMA ")
@@ -158,7 +158,38 @@ namespace NYear.ODA.Adapter
             }
             return null;
         }
-       
+        public override Dictionary<string, string[]> GetPrimarykey()
+        {
+            var db = this.GetConnection();
+            string PrimaryCols = new StringBuilder().Append("SELECT DISTINCT  CU.TABLE_NAME,CU.COLUMN_NAME ")
+                .Append(" FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE CU,INFORMATION_SCHEMA.TABLE_CONSTRAINTS TC ")
+            .Append(" WHERE  CU.TABLE_NAME = TC.TABLE_NAME ")
+            .Append(" AND CU.TABLE_SCHEMA = TC.TABLE_SCHEMA ")
+            .Append(" AND TC.TABLE_SCHEMA = '" + db.Database + "'")
+            .Append(" AND TC.CONSTRAINT_TYPE = 'PRIMARY KEY' ")
+            .Append(" ORDER BY CU.TABLE_NAME").ToString();
+             
+            DataTable Dt = this.Select(PrimaryCols, null);
+
+            Dictionary<string, string[]> pkeys = new Dictionary<string, string[]>();
+            string tbName = "";
+            if (Dt != null && Dt.Rows.Count > 0)
+            {
+                tbName = Dt.Rows[0]["TABLE_NAME"].ToString();
+                List<string> cols = new List<string>();
+                for (int i = 0; i < Dt.Rows.Count; i++)
+                {
+                    if (tbName != Dt.Rows[i]["TABLE_NAME"].ToString())
+                    {
+                        pkeys.Add(tbName, cols.ToArray());
+                        cols = new List<string>();
+                        tbName = Dt.Rows[i]["TABLE_NAME"].ToString();
+                    } 
+                    cols.Add(Dt.Rows[i]["COLUMN_NAME"].ToString());
+                }
+            }
+            return pkeys;
+        }
 
         public override DataTable Select(string SQL, ODAParameter[] ParamList, int StartIndex, int MaxRecord, string Orderby)
         {

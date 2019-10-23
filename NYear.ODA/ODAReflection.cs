@@ -90,7 +90,7 @@ namespace NYear.ODA
                 ReadFieldInfo Field = null;
                 foreach (var fld in FieldInfos)
                 {
-                    if (fld.FieldName.ToUpper() == ppIndex[i].PropertyName.ToUpper())
+                    if (fld.FieldName == ppIndex[i].PropertyName)
                     {
                         Field = fld;
                         break;

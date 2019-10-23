@@ -177,7 +177,7 @@ namespace NYear.ODA.DevTool
                     GetColumnList.Append(ColumnPascalName + ",");
                 }
 
-                strCmd.AppendLine("\t\t public override string CmdName { get { return \"" + TablesAndViews[i].ToUpper() + "\"; }}");
+                strCmd.AppendLine("\t\t public override string CmdName { get { return \"" + TablesAndViews[i] + "\"; }}");
                 strCmd.AppendLine( GetColumnList.Remove(GetColumnList.Length -1,1).ToString() + "};");
                 strCmd.AppendLine("\t\t }");
 

@@ -165,6 +165,34 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
             }
             return null;
         }
+
+
+        public override Dictionary<string, string[]> GetPrimarykey()
+        {
+            string PrimaryCols = string.Format("SELECT DISTINCT A.TABLE_NAME, A.COLUMN_NAME  FROM USER_CONS_COLUMNS A, USER_CONSTRAINTS B  WHERE A.CONSTRAINT_NAME = B.CONSTRAINT_NAME  AND B.CONSTRAINT_TYPE = 'P' ORDER BY A.TABLE_NAME ");
+
+            DataTable Dt = this.Select(PrimaryCols, null);
+            Dictionary<string, string[]> pkeys = new Dictionary<string, string[]>();
+            string tbName = "";
+            if (Dt != null && Dt.Rows.Count > 0)
+            {
+                tbName = Dt.Rows[0]["TABLE_NAME"].ToString();
+                List<string> cols = new List<string>();
+                for (int i = 0; i < Dt.Rows.Count; i++)
+                {
+                    if (tbName != Dt.Rows[i]["TABLE_NAME"].ToString())
+                    {
+                        pkeys.Add(tbName, cols.ToArray());
+                        cols = new List<string>();
+                        tbName = Dt.Rows[i]["TABLE_NAME"].ToString();
+                    }
+                    cols.Add(Dt.Rows[i]["COLUMN_NAME"].ToString());
+                }
+            }
+            return pkeys;
+        }
+
+
         public override DbAType DBAType { get { return DbAType.Oracle; } }
 
  

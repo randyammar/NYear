@@ -70,6 +70,11 @@ namespace NYear.ODA
         [OperationContract]
 #endif
         string[] GetPrimarykey(string TableName);
+
+#if FW
+        [OperationContract]
+#endif
+        Dictionary<string, string[]> GetPrimarykey();
 #if FW
         [OperationContract]
 #endif

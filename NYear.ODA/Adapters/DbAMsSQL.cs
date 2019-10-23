@@ -153,6 +153,38 @@ namespace NYear.ODA.Adapter
             return null;
         }
 
+
+        public override Dictionary<string, string[]> GetPrimarykey()
+        {
+            string PrimaryCols = new StringBuilder().Append("SELECT DISTINCT A.TABLE_NAME B.COLUMN_NAME ")
+                .Append(" FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS A ")
+                .Append(" INNER JOIN INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE B ")
+                .Append(" ON A.CONSTRAINT_NAME = B.CONSTRAINT_NAME ")
+                .Append(" WHERE A.CONSTRAINT_TYPE = 'PRIMARY KEY'")
+                .Append(" ORDER BY A.TABLE_NAME ").ToString();
+
+            DataTable Dt = this.Select(PrimaryCols, null);
+
+            Dictionary<string, string[]> pkeys = new Dictionary<string, string[]>();
+            string tbName = "";
+            if (Dt != null && Dt.Rows.Count > 0)
+            {
+                tbName = Dt.Rows[0]["TABLE_NAME"].ToString();
+                List<string> cols = new List<string>();
+                for (int i = 0; i < Dt.Rows.Count; i++)
+                {
+                    if (tbName != Dt.Rows[i]["TABLE_NAME"].ToString())
+                    { 
+                        pkeys.Add(tbName, cols.ToArray());
+                        cols = new List<string>();
+                        tbName = Dt.Rows[i]["TABLE_NAME"].ToString();
+                    }
+                    cols.Add(Dt.Rows[i]["COLUMN_NAME"].ToString());
+                }
+            }
+            return pkeys;
+        }
+
         public override string[] GetUserProcedure()
         {
             DataTable dt_table = Select("SELECT name as PROCEDURE_NAME FROM sys.objects o WHERE   o.type = 'P'", null);

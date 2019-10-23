@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
@@ -53,13 +54,17 @@ namespace NYear.ODA.Adapter
             string[] str = new string[dt_table.Rows.Count];
             for (int i = 0; i < str.Length; i++)
             {
-                str[i] = dt_table.Rows[i]["TABLE_NAME"].ToString().Trim().ToUpper();
+                str[i] = dt_table.Rows[i]["TABLE_NAME"].ToString().Trim();
             }
             return str;
         }
         public override string[] GetPrimarykey(string TableName)
         {
             return null;
+        }
+        public override Dictionary<string, string[]> GetPrimarykey()
+        {
+            return new Dictionary<string, string[]>();
         }
         public override DbAType DBAType { get { return DbAType.OledbAccess; } }
 
@@ -69,7 +74,7 @@ namespace NYear.ODA.Adapter
             string[] str = new string[dt_table.Rows.Count];
             for (int i = 0; i < str.Length; i++)
             {
-                str[i] = dt_table.Rows[i]["VIEW_NAME"].ToString().Trim().ToUpper();
+                str[i] = dt_table.Rows[i]["VIEW_NAME"].ToString().Trim();
             }
             return str;
         }
