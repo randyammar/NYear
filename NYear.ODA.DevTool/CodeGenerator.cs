@@ -137,8 +137,8 @@ namespace NYear.ODA.DevTool
                 if (drs.Length < 1)
                 {
                     drs = pdt_views.Select("TABLE_NAME ='" + TablesAndViews[i] + "'");
-                    strCmd.AppendLine("\t\t public override bool Insert(params ODA.ODAColumns[] Cols) { throw new ODAException(\"Not suport Insert CmdName \" + CmdName);}");
-                    strCmd.AppendLine("\t\t public override bool Update(params ODAColumns[] Cols) {  throw new ODAException(\"Not Suport Update CmdName \" + CmdName);}");
+                    strCmd.AppendLine("\t\t public override bool Insert(params IODAColumns[] Cols) { throw new ODAException(\"Not suport Insert CmdName \" + CmdName);}");
+                    strCmd.AppendLine("\t\t public override bool Update(params IODAColumns[] Cols) {  throw new ODAException(\"Not Suport Update CmdName \" + CmdName);}");
                     strCmd.AppendLine("\t\t public override bool Delete() {  throw new ODAException(\"Not Suport Delete CmdName \" + CmdName);}");
                 }
 
