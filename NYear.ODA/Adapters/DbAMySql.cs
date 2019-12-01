@@ -111,7 +111,8 @@ namespace NYear.ODA.Adapter
         }
         public override DataTable GetViewColumns()
         {
-            StringBuilder sql_view = new StringBuilder().Append("SELECT C.TABLE_NAME,C.COLUMN_NAME, ")
+            
+              StringBuilder sql_view = new StringBuilder().Append("C.TABLE_NAME,C.COLUMN_NAME, C.ORDINAL_POSITION COL_SEQ,")
             //.Append("  CASE C.DATA_TYPE WHEN 'char' THEN 'OChar' WHEN 'varchar' THEN 'OVarchar' WHEN 'tinytext' THEN 'OVarchar' ")
             //.Append(" WHEN 'text' THEN 'OVarchar' WHEN 'mediumtext' THEN 'OVarchar' WHEN 'longtext' THEN 'OVarchar' WHEN 'enum' THEN 'OChar' ")
             //.Append(" WHEN 'set' THEN 'OVarchar' WHEN 'geometry' THEN 'OVarchar' WHEN 'point' THEN 'OVarchar' WHEN 'linestring' THEN 'OVarchar' ")

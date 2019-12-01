@@ -105,8 +105,8 @@ namespace NYear.ODA.Adapter
         }
         public override DataTable GetViewColumns()
         {
-            StringBuilder sql_view = new StringBuilder().Append("SELECT DISTINCT SOBJ.NAME AS TABLE_NAME, SCOL.NAME AS COLUMN_NAME , ")
-            .Append(" case SCOL.isnullable when 0 then 'False' else 'True' end as REQUIRE,")
+            StringBuilder sql_view = new StringBuilder().Append("SELECT DISTINCT SOBJ.NAME AS TABLE_NAME, SCOL.NAME AS COLUMN_NAME , SCOL.COLID AS COL_SEQ,  ")
+            .Append("CASE SCOL.ISNULLABLE WHEN 0 THEN 'Y' ELSE 'N' END AS NOT_NULL,")
             //.Append(" CASE SYT.NAME  WHEN 'sysname'  THEN 'OVarchar' WHEN 'sql_varint'  THEN 'OVarchar'    WHEN 'varchar' THEN 'OVarchar' WHEN 'char'  THEN 'OChar' ")
             //.Append(" WHEN 'nchar'  THEN 'OChar' WHEN 'ntext'  THEN 'OVarchar'  WHEN 'nvarchar'  THEN 'OVarchar'  WHEN 'text'  THEN 'OVarchar' WHEN 'varchar'  THEN 'OVarchar' ")
             //.Append(" WHEN 'bigint'  THEN 'ODecimal'  WHEN 'decimal'  THEN 'ODecimal'   WHEN 'float'  THEN 'ODecimal'   WHEN 'money'  THEN 'ODecimal' ")
@@ -115,8 +115,7 @@ namespace NYear.ODA.Adapter
             //.Append(" WHEN 'datetime'  THEN 'ODatetime'  WHEN 'smalldatetime'  THEN 'ODatetime'  WHEN 'smalldatetime'  THEN 'ODatetime'  WHEN 'date'  THEN 'ODatetime' ")
             //.Append(" WHEN 'binary'  THEN 'OBinary'  WHEN 'image'  THEN 'OBinary'  WHEN 'timestamp'  THEN 'OBinary'    WHEN 'varbinary'  THEN 'OBinary' ")
             //.Append(" ELSE  SYT.NAME  END AS DATATYPE ,")
-             .Append(" SYT.NAME AS DATATYPE ,")
-            .Append(" SCOL.LENGTH AS LENGTH,SCOL.XSCALE AS SCALE, ext.value AS DIRECTION  ")
+             .Append("SYT.NAME AS DATATYPE,SCOL.LENGTH AS LENGTH, SCOL.XSCALE AS SCALE, EXT.VALUE AS DIRECTION ") 
             .Append(" FROM SYSOBJECTS SOBJ ")
             .Append(" inner join SYSCOLUMNS SCOL ")
             .Append(" on SOBJ.ID = SCOL.ID  ")

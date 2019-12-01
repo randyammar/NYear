@@ -210,13 +210,12 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
 
         public override DataTable GetTableColumns()
         {
-            string sql_tabcol = new StringBuilder().Append("SELECT TC.TABLE_NAME,TC.COLUMN_NAME,CASE TC.NULLABLE WHEN 'N' THEN 'Y' ELSE 'N' END   NOTNULL,TC.COLUMN_ID COL_SEQ,")
+            string sql_tabcol = new StringBuilder().Append("SELECT TC.TABLE_NAME,TC.COLUMN_NAME,CASE TC.NULLABLE WHEN 'N' THEN 'Y' ELSE 'N' END  NOT_NULL,TC.COLUMN_ID COL_SEQ,")
             //.Append( " DECODE(TC.DATA_TYPE,'CHAR','OChar','VARCHAR','OVarchar','VARCHAR2','OVarchar','NVARCHAR2','OVarchar','MLSLABEL','OVarchar',")
             //.Append(" 'UROWID','OVarchar','URITYPE','OVarchar','CHARACTER','OVarchar','CLOB','OVarchar','INTEGER','OInt','INT','OInt',")
             //.Append(" 'SMALLINT','OInt','DATE','ODatetime','LONG','ODecimal','DECIMAL','ODecimal','NUMERIC','ODecimal','REAL','ODecimal',")
             //.Append(" 'NUMBER','ODecimal','BLOB','OBinary','BFILE','OBinary','OVarchar') DATATYPE," )
-            .Append(" TC.DATA_TYPE  DATATYPE,")
-            .Append(" DECODE(TC.NULLABLE ,'Y','N','Y') NOT_NULL, ")
+            .Append(" TC.DATA_TYPE  DATATYPE,") 
             .Append(" DECODE(TC.DATA_TYPE,'BLOB',2000000000,'CLOB',2000000000, TC.DATA_LENGTH)  LENGTH,TC.DATA_SCALE SCALE,")
             .Append(" TCC.COMMENTS DIRECTION ")
             .Append(" FROM USER_TABLES  TB,USER_TAB_COLUMNS TC ,USER_COL_COMMENTS  TCC")
@@ -230,11 +229,11 @@ where U.OBJECT_TYPE IN ('PROCEDURE'，'PACKAGE');
         }
         public override DataTable GetViewColumns()
         {
-            string sql_view = new StringBuilder().Append("SELECT TC.TABLE_NAME,TC.COLUMN_NAME,CASE TC.NULLABLE WHEN 'N' THEN 'Y' ELSE 'N' END NOTNULL,")
+            string sql_view = new StringBuilder().Append("SELECT TC.TABLE_NAME,TC.COLUMN_NAME,CASE TC.NULLABLE WHEN 'N' THEN 'Y' ELSE 'N' END NOT_NULL,TC.COLUMN_ID COL_SEQ,")
                 //.Append(" DECODE(TC.DATA_TYPE,'CHAR','OChar','VARCHAR','OVarchar','VARCHAR2','OVarchar','NVARCHAR2','OVarchar','MLSLABEL','OVarchar','UROWID','OVarchar','URITYPE','OVarchar','CHARACTER','OVarchar','CLOB','OVarchar', ")
                 //.Append(" 'INTEGER','OInt','INT','OInt','SMALLINT','OInt','DATE','ODatetime','LONG','ODecimal','DECIMAL','ODecimal','NUMERIC','ODecimal','REAL','ODecimal','NUMBER','ODecimal','BLOB','OBinary','BFILE','OBinary','OVarchar') DATATYPE, ")
                 .Append(" TC.DATA_TYPE  DATATYPE,")
-                .Append(" DECODE(TC.DATA_TYPE,'BLOB',2000000000,'CLOB',2000000000, TC.DATA_LENGTH)  LENGTH,TC.DATA_SCALE SCALE,TCC.COMMENTS DIRECTION,DECODE(TC.NULLABLE ,'Y','N','Y') NOT_NULL ")
+                .Append(" DECODE(TC.DATA_TYPE,'BLOB',2000000000,'CLOB',2000000000, TC.DATA_LENGTH)  LENGTH,TC.DATA_SCALE SCALE,TCC.COMMENTS DIRECTION ")
                 .Append(" FROM USER_VIEWS TV,USER_TAB_COLUMNS TC ,USER_COL_COMMENTS  TCC")
                 .Append(" WHERE TV.VIEW_NAME = TC.TABLE_NAME ")
                 .Append(" AND TC.TABLE_NAME = TCC.table_name(+) ")

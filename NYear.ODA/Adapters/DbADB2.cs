@@ -2,14 +2,11 @@
 using IBM.Data.DB2.Core;
 #elif FW
 using IBM.Data.DB2;
-using MySql.Data.MySqlClient;
-using Oracle.ManagedDataAccess.Client;
 #endif
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Data.SQLite;
 using System.Text;
 
 namespace NYear.ODA.Adapter
@@ -86,7 +83,7 @@ namespace NYear.ODA.Adapter
         }
         public override DataTable GetTableColumns()
         {
-            StringBuilder sql = new StringBuilder().Append("SELECT T.NAME  TABLE_NAME,C.NAME AS COLUMN_NAME,C.COLNO COL_SEQ,")
+            StringBuilder sql = new StringBuilder().Append("SELECT T.NAME TABLE_NAME,C.NAME AS COLUMN_NAME,C.COLNO COL_SEQ,")
                 //.Append(" CASE C.COLTYPE WHEN 'CHAR' THEN 'OChar' WHEN 'VARCHAR' THEN 'OVarchar'")
                 //.Append(" WHEN 'TIMESTMP' THEN 'ODatetime' WHEN 'DECIMAL' THEN 'ODecimal' WHEN 'INTEGER' THEN 'OInt'")
                 //.Append(" WHEN 'BLOB' THEN 'OBinary' ELSE  C.COLTYPE END DATATYPE,")
@@ -103,7 +100,7 @@ namespace NYear.ODA.Adapter
         }
         public override DataTable GetViewColumns()
         {
-            StringBuilder sql = new StringBuilder().Append("SELECT C.NAME AS COLUMN_NAME,T.NAME  TABLE_NAME,")
+            StringBuilder sql = new StringBuilder().Append("SELECT T.NAME TABLE_NAME,C.NAME AS COLUMN_NAME,C.COLNO COL_SEQ,")
                 //.Append(" CASE C.COLTYPE WHEN 'CHAR' THEN 'OChar' WHEN 'VARCHAR' THEN 'OVarchar'")
                 //.Append(" WHEN 'TIMESTMP' THEN 'ODatetime' WHEN 'DECIMAL' THEN 'ODecimal' WHEN 'INTEGER' THEN 'OInt'")
                 //.Append(" WHEN 'BLOB' THEN 'OBinary' ELSE C.COLTYPE END DATATYPE,")
