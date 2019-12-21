@@ -144,7 +144,6 @@ namespace NYear.ODA.DevTool
 
                 for (int j = 0; j < drs.Length; j++)
                 {
-
                     int Scale = 0;
                     int.TryParse(drs[j]["SCALE"].ToString().Trim(), out Scale);
                     int length = 2000;

@@ -613,6 +613,18 @@ namespace NYear.ODA
         {
             return SetCondition(CmdConditionSymbol.LIKE, Val);
         }
+        public ODAColumns Contain(string Val)
+        {
+            return SetCondition(CmdConditionSymbol.LIKE,"%" + Val + "%" );
+        }
+        public ODAColumns ContainLeft(string Val)
+        {
+            return SetCondition(CmdConditionSymbol.LIKE, Val + "%");
+        }
+        public ODAColumns ContainRight(string Val)
+        {
+            return SetCondition(CmdConditionSymbol.LIKE, "%" + Val );
+        }
         public ODAColumns NotLike(object Val)
         {
             return SetCondition(CmdConditionSymbol.NOTLIKE, Val);
