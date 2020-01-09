@@ -125,7 +125,7 @@ namespace NYear.ODA
         }
         #endregion
         /// <summary>
-        /// 生建ODAContext产生的ODA连接实例
+        /// 新建ODAContext产生的ODA连接实例
         /// </summary>
         private ODAConnect _Conn = null;
         /// <summary>
@@ -381,15 +381,15 @@ namespace NYear.ODA
                 this.CheckTransaction(ODASql);
                 if (_Tran.TransDB.ContainsKey(conn.ConnectionString))
                 {
-                    return _Tran.TransDB[_Conn.ConnectionString];
+                    return _Tran.TransDB[conn.ConnectionString];
                 }
                 else
                 {
-                    IDBAccess DBA = ODAContext.NewDBConnect(_Conn.DBtype, _Conn.ConnectionString);
+                    IDBAccess DBA = ODAContext.NewDBConnect(conn.DBtype, conn.ConnectionString);
                     DBA.BeginTransaction();
                     _Tran.DoCommit += DBA.Commit;
                     _Tran.RollBacking += DBA.RollBack;
-                    _Tran.TransDB.Add(_Conn.ConnectionString, DBA);
+                    _Tran.TransDB.Add(conn.ConnectionString, DBA);
                     return DBA;
                 }
             }
