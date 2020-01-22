@@ -1,4 +1,5 @@
-﻿using Sybase.Data.AseClient;
+﻿#if NET_FW
+using Sybase.Data.AseClient;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -326,3 +327,4 @@ namespace NYear.ODA.Adapter
         }
     }
 }
+#endif

@@ -1,150 +1,73 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.30729</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{1189DDDA-5DC7-4C81-B746-7F00675129C7}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>NYear.ODA</RootNamespace>
-    <AssemblyName>NYear.ODA</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <FileUpgradeFlags>
-    </FileUpgradeFlags>
-    <OldToolsVersion>3.5</OldToolsVersion>
-    <UpgradeBackupLocation />
-    <PublishUrl>http://localhost/ODA/</PublishUrl>
-    <Install>true</Install>
-    <InstallFrom>Web</InstallFrom>
-    <UpdateEnabled>true</UpdateEnabled>
-    <UpdateMode>Foreground</UpdateMode>
-    <UpdateInterval>7</UpdateInterval>
-    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
-    <UpdatePeriodically>false</UpdatePeriodically>
-    <UpdateRequired>false</UpdateRequired>
-    <MapFileExtensions>true</MapFileExtensions>
-    <ApplicationRevision>0</ApplicationRevision>
-    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
-    <IsWebBootstrapper>true</IsWebBootstrapper>
-    <UseApplicationTrust>false</UseApplicationTrust>
-    <BootstrapperEnabled>true</BootstrapperEnabled>
-    <TargetFrameworkProfile />
-    <SccProjectName>SAK</SccProjectName>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccAuxPath>SAK</SccAuxPath>
-    <SccProvider>SAK</SccProvider>
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>..\Execute\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;FW;</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
-    <UseVSHostingProcess>true</UseVSHostingProcess>
-    <DocumentationFile>
-    </DocumentationFile>
-    <Prefer32Bit>false</Prefer32Bit>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>..\Execute\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;FW;</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <Prefer32Bit>false</Prefer32Bit>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\x64\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;FW;</DefineConstants>
-    <DebugType>full</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
-    <LangVersion>7.3</LangVersion>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <OutputPath>bin\x64\Release\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;FW;</DefineConstants>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
-    <LangVersion>7.3</LangVersion>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="IBM.Data.DB2, Version=9.7.4.4, Culture=neutral, PublicKeyToken=7c307b91aa13d208, processorArchitecture=x86">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Reference\IBM.Data.DB2.dll</HintPath>
-    </Reference>
-    <Reference Include="MySql.Data, Version=6.9.10.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Reference\MySql.Data.dll</HintPath>
-    </Reference>
-    <Reference Include="Oracle.ManagedDataAccess, Version=4.122.18.3, Culture=neutral, PublicKeyToken=89b483f429c47342, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Reference\Oracle.ManagedDataAccess.dll</HintPath>
-    </Reference>
-    <Reference Include="Sybase.AdoNet2.AseClient">
-      <HintPath>..\Reference\Sybase.AdoNet2.AseClient.dll</HintPath>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Data.SQLite, Version=1.0.109.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Reference\SQLite\System.Data.SQLite.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Messaging" />
-    <Reference Include="System.Runtime.Remoting" />
-    <Reference Include="System.Runtime.Serialization" />
-    <Reference Include="System.ServiceModel" />
-    <Reference Include="System.Xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="ODAPropertyInfo.cs" />
-    <Compile Include="Interface\IDBAccess.cs" />
-    <Compile Include="Interface\IODAFunction.cs" />
-    <Compile Include="Interface\IODACmd.cs" />
-    <Compile Include="Interface\IODAColumns.cs" />
-    <Compile Include="ODADataReader.cs" />
-    <Compile Include="ODACmd.Extension.cs" />
-    <Compile Include="ODACmd.Dynamic.cs" />
-    <Compile Include="ODAContext.cs" />
-    <Compile Include="ODAFunction.cs" />
-    <Compile Include="ODAView.cs" />
-    <Compile Include="ODAReflection.cs" />
-    <Compile Include="ORMCmd.cs" />
-    <Compile Include="SQLCmd.cs" />
-    <Compile Include="Utils.cs" />
-    <Compile Include="DBAccess.cs" />
-    <Compile Include="Adapters\DbASQLite.cs" />
-    <Compile Include="Adapters\DbADB2.cs" />
-    <Compile Include="Adapters\DbAMsSQL.cs" />
-    <Compile Include="Adapters\DbAMySql.cs" />
-    <Compile Include="Adapters\DbAOdbcInformix.cs" />
-    <Compile Include="Adapters\DbAOledbAccess.cs" />
-    <Compile Include="Adapters\DbAOracle.cs" />
-    <Compile Include="Adapters\DbASybase.cs" />
-    <Compile Include="ODATransaction.cs" />
-    <Compile Include="ODACmd.cs" />
-    <Compile Include="ODAColumns.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <WCFMetadata Include="Connected Services\" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+﻿  <Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+      <OutputType>Library</OutputType>
+      <TargetFrameworks>net40;net46;netstandard2.0;netstandard2.1;netcoreapp2.0;</TargetFrameworks>
+      <AssemblyName>NYear.ODA</AssemblyName>
+      <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+      <Authors>Robin.zhu</Authors>
+      <Company>NYear</Company> 
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(TargetFramework)' == 'net40' or '$(TargetFramework)' == 'net46'">
+      <DefineConstants>$(DefineConstants);NET_FW;</DefineConstants>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0' Or '$(TargetFramework)' == 'netstandard2.1'">
+      <DefineConstants>$(DefineConstants);NET_STD</DefineConstants>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp2.0'">
+      <DefineConstants>$(DefineConstants);NET_CORE</DefineConstants>
+    </PropertyGroup>
+
+   <!-- '$(TargetFramework)' == 'netcoreapp3.0'-->
+    
+    <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.0' or '$(TargetFramework)' == 'netstandard2.0' Or '$(TargetFramework)' == 'netstandard2.1'">
+      <PackageReference Include="AdoNetCore.AseClient" Version="0.16.0" />
+      <PackageReference Include="IBM.Data.DB2.Core" Version="1.3.0.100" />
+      <PackageReference Include="MySql.Data" Version="8.0.15" />
+      <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="2.19.50" />
+      <PackageReference Include="System.Data.Common" Version="4.3.0" />
+      <PackageReference Include="System.Data.Odbc" Version="4.5.0" />
+      <PackageReference Include="System.Data.OleDb" Version="4.7.0" />
+      <PackageReference Include="System.Data.SqlClient" Version="4.6.0" />
+      <PackageReference Include="System.Data.SQLite" Version="1.0.112" />
+      <PackageReference Include="System.Reflection.Emit" Version="4.3.0" />
+      <PackageReference Include="System.Reflection.Emit.ILGeneration" Version="4.3.0" />
+      <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.3.0" />
+    </ItemGroup>
+ 
+ 
+    <ItemGroup Condition="'$(TargetFramework)' == 'net40' or '$(TargetFramework)' == 'net46'">
+      <Reference Include="IBM.Data.DB2, Version=9.7.4.4, Culture=neutral, PublicKeyToken=7c307b91aa13d208, processorArchitecture=x86">
+        <SpecificVersion>False</SpecificVersion>
+        <HintPath>..\Reference\IBM.Data.DB2.dll</HintPath>
+      </Reference>
+      <Reference Include="MySql.Data, Version=6.9.10.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL">
+        <SpecificVersion>False</SpecificVersion>
+        <HintPath>..\Reference\MySql.Data.dll</HintPath>
+      </Reference>
+      <Reference Include="Oracle.ManagedDataAccess, Version=4.122.18.3, Culture=neutral, PublicKeyToken=89b483f429c47342, processorArchitecture=MSIL">
+        <SpecificVersion>False</SpecificVersion>
+        <HintPath>..\Reference\Oracle.ManagedDataAccess.dll</HintPath>
+      </Reference>
+      <Reference Include="Sybase.AdoNet2.AseClient">
+        <HintPath>..\Reference\Sybase.AdoNet2.AseClient.dll</HintPath>
+      </Reference>
+      <Reference Include="System" />
+      <Reference Include="System.Data" />
+      <Reference Include="System.Data.SQLite, Version=1.0.109.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=MSIL">
+        <SpecificVersion>False</SpecificVersion>
+        <HintPath>..\Reference\SQLite\System.Data.SQLite.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Messaging" />
+      <Reference Include="System.Runtime.Remoting" />
+      <Reference Include="System.Xml" />
+     
+    </ItemGroup>
+
+
+
+    
+    
+    
+
+
 </Project>

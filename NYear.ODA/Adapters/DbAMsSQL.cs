@@ -155,7 +155,7 @@ namespace NYear.ODA.Adapter
 
         public override Dictionary<string, string[]> GetPrimarykey()
         {
-            string PrimaryCols = new StringBuilder().Append("SELECT DISTINCT A.TABLE_NAME B.COLUMN_NAME ")
+            string PrimaryCols = new StringBuilder().Append("SELECT DISTINCT A.TABLE_NAME, B.COLUMN_NAME ")
                 .Append(" FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS A ")
                 .Append(" INNER JOIN INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE B ")
                 .Append(" ON A.CONSTRAINT_NAME = B.CONSTRAINT_NAME ")
