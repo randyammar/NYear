@@ -58,7 +58,7 @@ Dapper、没有处功能不作对比；EF 、ODA、Sqlsugar 性能相差无几�
 
 ```C#
 // 全局设定
-ODAContext.SetODAConfig(dbInfo.DBtype, "server=localhost;database=master;uid=sa;pwd=sa;"); 
+ODAContext.SetODAConfig(DbAType.MsSQL, "server=localhost;database=master;uid=sa;pwd=sa;"); 
 
 // 单个上下文设定
 var ctx = new ODAContext(DbAType.MsSQL,"server=localhost;database=master;uid=sa;pwd=sa;");
