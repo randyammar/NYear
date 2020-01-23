@@ -54,6 +54,17 @@ Dapper、没有处功能不作对比；EF 、ODA、Sqlsugar 性能相差无几�
  ![image](https://github.com/riwfnsse/NYear/blob/master/NYear.PerformanceTest/Result/Paging.png)
 
 ## 用法示例
+###  连接数据库
+
+```C#
+// 全局设定
+ODAContext.SetODAConfig(dbInfo.DBtype, "server=localhost;database=master;uid=sa;pwd=sa;"); 
+
+// 单个上下文设定
+var ctx = new ODAContext(DbAType.MsSQL,"server=localhost;database=master;uid=sa;pwd=sa;");
+ 
+```
+
 ###  查询
 #### 简单查询
 SQL的关键字，在ODA中一般都会有对应的方法或属性。</br>
